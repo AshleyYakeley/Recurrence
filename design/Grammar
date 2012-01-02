@@ -1,0 +1,23 @@
+intersection: when, at, during, while, on
+union: and
+not: not
+intersection not: when not, except
+between, from-to
+start of
+end of
+
+
+2008
+January
+5th
+3pm
+16:17
+
+sunrise
+sunset
+midday
+midnight
+daytime = from sunrise to sunset
+nighttime = from sunset to sunrise
+
+
