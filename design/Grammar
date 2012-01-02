@@ -7,6 +7,26 @@ start of
 end of
 
 
+
+keywords:
+(*)
+* *
+not *
+*,*
+* to *
+* after *
+* before *
+
+
+"9pm Saturday to 2am"
+
+"Wednesday 3 of month"???
+* n of *
+
+
+never
+always?
+
 2008
 January
 5th
@@ -17,7 +37,7 @@ sunrise
 sunset
 midday
 midnight
-daytime = from sunrise to sunset
-nighttime = from sunset to sunrise
+daytime = sunrise to sunset
+nighttime = sunset to sunrise
 
 
