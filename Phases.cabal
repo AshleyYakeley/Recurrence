@@ -8,5 +8,5 @@ library
     default-language: Haskell2010
     default-extensions: KindSignatures TypeFamilies ScopedTypeVariables FlexibleInstances ImplicitParams
     build-depends: base
-    exposed-modules: Set PointSet StepFunction
+    exposed-modules: Set PointSet DeltaSmaller StepFunction
 
