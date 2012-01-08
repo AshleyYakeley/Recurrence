@@ -16,6 +16,14 @@ module Intervals where
         empty = pure False;
         member = sfValue;
         union = liftA2 (||);
+        intersect = liftA2 (&&);
+        diff = liftA2 (\a b -> a && (not b));
+    };
+    
+    instance (Ord a) => SetFull (Intervals a) where
+    {
+        full = pure True;
+        invert = fmap not;
     };
     
     intervalsFromTo :: (Ord a,?first :: a) => PointSet a -> PointSet a -> Intervals a;
@@ -24,9 +32,6 @@ module Intervals where
         sfValue = onAndOff ps1 ps2,
         sfPossibleChanges = union ps1 ps2
     };
-    
-    intervalsIntersect :: (Ord a) => Intervals a -> Intervals a -> Intervals a;
-    intervalsIntersect = liftA2 (&&);
     
     intervalsStartOf :: (DeltaSmaller a) => Intervals a -> PointSet a;
     intervalsStartOf i = sfMatchChanges i id;

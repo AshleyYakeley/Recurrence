@@ -58,26 +58,7 @@ module PointSet where
                 (Just r1,Just r2) -> Just (if r1 > r2 then r1 else r2);
             }
         };
-    };
-    
-    instance (Ord a) => SetSingle (PointSet a) where
-    {
-        single t = MkPointSet
-        {
-            ssMember = \a -> a == t,
-            ssFirstAfterUntil = \a limit -> if a < t && limit >= t then Just t else Nothing,
-            ssLastBeforeUntil = \a limit -> if a > t && limit <= t then Just t else Nothing
-        };
-    };
 
-    instance (Ord a) => SetSearch (PointSet a) where
-    {
-        firstAfterUntil = ssFirstAfterUntil;
-        lastBeforeUntil = ssLastBeforeUntil;
-    };
-    
-    instance (Ord a) => Set2 (PointSet a) where
-    {
         intersect s1 s2 = MkPointSet
         {
             ssMember = \a -> (ssMember s1 a) && (ssMember s2 a),
@@ -110,8 +91,29 @@ module PointSet where
                 };
             } in search a'
         };
+        
+        diff s1 = filterIntersect (not . (member s1));
+    };
+    
+    instance (Ord a) => SetSingle (PointSet a) where
+    {
+        single t = MkPointSet
+        {
+            ssMember = \a -> a == t,
+            ssFirstAfterUntil = \a limit -> if a < t && limit >= t then Just t else Nothing,
+            ssLastBeforeUntil = \a limit -> if a > t && limit <= t then Just t else Nothing
+        };
+    };
 
-        fIntersect f ss = MkPointSet
+    instance (Ord a) => SetSearch (PointSet a) where
+    {
+        firstAfterUntil = ssFirstAfterUntil;
+        lastBeforeUntil = ssLastBeforeUntil;
+    };
+    
+    instance (Ord a) => SetFilter (PointSet a) where
+    {
+        filterIntersect f ss = MkPointSet
         {
             ssMember = \a -> (ssMember ss a) && (f a),
             ssFirstAfterUntil = \a' limit -> let

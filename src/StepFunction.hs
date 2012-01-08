@@ -36,7 +36,7 @@ module StepFunction where
     };
     
     sfChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> PointSet a;
-    sfChanges sf = fIntersect (\a -> case deltaSmaller a of
+    sfChanges sf = filterIntersect (\a -> case deltaSmaller a of
     {
         Just a' -> case ssLastBeforeUntil (sfPossibleChanges sf) a a' of
         {
@@ -47,8 +47,8 @@ module StepFunction where
     }) (sfPossibleChanges sf);
     
     sfMatchPossibleChanges :: (Ord a) => StepFunction a b -> (b -> Bool) -> PointSet a;
-    sfMatchPossibleChanges sf match = fIntersect (match . (sfValue sf)) (sfPossibleChanges sf);
+    sfMatchPossibleChanges sf match = filterIntersect (match . (sfValue sf)) (sfPossibleChanges sf);
     
     sfMatchChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> (b -> Bool) -> PointSet a;
-    sfMatchChanges sf match = fIntersect (match . (sfValue sf)) (sfChanges sf);
+    sfMatchChanges sf match = filterIntersect (match . (sfValue sf)) (sfChanges sf);
 }

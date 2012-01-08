@@ -6,6 +6,8 @@ module Set where
         empty :: s;
         member :: s -> Base s -> Bool;
         union :: s -> s -> s;
+        intersect :: s -> s -> s;
+        diff :: s -> s -> s;
     };
     
     class (Set1 s) => SetSingle (s :: *) where
@@ -21,11 +23,16 @@ module Set where
         lastBeforeUntil :: s -> Base s -> Base s -> Maybe (Base s);
     };
     
-    class (Set1 s) => Set2 (s :: *) where
+    class (Set1 s) => SetFilter (s :: *) where
     {
-        intersect :: s -> s -> s;
-        fIntersect :: (Base s -> Bool) -> s -> s;
-        intersect s = fIntersect (member s);
+        filterIntersect :: (Base s -> Bool) -> s -> s;
+    };
+    
+    class (Set1 s) => SetFull (s :: *) where
+    {
+        full :: s;
+        invert :: s -> s;
+        invert = diff full;
     };
 
     instance (Eq a) => Set1 (a -> Bool) where
@@ -34,6 +41,8 @@ module Set where
         empty _ = False;
         member = id;
         union s1 s2 a = (s1 a) || (s2 a);
+        intersect s1 s2 a = (s1 a) && (s2 a);
+        diff s1 s2 a = (s1 a) && (not (s2 a));
     };
 
     instance (Eq a) => SetSingle (a -> Bool) where
@@ -41,10 +50,14 @@ module Set where
         single = (==);
     };
 
-    instance (Eq a) => Set2 (a -> Bool) where
+    instance (Eq a) => SetFilter (a -> Bool) where
     {
-        intersect s1 s2 a = (s1 a) && (s2 a);
-        fIntersect = intersect;
+        filterIntersect = intersect;
     };
 
+    instance (Eq a) => SetFull (a -> Bool) where
+    {
+        full _ = True;
+        invert s a = not (s a);
+    };
 }
