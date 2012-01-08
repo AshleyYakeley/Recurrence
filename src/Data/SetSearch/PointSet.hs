@@ -19,6 +19,7 @@ module Data.SetSearch.PointSet where
 
     
     -- | True if kpsOn switched on more recently than psOff
+    ;
     onAndOff :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Bool;
     onAndOff kpsOn psOff a = case ssLastBefore kpsOn a of
     {

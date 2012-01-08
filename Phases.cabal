@@ -20,4 +20,5 @@ library
         Data.SetSearch.DeltaSmaller
         Data.SetSearch.StepFunction 
         Data.SetSearch.Intervals
+        Data.SetSearch
 

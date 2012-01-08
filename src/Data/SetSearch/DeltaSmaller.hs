@@ -3,7 +3,8 @@ module Data.SetSearch.DeltaSmaller where
     class (Ord a) => DeltaSmaller a where
     {
         -- | Return some slightly smaller value, unless given the smallest possible value.
-        -- What "slightly" means doesn't really matter.
+        -- What \"slightly\" means doesn't really matter.
+        ;
         deltaSmaller :: a -> Maybe a;
     };
     
