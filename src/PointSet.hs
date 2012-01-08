@@ -1,4 +1,4 @@
-module StationSet where
+module PointSet where
 {
     import Set;
 

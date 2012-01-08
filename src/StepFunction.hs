@@ -1,8 +1,8 @@
-module PhaseSet where
+module StepFunction where
 {
-    import Set;
-    import StationSet;
     import Control.Applicative hiding (empty);
+    import Set;
+    import PointSet;
     
     class (Ord a) => DeltaSmaller a where
     {
