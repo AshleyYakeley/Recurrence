@@ -1,9 +1,11 @@
 module StationSet where
 {
+    import Set;
+
     {-
     To be correct, this must have only a finite number of members in any interval.
     -}
-    data StationSet a = MkStationSet
+    data PointSet a = MkPointSet
     {
         ssMember :: a -> Bool,
         -- strictly after, up to including limit
@@ -12,96 +14,42 @@ module StationSet where
         ssLastBeforeUntil :: a -> a -> Maybe a
     };
 
-    data KnownStationSet a = MkKnownStationSet
-    {
-        kssMember :: a -> Bool,
-        -- strictly after
-        kssFirstAfter :: a -> Maybe a,
-        -- strictly before
-        kssLastBefore :: a -> Maybe a
-    };
-    
-    class Set1 (s :: *) where
-    {
-        type Base s :: *;
-        empty :: s;
-        member :: s -> Base s -> Bool;
-        single :: Base s -> s;
-        union :: s -> s -> s;
-        -- strictly after, up to including limit
-        firstAfterUntil :: s -> Base s -> Base s -> Maybe (Base s);
-        -- strictly before, up to including limit
-        lastBeforeUntil :: s -> Base s -> Base s -> Maybe (Base s);
-    };
-    
-    class (Set1 s) => Set2 (s :: *) where
-    {
-        intersect :: s -> s -> s;
-    };
-    
-    instance (Ord a) => Set1 (KnownStationSet a) where
-    {
-        type Base (KnownStationSet a) = a;
-        empty = MkKnownStationSet
-        {
-            kssMember = \_ -> False,
-            kssFirstAfter = \_ -> Nothing,
-            kssLastBefore = \_ -> Nothing
-        };
-    
-        member = kssMember;
-    
-        single t = MkKnownStationSet
-        {
-            kssMember = \a -> a == t,
-            kssFirstAfter = \a -> if a < t then Just t else Nothing,
-            kssLastBefore = \a -> if a > t then Just t else Nothing
-        };
+    ssLastBefore :: (Ord a,?first :: a) => PointSet a -> a -> Maybe a;
+    ssLastBefore ps a = ssLastBeforeUntil ps a ?first;
 
-        union s1 s2 = MkKnownStationSet
+    
+    -- | True if kpsOn switched on more recently than psOff
+    onAndOff :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Bool;
+    onAndOff kpsOn psOff a = case ssLastBefore kpsOn a of
+    {
+        Just r1 -> case ssFirstAfterUntil psOff r1 a of -- to switch off, it must be strictly after the on 
         {
-            kssMember = \a -> (kssMember s1 a) || (kssMember s2 a),
-            kssFirstAfter = \a -> case (kssFirstAfter s1 a,kssFirstAfter s2 a) of
-            {
-                (mr,Nothing) -> mr;
-                (Nothing,mr) -> mr;
-                (Just r1,Just r2) -> Just (if r1 < r2 then r1 else r2);
-            },
-            kssLastBefore = \a -> case (kssLastBefore s1 a,kssLastBefore s2 a) of
-            {
-                (mr,Nothing) -> mr;
-                (Nothing,mr) -> mr;
-                (Just r1,Just r2) -> Just (if r1 > r2 then r1 else r2);
-            }
+            Just _ -> False; -- off after on
+            Nothing -> True; -- no off after on
         };
-        firstAfterUntil s a limit = do
-        {
-            r <- kssFirstAfter s a;
-            if r <= limit then return r else Nothing;
-        };
-        lastBeforeUntil s a limit = do
-        {
-            r <- kssLastBefore s a;
-            if r >= limit then return r else Nothing;
-        };
+        Nothing -> False; -- never switched on
     };
     
-    toStationSet :: (Set1 s) => s -> StationSet (Base s);
-    toStationSet s = MkStationSet
+    instance (Ord a) => Set1 (PointSet a) where
     {
-        ssMember = member s,
-        ssFirstAfterUntil = firstAfterUntil s,
-        ssLastBeforeUntil = lastBeforeUntil s
-    };
-    
-    instance (Ord a) => Set1 (StationSet a) where
-    {
-        type Base (StationSet a) = a;
-        empty = toStationSet (empty :: KnownStationSet a);
-        single a = toStationSet (single a :: KnownStationSet a);
-        member = ssMember;
+        type Base (PointSet a) = a;
+        empty = MkPointSet
+        {
+            ssMember = \_ -> False,
+            ssFirstAfterUntil = \_ _ -> Nothing,
+            ssLastBeforeUntil = \_ _ -> Nothing
+        };
         
-        union s1 s2 = MkStationSet
+        member = ssMember;
+     
+        single t = MkPointSet
+        {
+            ssMember = \a -> a == t,
+            ssFirstAfterUntil = \a limit -> if a < t && limit >= t then Just t else Nothing,
+            ssLastBeforeUntil = \a limit -> if a > t && limit <= t then Just t else Nothing
+        };
+       
+        union s1 s2 = MkPointSet
         {
             ssMember = \a -> (ssMember s1 a) || (ssMember s2 a),
             ssFirstAfterUntil = \a limit -> case (ssFirstAfterUntil s1 a limit,ssFirstAfterUntil s2 a limit) of
@@ -117,14 +65,17 @@ module StationSet where
                 (Just r1,Just r2) -> Just (if r1 > r2 then r1 else r2);
             }
         };
-    
+    };
+
+    instance (Ord a) => SetSearch (PointSet a) where
+    {
         firstAfterUntil = ssFirstAfterUntil;
         lastBeforeUntil = ssLastBeforeUntil;
     };
     
-    instance (Ord a) => Set2 (StationSet a) where
+    instance (Ord a) => Set2 (PointSet a) where
     {
-        intersect s1 s2 = MkStationSet
+        intersect s1 s2 = MkPointSet
         {
             ssMember = \a -> (ssMember s1 a) && (ssMember s2 a),
             ssFirstAfterUntil = \a' limit -> let
@@ -156,9 +107,30 @@ module StationSet where
                 };
             } in search a'
         };
+
+        fIntersect f ss = MkPointSet
+        {
+            ssMember = \a -> (ssMember ss a) && (f a),
+            ssFirstAfterUntil = \a' limit -> let
+            {
+                search a = do
+                {
+                    r <- ssFirstAfterUntil ss a limit;
+                    if f r
+                     then return r
+                     else search r;
+                };   
+            } in search a',
+            ssLastBeforeUntil = \a' limit -> let
+            {
+                search a = do
+                {
+                    r <- ssLastBeforeUntil ss a limit;
+                    if f r
+                     then return r
+                     else search r;
+                };   
+            } in search a'
+        };
     };
-
-    --firstAfter :: KnownStationSet a -> KnownStationSet a -> KnownStationSet a;
-    --firstAfter
-
 }

@@ -8,20 +8,18 @@ end of
 
 
 
-keywords:
-(*)
-* *
-not *
-*,*
-* to *
-* after *
-* before *
+Grammar:
+(T)
+T T
+not T
+T,T
+T to T
 
 
-"9pm Saturday to 2am"
+"from 9pm Saturday to 2am"
 
 "Wednesday 3 of month"???
-* n of *
+T n of T
 
 
 never
@@ -39,5 +37,12 @@ midday
 midnight
 daytime = sunrise to sunset
 nighttime = sunset to sunrise
+
+member "Wednesday Thursday"
+
+
+
+year :: time -> Int
+
 
 
