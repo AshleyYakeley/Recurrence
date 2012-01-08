@@ -8,9 +8,7 @@ module Intervals where
     
     type Intervals a = StepFunction a Bool;
     
-    iMember = sfValue;
-    
-    instance (Ord a) => Set1 (Intervals a) where
+    instance (Ord a) => Set (Intervals a) where
     {
         type Base (Intervals a) = a;
         empty = pure False;

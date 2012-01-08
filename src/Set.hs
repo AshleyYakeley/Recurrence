@@ -1,6 +1,6 @@
 module Set where
 {
-    class Set1 (s :: *) where
+    class Set (s :: *) where
     {
         type Base s :: *;
         empty :: s;
@@ -10,12 +10,12 @@ module Set where
         diff :: s -> s -> s;
     };
     
-    class (Set1 s) => SetSingle (s :: *) where
+    class (Set s) => SetSingle (s :: *) where
     {
         single :: Base s -> s;
     };
     
-    class (Set1 s) => SetSearch s where
+    class (Set s) => SetSearch s where
     {
         -- strictly after, up to including limit
         firstAfterUntil :: s -> Base s -> Base s -> Maybe (Base s);
@@ -23,19 +23,19 @@ module Set where
         lastBeforeUntil :: s -> Base s -> Base s -> Maybe (Base s);
     };
     
-    class (Set1 s) => SetFilter (s :: *) where
+    class (Set s) => SetFilter (s :: *) where
     {
         filterIntersect :: (Base s -> Bool) -> s -> s;
     };
     
-    class (Set1 s) => SetFull (s :: *) where
+    class (Set s) => SetFull (s :: *) where
     {
         full :: s;
         invert :: s -> s;
         invert = diff full;
     };
 
-    instance (Eq a) => Set1 (a -> Bool) where
+    instance (Eq a) => Set (a -> Bool) where
     {
         type Base (a -> Bool) = a;
         empty _ = False;

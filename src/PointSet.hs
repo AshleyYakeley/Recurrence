@@ -30,7 +30,7 @@ module PointSet where
         Nothing -> False; -- never switched on
     };
     
-    instance (Ord a) => Set1 (PointSet a) where
+    instance (Ord a) => Set (PointSet a) where
     {
         type Base (PointSet a) = a;
         empty = MkPointSet
