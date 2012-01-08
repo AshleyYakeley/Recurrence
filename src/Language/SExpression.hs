@@ -1,5 +1,6 @@
 module Language.SExpression where
 {
+    import Data.Char;
     import Data.List;
     import Text.Read;
     import Text.ParserCombinators.ReadPrec;
@@ -49,16 +50,8 @@ module Language.SExpression where
                 readAll_ reader;
             }) <++ (return ());
         
-        ws :: Char -> Bool;
-        ws ' ' = True;
-        ws '\t' = True;
-        ws '\n' = True;
-        ws '\r' = True;
-        ws '\f' = True;
-        ws _ = False;
-        
         readAnyWhiteSpace :: ReadPrec ();
-        readAnyWhiteSpace = readAll_ (matchChar ws);
+        readAnyWhiteSpace = readAll_ (matchChar isSpace);
         
         readExp :: ReadPrec (SExpression a);
         readExp = do
