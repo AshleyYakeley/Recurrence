@@ -5,8 +5,12 @@ module Set where
         type Base s :: *;
         empty :: s;
         member :: s -> Base s -> Bool;
-        single :: Base s -> s;
         union :: s -> s -> s;
+    };
+    
+    class (Set1 s) => SetSingle (s :: *) where
+    {
+        single :: Base s -> s;
     };
     
     class (Set1 s) => SetSearch s where
@@ -29,8 +33,12 @@ module Set where
         type Base (a -> Bool) = a;
         empty _ = False;
         member = id;
-        single = (==);
         union s1 s2 a = (s1 a) || (s2 a);
+    };
+
+    instance (Eq a) => SetSingle (a -> Bool) where
+    {
+        single = (==);
     };
 
     instance (Eq a) => Set2 (a -> Bool) where

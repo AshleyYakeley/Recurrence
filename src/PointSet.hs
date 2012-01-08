@@ -42,13 +42,6 @@ module PointSet where
         
         member = ssMember;
      
-        single t = MkPointSet
-        {
-            ssMember = \a -> a == t,
-            ssFirstAfterUntil = \a limit -> if a < t && limit >= t then Just t else Nothing,
-            ssLastBeforeUntil = \a limit -> if a > t && limit <= t then Just t else Nothing
-        };
-       
         union s1 s2 = MkPointSet
         {
             ssMember = \a -> (ssMember s1 a) || (ssMember s2 a),
@@ -64,6 +57,16 @@ module PointSet where
                 (Nothing,mr) -> mr;
                 (Just r1,Just r2) -> Just (if r1 > r2 then r1 else r2);
             }
+        };
+    };
+    
+    instance (Ord a) => SetSingle (PointSet a) where
+    {
+        single t = MkPointSet
+        {
+            ssMember = \a -> a == t,
+            ssFirstAfterUntil = \a limit -> if a < t && limit >= t then Just t else Nothing,
+            ssLastBeforeUntil = \a limit -> if a > t && limit <= t then Just t else Nothing
         };
     };
 

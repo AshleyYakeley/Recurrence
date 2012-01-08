@@ -51,46 +51,4 @@ module StepFunction where
     
     sfMatchChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> (b -> Bool) -> PointSet a;
     sfMatchChanges sf match = fIntersect (match . (sfValue sf)) (sfChanges sf);
-    
-    type Intervals a = StepFunction a Bool;
-    
-    iMember = sfValue;
-    iStarts sf = sfMatchPossibleChanges sf id;
-    iEnds sf = sfMatchPossibleChanges sf not;
-    
-    intervalsEmpty :: (Ord a) => Intervals a;
-    intervalsEmpty = pure False;
-
-    intervalsFromTo :: (Ord a,?first :: a) => PointSet a -> PointSet a -> Intervals a;
-    intervalsFromTo ps1 ps2 = MkStepFunction
-    {
-        sfValue = onAndOff ps1 ps2,
-        sfPossibleChanges = union ps1 ps2
-    };
-    
-    intervalsUnion :: (Ord a) => Intervals a -> Intervals a -> Intervals a;
-    intervalsUnion = liftA2 (||);
-    
-    intervalsIntersect :: (Ord a) => Intervals a -> Intervals a -> Intervals a;
-    intervalsIntersect = liftA2 (&&);
-    
-    intervalsStartOf :: (DeltaSmaller a) => Intervals a -> PointSet a;
-    intervalsStartOf i = sfMatchChanges i id;
-    
-    intervalsEndOf :: (DeltaSmaller a) => Intervals a -> PointSet a;
-    intervalsEndOf i = sfMatchChanges i not;
-    
-
-{-    
-    intervalsIntersect :: (Ord a) => Intervals a -> Intervals a -> Intervals a;
-    intervalsIntersect (MkIntervals start1 ends1) (MkIntervals start2 ends2) = 
-        MkIntervals () (union ends1 ends2);
- -}   
-    data Phase a = MkPhase Bool (Intervals a);
-    
-    phaseEmpty :: (Ord a) => Phase a;
-    phaseEmpty = MkPhase False intervalsEmpty;
-    
-    phaseMember :: (Ord a) => Phase a -> a -> Bool;
-    phaseMember (MkPhase prior intervals) t = (iMember intervals t) /= prior;
 }

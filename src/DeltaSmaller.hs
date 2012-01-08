@@ -16,5 +16,4 @@ module DeltaSmaller where
     {
         deltaSmaller a = Just (a - 1);
     };
-
 }
