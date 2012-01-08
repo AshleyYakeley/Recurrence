@@ -16,6 +16,18 @@ T,T
 T to T
 
 
+
+
+"every Thursday in 2013"
+"from one hour before sunrise to sunrise"
+"the first Sunday after the first full moon after the March equinox".
+
+(intersect Thursday (year 2013))
+(interval (delay sunrise -1h) sunrise)
+(nth-after 1 Sunday (nth-after 1 full-moon March-equinox))
+(after (nth-in 6 Friday month))
+
+
 "from 9pm Saturday to 2am"
 
 "Wednesday 3 of month"???
