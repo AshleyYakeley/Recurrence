@@ -1,9 +1,9 @@
-module StepFunction where
+module Data.SetSearch.StepFunction where
 {
     import Control.Applicative hiding (empty);
-    import Set;
-    import PointSet;
-    import DeltaSmaller;
+    import Data.SetSearch.Set;
+    import Data.SetSearch.PointSet;
+    import Data.SetSearch.DeltaSmaller;
     
     data StepFunction a b = MkStepFunction
     {

@@ -1,10 +1,10 @@
-module Intervals where
+module Data.SetSearch.Intervals where
 {
     import Control.Applicative hiding (empty);
-    import Set;
-    import PointSet;
-    import DeltaSmaller;
-    import StepFunction;
+    import Data.SetSearch.Set;
+    import Data.SetSearch.PointSet;
+    import Data.SetSearch.DeltaSmaller;
+    import Data.SetSearch.StepFunction;
     
     type Intervals a = StepFunction a Bool;
     

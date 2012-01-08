@@ -1,6 +1,6 @@
-module PointSet where
+module Data.SetSearch.PointSet where
 {
-    import Set;
+    import Data.SetSearch.Set;
 
     {-
     To be correct, this must have only a finite number of members in any interval.

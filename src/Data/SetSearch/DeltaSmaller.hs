@@ -1,4 +1,4 @@
-module DeltaSmaller where
+module Data.SetSearch.DeltaSmaller where
 {
     class (Ord a) => DeltaSmaller a where
     {

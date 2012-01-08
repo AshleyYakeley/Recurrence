@@ -1,4 +1,4 @@
-module Set where
+module Data.SetSearch.Set where
 {
     class Set (s :: *) where
     {
