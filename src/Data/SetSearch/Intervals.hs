@@ -24,8 +24,11 @@ module Data.SetSearch.Intervals where
         invert = fmap not;
     };
     
-    intervalsIntersect :: (Ord a) => Intervals a -> PointSet a -> PointSet a;
-    intervalsIntersect i = filterIntersect (member i);
+    intervalsIntersect :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
+    intervalsIntersect p i = filterIntersect (member i) p;
+    
+    intervalsDiff :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
+    intervalsDiff p i = filterIntersect (not . (member i)) p;
     
     intervalsFromTo :: (Ord a,?first :: a) => PointSet a -> PointSet a -> Intervals a;
     intervalsFromTo ps1 ps2 = MkStepFunction
