@@ -23,5 +23,7 @@ library
         Data.SetSearch
         Language.SExpression
         Data.TimePhase.Read
+        Data.TimePhase.Value
+        Data.TimePhase.Dict
         Data.TimePhase.Eval
 
