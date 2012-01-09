@@ -3,7 +3,7 @@ module Data.TimePhase.Value where
     import Data.SetSearch;
     import Data.Time;
 
-    data Phase a = IntervalsPhase (Intervals a) | PointSetPhase (PointSet a) | InversePointSetPhase (PointSet a);
+    data Phase a = IntervalsPhase (Intervals a) | PointSetPhase (PointCoPointSet a);
     
     type TimePhase = Phase LocalTime;
     
@@ -26,6 +26,21 @@ module Data.TimePhase.Value where
         toFunctionValue :: a -> [Value] -> M Value;
         toFunctionValue a [] = return (toValue a);
         toFunctionValue _ _ = reportError "expected function";
+    };
+    
+    instance (IsValue a) => IsValues (Maybe a) where
+    {
+        toValues (Just a) = [toValue a];
+        toValues Nothing = [];
+        fromValues vals = case vals of
+        {
+            [] -> return (Nothing,[]);
+            v:vs -> do
+            {
+                a <- fromValue v;
+                return (Just a,vs);
+            };
+        };
     };
     
     instance (IsValue a) => IsValues [a] where
