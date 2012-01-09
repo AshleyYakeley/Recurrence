@@ -5,7 +5,14 @@ module Data.TimePhase.Value where
 
     data Phase a = IntervalsPhase (Intervals a) | PointSetPhase (PointCoPointSet a);
     
-    type TimePhase = Phase UTCTime;
+    type T = UTCTime;
+
+    instance DeltaSmaller T where
+    {
+        deltaSmaller (UTCTime d t) = Just (UTCTime (addDays (-1) d) t);
+    };
+
+    type TimePhase = Phase T;
     
     type M = Either String;
     reportError :: String -> M a;
@@ -74,6 +81,32 @@ module Data.TimePhase.Value where
         toValue = PhaseValue;
         fromValue (PhaseValue x) = return x;
         fromValue _ = reportError "expected phase";
+    };
+    
+    instance IsValues (Intervals T) where
+    {
+        toValues = defaultToValues;
+        fromValues = defaultFromValues;
+    };
+    
+    instance IsValue (Intervals T) where
+    {
+        toValue = PhaseValue . IntervalsPhase;
+        fromValue (PhaseValue (IntervalsPhase x)) = return x;
+        fromValue _ = reportError "expected intervals";
+    };
+    
+    instance IsValues (PointSet T) where
+    {
+        toValues = defaultToValues;
+        fromValues = defaultFromValues;
+    };
+    
+    instance IsValue (PointSet T) where
+    {
+        toValue = PhaseValue . PointSetPhase . PointPCPSet;
+        fromValue (PhaseValue (PointSetPhase (PointPCPSet x))) = return x;
+        fromValue _ = reportError "expected points";
     };
     
     instance IsValues NominalDiffTime where

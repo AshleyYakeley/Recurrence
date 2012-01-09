@@ -42,11 +42,47 @@ module Data.TimePhase.Dict (evalAtom) where
         unionPair tp rest;
     };
 
+    startOf :: TimePhase -> PointSet T;
+    startOf (IntervalsPhase ints) = intervalsStartOf ints;
+    startOf (PointSetPhase (PointPCPSet set)) = set;
+    startOf (PointSetPhase (CoPointPCPSet set)) = set;
+
+    endOf :: TimePhase -> PointSet T;
+    endOf (IntervalsPhase ints) = intervalsEndOf ints;
+    endOf (PointSetPhase (PointPCPSet set)) = set;
+    endOf (PointSetPhase (CoPointPCPSet set)) = set;
+
+    midnights :: PointSet T;
+    midnights = MkPointSet
+    {
+        ssMember = \t -> (utctDayTime t == 0),
+        ssFirstAfterUntil = \t limit -> let
+        {
+            t' = UTCTime
+            {
+                utctDay = addDays 1 (utctDay t),
+                utctDayTime = 0
+            };
+        } in if t' <= limit then Just t' else Nothing,
+        ssLastBeforeUntil = \t limit -> let
+        {
+            day = utctDay t;
+            t' = UTCTime
+            {
+                utctDay = if utctDayTime t > 0 then day else addDays (-1) day,
+                utctDayTime = 0
+            };
+        } in if t' >= limit then Just t' else Nothing
+    };
+    
     dict :: String -> Maybe Value;
     dict "never" = Just (toValue never);
     dict "always" = Just (toValue always);
     dict "intersect" = Just (toValue intersectAll);
     dict "union" = Just (toValue unionAll);
+    dict "start" = Just (toValue startOf);
+    dict "end" = Just (toValue endOf);
+    dict "midnight" = Just (toValue midnights);
     dict s = Nothing;
     
     evalAtom :: String -> Maybe Value;
