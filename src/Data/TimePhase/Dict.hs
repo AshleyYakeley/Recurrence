@@ -5,7 +5,7 @@ module Data.TimePhase.Dict (evalAtom) where
     import Data.Time;
     
     never :: TimePhase;
-    never = PointSetPhase empty;
+    never = IntervalsPhase empty;
     
     always :: TimePhase;
     always = IntervalsPhase full;
@@ -25,9 +25,10 @@ module Data.TimePhase.Dict (evalAtom) where
         rest <- intersectAll tps;
         intersectPair tp rest;
     };
-           
+
     dict :: String -> Maybe Value;
     dict "never" = Just (toValue never);
+    dict "always" = Just (toValue always);
     dict "intersect" = Just (toValue intersectAll);
     dict s = Nothing;
     

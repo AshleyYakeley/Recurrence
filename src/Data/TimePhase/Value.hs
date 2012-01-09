@@ -5,13 +5,13 @@ module Data.TimePhase.Value where
 
     data Phase a = IntervalsPhase (Intervals a) | PointSetPhase (PointCoPointSet a);
     
-    type TimePhase = Phase LocalTime;
+    type TimePhase = Phase UTCTime;
     
     type M = Either String;
     reportError :: String -> M a;
     reportError = Left;
     
-    data Value = PhaseValue TimePhase | FunctionValue ([Value] -> M Value);
+    data Value = PhaseValue TimePhase | IntegerValue Int | DurationValue NominalDiffTime | FunctionValue ([Value] -> M Value);
     
     class IsValues a where
     {
@@ -74,6 +74,32 @@ module Data.TimePhase.Value where
         toValue = PhaseValue;
         fromValue (PhaseValue x) = return x;
         fromValue _ = reportError "expected phase";
+    };
+    
+    instance IsValues NominalDiffTime where
+    {
+        toValues = defaultToValues;
+        fromValues = defaultFromValues;
+    };
+    
+    instance IsValue NominalDiffTime where
+    {
+        toValue = DurationValue;
+        fromValue (DurationValue x) = return x;
+        fromValue _ = reportError "expected duration";
+    };
+    
+    instance IsValues Int where
+    {
+        toValues = defaultToValues;
+        fromValues = defaultFromValues;
+    };
+    
+    instance IsValue Int where
+    {
+        toValue = IntegerValue;
+        fromValue (IntegerValue x) = return x;
+        fromValue _ = reportError "expected integer";
     };
     
     instance (IsValue a) => IsValues (M a) where
