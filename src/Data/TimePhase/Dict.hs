@@ -55,22 +55,22 @@ module Data.TimePhase.Dict (evalAtom) where
     midnights :: PointSet T;
     midnights = MkPointSet
     {
-        ssMember = \t -> (utctDayTime t == 0),
+        ssMember = \t -> (localTimeOfDay t == midnight),
         ssFirstAfterUntil = \t limit -> let
         {
-            t' = UTCTime
+            t' = LocalTime
             {
-                utctDay = addDays 1 (utctDay t),
-                utctDayTime = 0
+                localDay = addDays 1 (localDay t),
+                localTimeOfDay = midnight
             };
         } in if t' <= limit then Just t' else Nothing,
         ssLastBeforeUntil = \t limit -> let
         {
-            day = utctDay t;
-            t' = UTCTime
+            day = localDay t;
+            t' = LocalTime
             {
-                utctDay = if utctDayTime t > 0 then day else addDays (-1) day,
-                utctDayTime = 0
+                localDay = if localTimeOfDay t > midnight then day else addDays (-1) day,
+                localTimeOfDay = midnight
             };
         } in if t' >= limit then Just t' else Nothing
     };

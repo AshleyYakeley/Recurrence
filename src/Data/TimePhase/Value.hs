@@ -1,19 +1,32 @@
 module Data.TimePhase.Value where
 {
+    import Data.Fixed;
     import Data.SetSearch;
     import Data.Time;
 
+    nominalDayLength :: NominalDiffTime;
+    nominalDayLength = 86400;
+
+    addLocalTime :: NominalDiffTime -> LocalTime -> LocalTime;
+    addLocalTime ndt t = let
+    {
+        tod = (realToFrac (timeOfDayToTime (localTimeOfDay t))) + ndt;
+    } in
+    LocalTime
+    {
+        localDay = addDays (fromIntegral (div' tod nominalDayLength)) (localDay t),
+        localTimeOfDay = timeToTimeOfDay (realToFrac (mod' tod nominalDayLength))
+    };
+
     data Phase a = IntervalsPhase (Intervals a) | PointSetPhase (PointCoPointSet a);
     
-    type T = UTCTime;
+    type T = LocalTime;
 
     getNow :: IO T;
-    getNow = getCurrentTime;
+    getNow = fmap zonedTimeToLocalTime getZonedTime;
 
-    instance DeltaSmaller T where
-    {
-        deltaSmaller (UTCTime d t) = Just (UTCTime (addDays (-1) d) t);
-    };
+    addT :: NominalDiffTime -> T -> T;
+    addT = addLocalTime;
 
     type TimePhase = Phase T;
     
