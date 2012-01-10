@@ -21,38 +21,38 @@ module Language.SExpression where
     {
         show = showSExpression show;
     };
+
+    matchChar :: (Char -> Bool) -> ReadPrec Char;
+    matchChar match = do
+    {
+        found <- get;
+        if match found then return found else pfail;
+    };
     
+    isChar :: Char -> ReadPrec ();
+    isChar expected = matchChar (\found -> expected == found) >> return ();
+    
+    readAll :: forall b. ReadPrec b -> ReadPrec [b];
+    readAll reader = (do
+        {
+            b <- reader;
+            bs <- readAll reader;
+            return (b:bs);
+        }) <++ (return []);
+    
+    readAll_ :: forall b. ReadPrec b -> ReadPrec ();
+    readAll_ reader = (do
+        {
+            _ <- reader;
+            readAll_ reader;
+        }) <++ (return ());
+    
+    readAnyWhiteSpace :: ReadPrec ();
+    readAnyWhiteSpace = readAll_ (matchChar isSpace);
+
     readSExpression :: forall a. ReadPrec a -> ReadPrec (SExpression a);
     readSExpression readAtom = readExp where
     {
-        matchChar :: (Char -> Bool) -> ReadPrec ();
-        matchChar match = do
-        {
-            found <- get;
-            if match found then return () else pfail;
-        };
-        
-        isChar :: Char -> ReadPrec ();
-        isChar expected = matchChar (\found -> expected == found);
-        
-        readAll :: forall b. ReadPrec b -> ReadPrec [b];
-        readAll reader = (do
-            {
-                b <- reader;
-                bs <- readAll reader;
-                return (b:bs);
-            }) <++ (return []);
-        
-        readAll_ :: forall b. ReadPrec b -> ReadPrec ();
-        readAll_ reader = (do
-            {
-                _ <- reader;
-                readAll_ reader;
-            }) <++ (return ());
-        
-        readAnyWhiteSpace :: ReadPrec ();
-        readAnyWhiteSpace = readAll_ (matchChar isSpace);
-        
         readExp :: ReadPrec (SExpression a);
         readExp = do
         {

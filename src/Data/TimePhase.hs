@@ -1,4 +1,4 @@
-module Data.TimePhase where
+module Data.TimePhase(M,T,Value,readValue) where
 {
     import Text.ParserCombinators.ReadPrec;
     import Data.TimePhase.Read;

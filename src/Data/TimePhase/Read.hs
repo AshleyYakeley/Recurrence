@@ -3,24 +3,6 @@ module Data.TimePhase.Read (readExpression) where
     import Data.Char;
     import Language.SExpression;
     import Text.ParserCombinators.ReadPrec;
-
-    matchChar :: (Char -> Bool) -> ReadPrec Char;
-    matchChar match = do
-    {
-        found <- get;
-        if match found then return found else pfail;
-    };
-    
-    isChar :: Char -> ReadPrec ();
-    isChar expected = matchChar (\found -> expected == found) >> (return ());
-    
-    readAll :: forall b. ReadPrec b -> ReadPrec [b];
-    readAll reader = (do
-        {
-            b <- reader;
-            bs <- readAll reader;
-            return (b:bs);
-        }) <++ (return []);
     
     isGoodChar :: Char -> Bool;
     isGoodChar '"' = False;
