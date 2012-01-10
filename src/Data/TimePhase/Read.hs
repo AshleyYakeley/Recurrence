@@ -11,7 +11,7 @@ module Data.TimePhase.Read (readExpression) where
     bsChar :: ReadPrec Char;
     bsChar = do
     {
-        isChar '\\';
+        readThis '\\';
         get;
     };
     
@@ -23,14 +23,14 @@ module Data.TimePhase.Read (readExpression) where
     readQuoted :: ReadPrec String;
     readQuoted = do
     {
-        isChar '"';
-        s <- readAll (bsChar <++ (matchChar isInQuoteChar));
-        isChar '"';
+        readThis '"';
+        s <- readZeroOrMore (bsChar <++ (readMatching isInQuoteChar));
+        readThis '"';
         return s;
     };
     
     readAtom :: ReadPrec String;
-    readAtom = readQuoted <++ (readAll (matchChar isGoodChar));
+    readAtom = readQuoted <++ (readOneOrMore (readMatching isGoodChar));
 
     readExpression :: ReadPrec (SExpression String);
     readExpression = readSExpression readAtom;

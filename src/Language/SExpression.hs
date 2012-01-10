@@ -22,33 +22,36 @@ module Language.SExpression where
         show = showSExpression show;
     };
 
-    matchChar :: (Char -> Bool) -> ReadPrec Char;
-    matchChar match = do
+    readMatching :: (Char -> Bool) -> ReadPrec Char;
+    readMatching match = do
     {
         found <- get;
         if match found then return found else pfail;
     };
     
-    isChar :: Char -> ReadPrec ();
-    isChar expected = matchChar (\found -> expected == found) >> return ();
+    readThis :: Char -> ReadPrec ();
+    readThis expected = readMatching (\found -> expected == found) >> return ();
     
-    readAll :: forall b. ReadPrec b -> ReadPrec [b];
-    readAll reader = (do
-        {
-            b <- reader;
-            bs <- readAll reader;
-            return (b:bs);
-        }) <++ (return []);
+    readOneOrMore :: forall b. ReadPrec b -> ReadPrec [b];
+    readOneOrMore reader = do
+    {
+        b <- reader;
+        bs <- readZeroOrMore reader;
+        return (b:bs);
+    };
     
-    readAll_ :: forall b. ReadPrec b -> ReadPrec ();
-    readAll_ reader = (do
+    readZeroOrMore :: forall b. ReadPrec b -> ReadPrec [b];
+    readZeroOrMore reader = (readOneOrMore reader) <++ (return []);
+    
+    readZeroOrMore_ :: forall b. ReadPrec b -> ReadPrec ();
+    readZeroOrMore_ reader = (do
         {
             _ <- reader;
-            readAll_ reader;
+            readZeroOrMore_ reader;
         }) <++ (return ());
     
     readAnyWhiteSpace :: ReadPrec ();
-    readAnyWhiteSpace = readAll_ (matchChar isSpace);
+    readAnyWhiteSpace = readZeroOrMore_ (readMatching isSpace);
 
     readSExpression :: forall a. ReadPrec a -> ReadPrec (SExpression a);
     readSExpression readAtom = readExp where
@@ -63,10 +66,10 @@ module Language.SExpression where
         readList :: ReadPrec [SExpression a];
         readList = do
         {
-            isChar '(';
-            exps <- readAll readExp;
+            readThis '(';
+            exps <- readZeroOrMore readExp;
             readAnyWhiteSpace;
-            isChar ')';
+            readThis ')';
             readAnyWhiteSpace;
             return exps;
         };
