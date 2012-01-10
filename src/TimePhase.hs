@@ -31,8 +31,15 @@ module Main where
         };
     };
 
+    searchTime :: NominalDiffTime;
+    searchTime = 365.25 * 86400;
+
     showPoints :: T -> PointSet T -> String;
-    showPoints _ _ = "TEST";
+    showPoints now set = case ssFirstAfterUntil set now (addUTCTime searchTime now) of
+    {
+        Just t -> show t;
+        Nothing -> "at least a year away"
+    };
     
     showPhase :: T -> Phase T -> String;
     showPhase now (IntervalsPhase ints) = 
