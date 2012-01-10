@@ -7,6 +7,9 @@ module Data.TimePhase.Value where
     
     type T = UTCTime;
 
+    getNow :: IO T;
+    getNow = getCurrentTime;
+
     instance DeltaSmaller T where
     {
         deltaSmaller (UTCTime d t) = Just (UTCTime (addDays (-1) d) t);

@@ -6,6 +6,8 @@ module Main where
     import Text.ParserCombinators.ReadPrec;
     import Language.SExpression;
     import Data.TimePhase;
+    import Data.TimePhase.Value;
+    import Data.SetSearch;
 
     process :: (Monad m) => ReadS a -> m (Maybe String) -> (a -> m ()) -> String -> m String;
     process interpret source sink = p where
@@ -29,8 +31,20 @@ module Main where
         };
     };
 
-    runValue :: UTCTime -> Value -> String;
-    runValue now v = "TEST";
+    showPoints :: T -> PointSet T -> String;
+    showPoints _ _ = "TEST";
+    
+    showPhase :: T -> Phase T -> String;
+    showPhase now (IntervalsPhase ints) = 
+     if member ints now 
+        then "happening until " ++ (showPoints now (intervalsEndOf ints))
+        else "not happening until " ++ (showPoints now (intervalsStartOf ints));
+    showPhase now (PointSetPhase (PointPCPSet set)) = "next happening " ++ (showPoints now set);
+    showPhase now (PointSetPhase (CoPointPCPSet set)) = "next not happening " ++ (showPoints now set);
+    
+    showValue :: T -> Value -> String;
+    showValue now (PhaseValue phase) = showPhase now phase;
+    showValue _ _ = "not a phase";
 
     makeSource :: Handle -> IO (Maybe String);
     makeSource h = do
@@ -43,9 +57,9 @@ module Main where
         };
     };
 
-    doMValue :: UTCTime -> M Value -> IO ();
+    doMValue :: T -> M Value -> IO ();
     doMValue _ (Left err) = fail err;
-    doMValue now (Right v) = putStrLn (runValue now v);
+    doMValue now (Right v) = putStrLn (showValue now v);
 
     getLeftover :: String -> String;
     getLeftover s = case readPrec_to_S readAnyWhiteSpace 0 s of
@@ -54,7 +68,7 @@ module Main where
         [] -> s;
     };
 
-    doHandle :: UTCTime -> Handle -> IO ();
+    doHandle :: T -> Handle -> IO ();
     doHandle now h = do
     {
         rest <- process (readPrec_to_S readValue 0) (makeSource h) (doMValue now) "";
@@ -69,7 +83,7 @@ module Main where
     main = do
     {
         args <- getArgs;
-        now <- getCurrentTime;
+        now <- getNow;
         case args of
         {
             [] -> doHandle now stdin;
