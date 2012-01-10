@@ -38,7 +38,7 @@ module Main where
         eof <- hIsEOF h;
         if eof then return Nothing else do
         {
-            text <- hGetContents h;
+            text <- hGetLine h;
             return (Just text);
         };
     };
