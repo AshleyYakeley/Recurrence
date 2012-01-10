@@ -1,8 +1,9 @@
 module Data.TimePhase.Dict (evalAtom) where
 {
+    import Data.Fixed;
+    import Data.Time;
     import Data.TimePhase.Value;
     import Data.SetSearch;
-    import Data.Time;
     
     never :: TimePhase;
     never = IntervalsPhase empty;
@@ -75,6 +76,16 @@ module Data.TimePhase.Dict (evalAtom) where
         } in if t' >= limit then Just t' else Nothing
     };
     
+    theDay :: StepFunction T Day;
+    theDay = MkStepFunction
+    {
+        sfValue = localDay,
+        sfPossibleChanges = midnights
+    };
+    
+    weekDay :: Integer -> Intervals T;
+    weekDay i = fmap (\day -> mod' (toModifiedJulianDay day) 7 == i) theDay;
+    
     dict :: String -> Maybe Value;
     dict "never" = Just (toValue never);
     dict "always" = Just (toValue always);
@@ -83,6 +94,13 @@ module Data.TimePhase.Dict (evalAtom) where
     dict "start" = Just (toValue startOf);
     dict "end" = Just (toValue endOf);
     dict "midnight" = Just (toValue midnights);
+    dict "Wednesday" = Just (toValue (weekDay 0));
+    dict "Thursday" = Just (toValue (weekDay 1));
+    dict "Friday" = Just (toValue (weekDay 2));
+    dict "Saturday" = Just (toValue (weekDay 3));
+    dict "Sunday" = Just (toValue (weekDay 4));
+    dict "Monday" = Just (toValue (weekDay 5));
+    dict "Tuesday" = Just (toValue (weekDay 6));
     dict s = Nothing;
     
     evalAtom :: String -> Maybe Value;
