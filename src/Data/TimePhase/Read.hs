@@ -6,6 +6,8 @@ module Data.TimePhase.Read (readExpression) where
     
     isGoodChar :: Char -> Bool;
     isGoodChar '"' = False;
+    isGoodChar '(' = False;
+    isGoodChar ')' = False;
     isGoodChar c = not (isSpace c);
     
     bsChar :: ReadPrec Char;

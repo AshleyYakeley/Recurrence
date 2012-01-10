@@ -38,7 +38,7 @@ module Main where
     showPoints now set = case ssFirstAfterUntil set now (addUTCTime searchTime now) of
     {
         Just t -> show t;
-        Nothing -> "at least a year away"
+        Nothing -> "not in the next year"
     };
     
     showPhase :: T -> Phase T -> String;
