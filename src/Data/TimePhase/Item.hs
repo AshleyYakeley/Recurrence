@@ -34,18 +34,31 @@ module Data.TimePhase.Item where
     showItems :: T -> T -> [Item] -> IO ();
     showItems t limit items = mapM_ ff items where
     {
-        getNext (IntervalsPhase ints) = (ssFirstAfterUntil (intervalsStartOf ints) t limit,"");
-        getNext (PointSetPhase (PointPCPSet set)) = (ssFirstAfterUntil set t limit,"");
-        getNext (PointSetPhase (CoPointPCPSet set)) = (ssFirstAfterUntil set t limit,"");
+        getNext (IntervalsPhase ints) = do
+        {
+            start <- ssFirstAfterUntil (intervalsStartOf ints) t limit;
+            return (start,"(until " ++ (case ssFirstAfterUntil (intervalsEndOf ints) start limit of
+                {
+                    Just end -> show end;
+                    _ -> "whenever";
+                }) ++ ")");
+        };
+        getNext (PointSetPhase (PointPCPSet set)) = do
+        {
+            r <- ssFirstAfterUntil set t limit;
+            return (r,"");
+        };
+        getNext (PointSetPhase (CoPointPCPSet set)) = do
+        {
+            r <- ssFirstAfterUntil set t limit;
+            return (r,"(not)");
+        };
     
-        ff (MkItem name phase) = let
+        ff (MkItem name phase) = do
         {
-            (mt,desc) = getNext phase;
-        } in do
-        {
-            case mt of
+            case getNext phase of
             {
-                Just t -> putStrLn ((show t) ++ ": " ++ name);
+                Just (t,desc) -> putStrLn ((show t) ++ ": " ++ name ++ " " ++ desc);
                 Nothing -> return ();
             };
         };
