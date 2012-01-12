@@ -1,6 +1,7 @@
 module Data.TimePhase.Item where
 {
     import Data.Char;
+    import Data.Maybe;
     import Language.SExpression;
     import Text.ParserCombinators.ReadPrec;
     import Data.SetSearch;
@@ -31,36 +32,49 @@ module Data.TimePhase.Item where
     readItems :: ReadPrec (M [Item]);
     readItems = fmap (mapM interpretItem) readPhasesFile;
     
-    showItems :: T -> T -> [Item] -> IO ();
-    showItems t limit items = mapM_ ff items where
+    data Event = MkEvent String T (Maybe (Maybe T));
+    
+    showEvent :: Event -> String;
+    showEvent (MkEvent name start mmend) = (show start) ++ ": " ++ name ++ (case mmend of
+    {
+        Nothing -> "";
+        Just Nothing -> " (until whenever)";
+        Just (Just end) -> " (until "++(show end)++")";
+    });
+    
+    showEvents :: [Event] -> IO ();
+    showEvents events = mapM_ ff events where
+    {
+        ff event = putStrLn (showEvent event);
+    };
+    
+    toEvent :: T -> T -> Item -> Maybe Event;
+    toEvent t limit (MkItem name phase) = do
+    {
+        (start,mmend) <- getNext phase;
+        return (MkEvent name start mmend);
+    } where
     {
         getNext (IntervalsPhase ints) = do
         {
             start <- ssFirstAfterUntil (intervalsStartOf ints) t limit;
-            return (start,"(until " ++ (case ssFirstAfterUntil (intervalsEndOf ints) start limit of
-                {
-                    Just end -> show end;
-                    _ -> "whenever";
-                }) ++ ")");
+            return (start,Just (ssFirstAfterUntil (intervalsEndOf ints) start limit));
         };
         getNext (PointSetPhase (PointPCPSet set)) = do
         {
-            r <- ssFirstAfterUntil set t limit;
-            return (r,"");
+            start <- ssFirstAfterUntil set t limit;
+            return (start,Nothing);
         };
         getNext (PointSetPhase (CoPointPCPSet set)) = do
         {
-            r <- ssFirstAfterUntil set t limit;
-            return (r,"(not)");
+            start <- ssFirstAfterUntil set t limit;
+            return (start,Just (ssFirstAfterUntil set start limit));
         };
+    };
     
-        ff (MkItem name phase) = do
-        {
-            case getNext phase of
-            {
-                Just (t,desc) -> putStrLn ((show t) ++ ": " ++ name ++ " " ++ desc);
-                Nothing -> return ();
-            };
-        };
+    showItems :: T -> T -> [Item] -> IO ();
+    showItems t limit items = showEvents events where
+    {
+        events = mapMaybe (toEvent t limit) items;
     };
 }

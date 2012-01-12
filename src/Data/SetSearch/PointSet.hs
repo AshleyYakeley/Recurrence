@@ -93,7 +93,7 @@ module Data.SetSearch.PointSet where
             } in search a'
         };
         
-        diff s1 = filterIntersect (not . (member s1));
+        diff s1 s2 = filterIntersect (not . (member s2)) s1;
     };
     
     instance (Ord a) => SetSingle (PointSet a) where
