@@ -16,6 +16,7 @@ module Data.SetSearch.Intervals where
         union = liftA2 (||);
         intersect = liftA2 (&&);
         diff = liftA2 (\a b -> a && (not b));
+        symdiff = liftA2 (\a b -> a /= b);
     };
     
     instance (Ord a) => SetFull (Intervals a) where

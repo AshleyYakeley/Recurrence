@@ -8,7 +8,7 @@ module Main where
     showBool True = 'T';
 
     showPS :: PhaseSet Int -> String;
-    showPS (MkPhaseSet i a d) = fmap showBool [member i 0,member a 0,member d 0];
+    showPS (MkPhaseSet i x) = fmap showBool [member i 0,member x 0];
 
     testOne :: String -> Bool -> PhaseSet Int -> IO ();
     testOne name expected ps = if member ps 0 /= expected
@@ -25,21 +25,19 @@ module Main where
         testOne (context ++ "diff") (v1 && not v2) (diff ps1 ps2);
     };
     
-    test i1 a1 d1 i2 a2 d2 = let
+    test i1 x1 i2 x2 = let
     {
         ps1 = MkPhaseSet
         {
             psIntervals = if i1 then full else empty,
-            psAdditions = if a1 then single 0 else empty,
-            psDeletions = if d1 then single 0 else empty
+            psExceptions = if x1 then single 0 else empty
         };
         ps2 = MkPhaseSet
         {
             psIntervals = if i2 then full else empty,
-            psAdditions = if a2 then single 0 else empty,
-            psDeletions = if d2 then single 0 else empty
+            psExceptions = if x2 then single 0 else empty
         };
-        context = [showBool i1,showBool a1,showBool d1] ++ ":" ++ [showBool i2,showBool a2,showBool d2] ++ ":";
+        context = [showBool i1,showBool x1] ++ ":" ++ [showBool i2,showBool x2] ++ ":";
     } in testPS context ps1 ps2;
 
     class DoPair t where

@@ -8,6 +8,7 @@ module Data.SetSearch.Set where
         union :: s -> s -> s;
         intersect :: s -> s -> s;
         diff :: s -> s -> s;
+        symdiff :: s -> s -> s;
     };
     
     unionAll :: (Set s) => [s] -> s;
@@ -53,6 +54,7 @@ module Data.SetSearch.Set where
         union s1 s2 a = (s1 a) || (s2 a);
         intersect s1 s2 a = (s1 a) && (s2 a);
         diff s1 s2 a = (s1 a) && (not (s2 a));
+        symdiff s1 s2 a = (s1 a) /= (s2 a);
     };
 
     instance (Eq a) => SetSingle (a -> Bool) where

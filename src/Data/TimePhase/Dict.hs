@@ -6,10 +6,10 @@ module Data.TimePhase.Dict (evalAtom) where
     import Data.SetSearch;
 
     startOf :: TimePhase -> PointSet T;
-    startOf ps = unionAll [psAdditions ps,psDeletions ps,intervalsStartOf (psIntervals ps)];
+    startOf ps = union (psExceptions ps) (intervalsStartOf (psIntervals ps));
 
     endOf :: TimePhase -> PointSet T;
-    endOf ps = unionAll [psAdditions ps,psDeletions ps,intervalsEndOf (psIntervals ps)];
+    endOf ps = union (psExceptions ps) (intervalsEndOf (psIntervals ps));
 
     midnights :: PointSet T;
     midnights = MkPointSet

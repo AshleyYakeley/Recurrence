@@ -94,6 +94,32 @@ module Data.SetSearch.PointSet where
         };
         
         diff s1 s2 = filterIntersect (not . (member s2)) s1;
+        symdiff s1 s2 = MkPointSet
+        {
+            ssMember = \a -> (ssMember s1 a) /= (ssMember s2 a),
+            ssFirstAfterUntil = \a limit -> case (ssFirstAfterUntil s1 a limit,ssFirstAfterUntil s2 a limit) of
+            {
+                (mr,Nothing) -> mr;
+                (Nothing,mr) -> mr;
+                (Just r1,Just r2) -> case compare r1 r2 of
+                {
+                    EQ -> Nothing;
+                    LT -> Just r1;
+                    GT -> Just r2;
+                };
+            },
+            ssLastBeforeUntil = \a limit -> case (ssLastBeforeUntil s1 a limit,ssLastBeforeUntil s2 a limit) of
+            {
+                (mr,Nothing) -> mr;
+                (Nothing,mr) -> mr;
+                (Just r1,Just r2) -> case compare r1 r2 of
+                {
+                    EQ -> Nothing;
+                    GT -> Just r1;
+                    LT -> Just r2;
+                };
+            }
+        };
     };
     
     instance (Ord a) => SetSingle (PointSet a) where

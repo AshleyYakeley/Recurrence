@@ -23,6 +23,10 @@ module Data.SetSearch.PointCoPointSet where
         diff (PointPCPSet set1) (CoPointPCPSet coset2) = PointPCPSet (intersect set1 coset2);
         diff (CoPointPCPSet coset1) (PointPCPSet set2) = CoPointPCPSet (union coset1 set2);
         diff (CoPointPCPSet coset1) (CoPointPCPSet coset2) = PointPCPSet (diff coset2 coset1);
+        symdiff (PointPCPSet set1) (PointPCPSet set2) = PointPCPSet (symdiff set1 set2);
+        symdiff (PointPCPSet set1) (CoPointPCPSet coset2) = CoPointPCPSet (symdiff set1 coset2);
+        symdiff (CoPointPCPSet coset1) (PointPCPSet set2) = CoPointPCPSet (symdiff coset1 set2);
+        symdiff (CoPointPCPSet coset1) (CoPointPCPSet coset2) = PointPCPSet (symdiff coset2 coset1);
     };
     
     instance (Ord a) => SetSingle (PointCoPointSet a) where

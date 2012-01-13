@@ -9,8 +9,7 @@ module Data.SetSearch.PhaseSet where
     data PhaseSet a = MkPhaseSet
     {
         psIntervals :: Intervals a,
-        psAdditions :: PointSet a,
-        psDeletions :: PointSet a
+        psExceptions :: PointSet a
     };
     
     class (Set s) => ToPhaseSet s where
@@ -28,8 +27,7 @@ module Data.SetSearch.PhaseSet where
         toPhaseSet ps = MkPhaseSet
         {
             psIntervals = empty,
-            psAdditions = ps,
-            psDeletions = empty
+            psExceptions = ps
         };
     };
     
@@ -38,8 +36,7 @@ module Data.SetSearch.PhaseSet where
         toPhaseSet ints = MkPhaseSet
         {
             psIntervals = ints,
-            psAdditions = empty,
-            psDeletions = empty
+            psExceptions = empty
         };
     };
     
@@ -50,48 +47,55 @@ module Data.SetSearch.PhaseSet where
         empty = MkPhaseSet
         {
             psIntervals = empty,
-            psAdditions = empty,
-            psDeletions = empty
+            psExceptions = empty
         };
-        member ps a = if member (psIntervals ps) a then not (member (psDeletions ps) a) else member (psAdditions ps) a;
-        union (MkPhaseSet i1 a1 d1) (MkPhaseSet i2 a2 d2) = let
+        member ps a = (member (psIntervals ps) a) /= (member (psExceptions ps) a);
+        union (MkPhaseSet i1 x1) (MkPhaseSet i2 x2) = let
         {
             ir = union i1 i2;
         } in MkPhaseSet
         {
             psIntervals = ir,
-            psAdditions = intervalsDiff (union a1 a2) ir,
-            psDeletions = union
-                (intervalsIntersect (intersect d1 d2) (intersect i1 i2))
-                (union
-                    (intervalsIntersect (diff d1 a2) (diff i1 i2))
-                    (intervalsIntersect (diff d2 a1) (diff i2 i1)))
+            psExceptions = unionAll
+            [
+                intervalsDiff (union x1 x2) ir,
+                intervalsIntersect (intersect x1 x2) (intersect i1 i2),
+                intervalsIntersect (diff x1 x2) (diff i1 i2),
+                intervalsIntersect (diff x2 x1) (diff i2 i1)
+            ]
         };
-        intersect (MkPhaseSet i1 a1 d1) (MkPhaseSet i2 a2 d2) = let
+        intersect (MkPhaseSet i1 x1) (MkPhaseSet i2 x2) = let
         {
             ir = intersect i1 i2;
         } in MkPhaseSet
         {
             psIntervals = ir,
-            psAdditions = union
-                (intervalsDiff (intersect a1 a2) (union i1 i2))
-                (union
-                    (intervalsIntersect (diff a1 d2) (diff i2 i1))
-                    (intervalsIntersect (diff a2 d1) (diff i1 i2))),
-            psDeletions = intervalsIntersect (union d1 d2) ir
+            psExceptions = unionAll
+            [
+                intervalsDiff (intersect x1 x2) (union i1 i2),
+                intervalsIntersect (diff x1 x2) (diff i2 i1),
+                intervalsIntersect (diff x2 x1) (diff i1 i2),
+                intervalsIntersect (union x1 x2) ir
+            ]
         };
-        diff (MkPhaseSet i1 a1 d1) (MkPhaseSet i2 a2 d2) =  let
+        diff (MkPhaseSet i1 x1) (MkPhaseSet i2 x2) =  let
         {
             ir = diff i1 i2;
         } in MkPhaseSet
         {
             psIntervals = ir,
-            psAdditions = union
-                (intervalsIntersect (intersect a1 d2) (diff i2 i1))
-                (union
-                    (intervalsDiff (diff a1 a2) (union i2 i1))
-                    (intervalsIntersect (diff d2 d1) (intersect i1 i2))),
-            psDeletions = intervalsIntersect (union d1 a2) ir
+            psExceptions = unionAll
+            [
+                intervalsIntersect (intersect x1 x2) (diff i2 i1),
+                intervalsDiff (diff x1 x2) (union i2 i1),
+                intervalsIntersect (diff x2 x1) (intersect i1 i2),
+                intervalsIntersect (union x1 x2) ir
+            ]
+        };
+        symdiff ps1 ps2 = MkPhaseSet
+        {
+            psIntervals = symdiff (psIntervals ps1) (psIntervals ps2),
+            psExceptions = symdiff (psExceptions ps1) (psExceptions ps2)
         };
     };
     
@@ -100,8 +104,7 @@ module Data.SetSearch.PhaseSet where
         single a = MkPhaseSet
         {
             psIntervals = empty,
-            psAdditions = single a,
-            psDeletions = empty
+            psExceptions = single a
         };
     };
     
@@ -110,14 +113,12 @@ module Data.SetSearch.PhaseSet where
         full = MkPhaseSet
         {
             psIntervals = full,
-            psAdditions = empty,
-            psDeletions = empty
+            psExceptions = empty
         };
         invert ps = MkPhaseSet
         {
             psIntervals = invert (psIntervals ps),
-            psAdditions = psDeletions ps,
-            psDeletions = psAdditions ps
+            psExceptions = psExceptions ps
         };
     };
 
@@ -128,9 +129,7 @@ module Data.SetSearch.PhaseSet where
     {
         current = member ps t;
         mrI = ssFirstAfterUntil (sfChanges (psIntervals ps)) t limit;
-        mrA = ssFirstAfterUntil (psAdditions ps) t limit;
-        mrD = ssFirstAfterUntil (psDeletions ps) t limit;
-        mrX = if current then mrD else mrA;
+        mrX = ssFirstAfterUntil (psExceptions ps) t limit;
     } in case (mrI,mrX) of
     {
         (Just rI,Just rX) -> Just (case compare rI rX of
@@ -149,9 +148,7 @@ module Data.SetSearch.PhaseSet where
     {
         current = member ps t;
         mrI = ssFirstAfterUntil (sfMatchChanges (psIntervals ps) ((==) state)) t limit;
-        mrA = ssFirstAfterUntil (psAdditions ps) t limit;
-        mrD = ssFirstAfterUntil (psDeletions ps) t limit;
-        mrX = if current then mrD else mrA;
+        mrX = ssFirstAfterUntil (psExceptions ps) t limit;
     } in case (mrI,mrX) of
     {
         (Just rI,Just rX) -> Just (case compare rI rX of
