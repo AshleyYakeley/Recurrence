@@ -32,7 +32,14 @@ module Data.TimePhase.Item where
     readItems :: ReadPrec (M [Item]);
     readItems = fmap (mapM interpretItem) readPhasesFile;
     
-    data Event = MkEvent String T (Maybe (Maybe T));
+    data OrLater = MkOrLater T Bool;
+    data Event = MkEvent String OrLater (Maybe (Maybe OrLater));
+    
+    instance Show OrLater where
+    {
+        show (MkOrLater t False) = show t;
+        show (MkOrLater t True) = "just after " ++ (show t); 
+    };
     
     showEvent :: Event -> String;
     showEvent (MkEvent name start mmend) = (show start) ++ ": " ++ name ++ (case mmend of
@@ -55,20 +62,24 @@ module Data.TimePhase.Item where
         return (MkEvent name start mmend);
     } where
     {
-        getNext (IntervalsPhase ints) = do
+        getNext :: Phase T -> Maybe (OrLater,Maybe (Maybe OrLater));
+        getNext ps = do
         {
-            start <- ssFirstAfterUntil (intervalsStartOf ints) t limit;
-            return (start,Just (ssFirstAfterUntil (intervalsEndOf ints) start limit));
-        };
-        getNext (PointSetPhase (PointPCPSet set)) = do
-        {
-            start <- ssFirstAfterUntil set t limit;
-            return (start,Nothing);
-        };
-        getNext (PointSetPhase (CoPointPCPSet set)) = do
-        {
-            start <- ssFirstAfterUntil set t limit;
-            return (start,Just (ssFirstAfterUntil set start limit));
+            (start,etype) <- eventStateFirstAfterUntil ps True t limit;
+            case etype of
+            {
+                ETChange -> return (MkOrLater start False,Just (do
+                {
+                    (end,etype') <- eventStateFirstAfterUntil ps False t limit;
+                    return (MkOrLater end (etype' == ETLateChange));
+                }));
+                ETLateChange -> return (MkOrLater start True,Just (do
+                {
+                    (end,etype') <- eventStateFirstAfterUntil ps False t limit;
+                    return (MkOrLater end (etype' == ETLateChange));
+                }));
+                ETPoint -> return (MkOrLater start False,Nothing);
+            };
         };
     };
     

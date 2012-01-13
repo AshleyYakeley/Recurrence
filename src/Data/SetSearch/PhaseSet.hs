@@ -3,12 +3,44 @@ module Data.SetSearch.PhaseSet where
     import Data.SetSearch.Set;
     import Data.SetSearch.PointSet;
     import Data.SetSearch.Intervals;
+    import Data.SetSearch.StepFunction;
+    import Data.SetSearch.DeltaSmaller;
 
     data PhaseSet a = MkPhaseSet
     {
         psIntervals :: Intervals a,
         psAdditions :: PointSet a,
         psDeletions :: PointSet a
+    };
+    
+    class (Set s) => ToPhaseSet s where
+    {
+        toPhaseSet :: s -> PhaseSet (Base s);
+    };
+    
+    instance (Ord a) => ToPhaseSet (PhaseSet a) where
+    {
+        toPhaseSet ps = ps;
+    };
+    
+    instance (Ord a) => ToPhaseSet (PointSet a) where
+    {
+        toPhaseSet ps = MkPhaseSet
+        {
+            psIntervals = empty,
+            psAdditions = ps,
+            psDeletions = empty
+        };
+    };
+    
+    instance (Ord a) => ToPhaseSet (Intervals a) where
+    {
+        toPhaseSet ints = MkPhaseSet
+        {
+            psIntervals = ints,
+            psAdditions = empty,
+            psDeletions = empty
+        };
     };
     
     -- union, intersect and diff checked by test/TestPhaseSet
@@ -88,4 +120,49 @@ module Data.SetSearch.PhaseSet where
             psDeletions = psAdditions ps
         };
     };
+
+    data EventType = ETChange | ETLateChange | ETPoint deriving Eq;
+    
+    eventFirstAfterUntil :: (DeltaSmaller a) => PhaseSet a -> a -> a -> Maybe (a,EventType,Bool);
+    eventFirstAfterUntil ps t limit = let
+    {
+        current = member ps t;
+        mrI = ssFirstAfterUntil (sfChanges (psIntervals ps)) t limit;
+        mrA = ssFirstAfterUntil (psAdditions ps) t limit;
+        mrD = ssFirstAfterUntil (psDeletions ps) t limit;
+        mrX = if current then mrD else mrA;
+    } in case (mrI,mrX) of
+    {
+        (Just rI,Just rX) -> Just (case compare rI rX of
+        {
+            LT -> (rI,ETChange,not current);
+            EQ -> (rI,ETLateChange,not current);
+            GT -> (rX,ETPoint,not current);
+        });
+        (Just rI,Nothing) -> Just (rI,ETChange,not current);
+        (Nothing,Just rX) -> Just (rX,ETPoint,not current);
+        (Nothing,Nothing) -> Nothing;
+    };
+
+    eventStateFirstAfterUntil :: (DeltaSmaller a) => PhaseSet a -> Bool -> a -> a -> Maybe (a,EventType);
+    eventStateFirstAfterUntil ps state t limit = let
+    {
+        current = member ps t;
+        mrI = ssFirstAfterUntil (sfMatchChanges (psIntervals ps) ((==) state)) t limit;
+        mrA = ssFirstAfterUntil (psAdditions ps) t limit;
+        mrD = ssFirstAfterUntil (psDeletions ps) t limit;
+        mrX = if current then mrD else mrA;
+    } in case (mrI,mrX) of
+    {
+        (Just rI,Just rX) -> Just (case compare rI rX of
+        {
+            LT -> (rI,ETChange);
+            EQ -> (rI,ETLateChange);
+            GT -> (rX,if current then ETLateChange else ETPoint);
+        });
+        (Just rI,Nothing) -> Just (rI,ETChange);
+        (Nothing,Just rX) -> Just (rX,if current then ETLateChange else ETPoint);
+        (Nothing,Nothing) -> Nothing;
+    };
+    
 }

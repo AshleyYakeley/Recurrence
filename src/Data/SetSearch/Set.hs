@@ -10,6 +10,11 @@ module Data.SetSearch.Set where
         diff :: s -> s -> s;
     };
     
+    unionAll :: (Set s) => [s] -> s;
+    unionAll [] = empty;
+    unionAll [tp] = tp;
+    unionAll (tp:tps) = union tp (unionAll tps);
+    
     class (Set s) => SetSingle (s :: *) where
     {
         single :: Base s -> s;
@@ -34,6 +39,11 @@ module Data.SetSearch.Set where
         invert :: s -> s;
         invert = diff full;
     };
+    
+    intersectAll :: (SetFull s) => [s] -> s;
+    intersectAll [] = full;
+    intersectAll [tp] = tp;
+    intersectAll (tp:tps) = intersect tp (intersectAll tps);
 
     instance (Eq a) => Set (a -> Bool) where
     {

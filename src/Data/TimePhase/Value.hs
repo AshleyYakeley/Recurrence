@@ -18,7 +18,8 @@ module Data.TimePhase.Value where
         localTimeOfDay = timeToTimeOfDay (realToFrac (mod' tod nominalDayLength))
     };
 
-    data Phase a = IntervalsPhase (Intervals a) | PointSetPhase (PointCoPointSet a);
+    -- data Phase a = IntervalsPhase (Intervals a) | PointSetPhase (PointCoPointSet a);
+    type Phase = PhaseSet;
     
     type T = LocalTime;
 
@@ -36,25 +37,37 @@ module Data.TimePhase.Value where
     
     data Value = PhaseValue TimePhase | IntegerValue Int | DurationValue NominalDiffTime | FunctionValue ([Value] -> M Value);
     
-    class IsValues a where
+    class ToValues a where
     {
         toValues :: a -> [Value];
+    };
+    
+    class FromValues a where
+    {
         fromValues :: [Value] -> M (a,[Value]);
     };
     
-    class (IsValues a) => IsValue a where
+    class (ToValues a) => ToValue a where
     {
         toValue :: a -> Value;
-        fromValue :: Value -> M a;
         toFunctionValue :: a -> [Value] -> M Value;
         toFunctionValue a [] = return (toValue a);
         toFunctionValue _ _ = reportError "expected function";
     };
     
-    instance (IsValue a) => IsValues (Maybe a) where
+    class (FromValues a) => FromValue a where
+    {
+        fromValue :: Value -> M a;
+    };
+    
+    instance (ToValue a) => ToValues (Maybe a) where
     {
         toValues (Just a) = [toValue a];
         toValues Nothing = [];
+    };
+    
+    instance (FromValue a) => FromValues (Maybe a) where
+    {
         fromValues vals = case vals of
         {
             [] -> return (Nothing,[]);
@@ -66,9 +79,13 @@ module Data.TimePhase.Value where
         };
     };
     
-    instance (IsValue a) => IsValues [a] where
+    instance (ToValue a) => ToValues [a] where
     {
         toValues = fmap toValue;
+    };
+    
+    instance (FromValue a) => FromValues [a] where
+    {
         fromValues vals = do
         {
             as <- mapM fromValue vals;
@@ -76,9 +93,9 @@ module Data.TimePhase.Value where
         };
     };
     
-    defaultToValues :: (IsValue a) => a -> [Value];
+    defaultToValues :: (ToValue a) => a -> [Value];
     defaultToValues a = [toValue a];
-    defaultFromValues :: (IsValue a) => [Value] -> M (a,[Value]);
+    defaultFromValues :: (FromValue a) => [Value] -> M (a,[Value]);
     defaultFromValues (v:vs) = do
     {
         a <- fromValue v;
@@ -86,92 +103,118 @@ module Data.TimePhase.Value where
     };
     defaultFromValues [] = reportError "expected more values";
     
-    instance IsValues TimePhase where
+    instance ToValues TimePhase where
     {
         toValues = defaultToValues;
+    };
+    
+    instance FromValues TimePhase where
+    {
         fromValues = defaultFromValues;
     };
     
-    instance IsValue TimePhase where
+    instance ToValue TimePhase where
     {
         toValue = PhaseValue;
+    };
+    
+    instance FromValue TimePhase where
+    {
         fromValue (PhaseValue x) = return x;
         fromValue _ = reportError "expected phase";
     };
-    
-    instance IsValues (Intervals T) where
+  
+    instance ToValues (Intervals T) where
     {
         toValues = defaultToValues;
+    };
+    
+    instance ToValue (Intervals T) where
+    {
+        toValue = PhaseValue . toPhaseSet;
+    };
+    
+    instance ToValues (PointSet T) where
+    {
+        toValues = defaultToValues;
+    };
+    
+    instance ToValue (PointSet T) where
+    {
+        toValue = PhaseValue . toPhaseSet;
+    };
+   
+    instance ToValues NominalDiffTime where
+    {
+        toValues = defaultToValues;
+    };
+   
+    instance FromValues NominalDiffTime where
+    {
         fromValues = defaultFromValues;
     };
     
-    instance IsValue (Intervals T) where
-    {
-        toValue = PhaseValue . IntervalsPhase;
-        fromValue (PhaseValue (IntervalsPhase x)) = return x;
-        fromValue _ = reportError "expected intervals";
-    };
-    
-    instance IsValues (PointSet T) where
-    {
-        toValues = defaultToValues;
-        fromValues = defaultFromValues;
-    };
-    
-    instance IsValue (PointSet T) where
-    {
-        toValue = PhaseValue . PointSetPhase . PointPCPSet;
-        fromValue (PhaseValue (PointSetPhase (PointPCPSet x))) = return x;
-        fromValue _ = reportError "expected points";
-    };
-    
-    instance IsValues NominalDiffTime where
-    {
-        toValues = defaultToValues;
-        fromValues = defaultFromValues;
-    };
-    
-    instance IsValue NominalDiffTime where
+    instance ToValue NominalDiffTime where
     {
         toValue = DurationValue;
+    };
+    
+    instance FromValue NominalDiffTime where
+    {
         fromValue (DurationValue x) = return x;
         fromValue _ = reportError "expected duration";
     };
     
-    instance IsValues Int where
+    instance ToValues Int where
     {
         toValues = defaultToValues;
+    };
+    
+    instance FromValues Int where
+    {
         fromValues = defaultFromValues;
     };
     
-    instance IsValue Int where
+    instance ToValue Int where
     {
         toValue = IntegerValue;
+    };
+    
+    instance FromValue Int where
+    {
         fromValue (IntegerValue x) = return x;
         fromValue _ = reportError "expected integer";
     };
     
-    instance (IsValue a) => IsValues (M a) where
+    instance (ToValue a) => ToValues (M a) where
     {
         toValues = defaultToValues;
+    };
+    
+    instance (FromValue a) => FromValues (M a) where
+    {
         fromValues = defaultFromValues;
     };
     
-    class (IsValue a) => IsFunctionValue a where
+    class (FromValue a) => FromFunctionValue a where
     {
         fromFunctionValue :: ([Value] -> M Value) -> a;
     };
     
-    instance (IsValue a) => IsValue (M a) where
+    instance (ToValue a) => ToValue (M a) where
     {
         toValue = FunctionValue . toFunctionValue;
-        fromValue (FunctionValue f) = fromFunctionValue f;
-        fromValue _ = reportError "expected function";
         toFunctionValue ma [] = fmap toValue ma;
         toFunctionValue _ _ = reportError "expected fewer values";
     };
     
-    instance (IsValue a) => IsFunctionValue (M a) where
+    instance (FromValue a) => FromValue (M a) where
+    {
+        fromValue (FunctionValue f) = fromFunctionValue f;
+        fromValue _ = reportError "expected function";
+    };
+    
+    instance (FromValue a) => FromFunctionValue (M a) where
     {
         fromFunctionValue f = do
         {
@@ -180,17 +223,19 @@ module Data.TimePhase.Value where
         };
     };
     
-    instance (IsValues arg,IsValue ret) => IsValues (arg -> ret) where
+    instance (FromValues arg,ToValue ret) => ToValues (arg -> ret) where
     {
         toValues = defaultToValues;
+    };
+    
+    instance (ToValues arg,FromValue ret) => FromValues (arg -> ret) where
+    {
         fromValues = defaultFromValues;
     };
     
-    instance (IsValues arg,IsValue ret) => IsValue (arg -> ret) where
+    instance (FromValues arg,ToValue ret) => ToValue (arg -> ret) where
     {
         toValue = FunctionValue . toFunctionValue;
-        fromValue (FunctionValue f) = fromFunctionValue f;
-        fromValue _ = reportError "expected function";
         toFunctionValue ar args = do
         {
             (a,rest) <- fromValues args;
@@ -198,7 +243,13 @@ module Data.TimePhase.Value where
         };
     };
     
-    instance (IsValues arg,IsFunctionValue ret) => IsFunctionValue (arg -> ret) where
+    instance (ToValues arg,FromValue ret) => FromValue (arg -> ret) where
+    {
+        fromValue (FunctionValue f) = fromFunctionValue f;
+        fromValue _ = reportError "expected function";
+    };
+    
+    instance (ToValues arg,FromFunctionValue ret) => FromFunctionValue (arg -> ret) where
     {       
         fromFunctionValue f arg = fromFunctionValue (\vals -> f ((toValues arg) ++ vals));
     };

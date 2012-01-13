@@ -42,13 +42,15 @@ module Main where
     };
     
     showPhase :: T -> Phase T -> String;
-    showPhase now (IntervalsPhase ints) = 
+    showPhase now ps = if member ps now then "happening" else "not happening";
+{-    
+    (IntervalsPhase ints) = 
      if member ints now 
         then "happening until " ++ (showPoints now (intervalsEndOf ints))
         else "not happening until " ++ (showPoints now (intervalsStartOf ints));
     showPhase now (PointSetPhase (PointPCPSet set)) = "next happening " ++ (showPoints now set);
     showPhase now (PointSetPhase (CoPointPCPSet set)) = "next not happening " ++ (showPoints now set);
-    
+-}    
     showValue :: T -> Value -> String;
     showValue now (PhaseValue phase) = showPhase now phase;
     showValue _ _ = "not a phase";
