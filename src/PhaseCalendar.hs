@@ -3,6 +3,7 @@ module Main where
     import System.IO;
     import System.Environment;
     import Data.Time;
+    import Text.Read;
     import Text.ParserCombinators.ReadPrec;
     import Language.SExpression;
     import Data.TimePhase;
@@ -19,8 +20,8 @@ module Main where
         Nothing -> "not in the next year"
     };
     
-    doHandle :: T -> Handle -> IO [Item];
-    doHandle now h = do
+    doHandle :: Handle -> IO [Item];
+    doHandle h = do
     {
         text <- hGetContents h;
         case readPrec_to_S readItems 0 text of
@@ -35,12 +36,41 @@ module Main where
         };
     };
 
+    readIt :: ReadPrec a -> String -> Maybe a;
+    readIt rp s = case readPrec_to_S rp 0 s of
+    {
+        [(a,"")] -> Just a;
+        _ -> Nothing;
+    };
+
+    matchArgs [] = return (Nothing,[]);
+    matchArgs ("--start":t:args) = do
+    {
+        (opts,files) <- matchArgs args;
+        case readIt readPrec t of
+        {
+            Just time -> return (Just time,files);
+            _ -> fail ("bad argument: " ++ (show t));
+        };
+    };
+    matchArgs (s@('-':_):_) = fail ("bad argument: " ++ (show s));
+    matchArgs (f:args) = do
+    {
+        (opts,files) <- matchArgs args;
+        return (opts,f:files);
+    };
+    
     main :: IO ();
     main = do
     {
-        filepaths <- getArgs;
-        now <- getNow;
-        itemlists <- mapM (\filepath -> withFile filepath ReadMode (doHandle now)) filepaths;
-        showItems now (addT searchTime now) (concat itemlists);
+        args <- getArgs;
+        (mtime,filepaths) <- matchArgs args;
+        time <- case mtime of
+        {
+            Just time -> return time;
+            Nothing -> getNow;
+        };
+        itemlists <- mapM (\filepath -> withFile filepath ReadMode (doHandle)) filepaths;
+        showItems time (addT searchTime time) (concat itemlists);
     };
 }

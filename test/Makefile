@@ -1,7 +1,8 @@
 GHC = ghc
 GHCFLAGS = -package Phases
 
-default: TestSets.diff0 TestPhaseSet.diff0
+default: TestSets.diff0 TestPhaseSet.diff0 test.phases.diff
+	@echo "Success!"
 
 
 TestSets: TestSets.hs
@@ -12,6 +13,9 @@ TestPhaseSet: TestPhaseSet.hs
 
 clean:
 	rm -rf *.out *.run *.o *.hi Makefile.bak TestPhaseSet TestSets
+
+%.phases.out: %.phases
+	../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" $< > $@
 
 %.diff: %.ref %.out
 	diff -u $^

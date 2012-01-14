@@ -124,29 +124,27 @@ module Data.SetSearch.PhaseSet where
 
     data EventType = ETChange | ETLateChange | ETPoint deriving Eq;
     
-    eventFirstAfterUntil :: (DeltaSmaller a) => PhaseSet a -> a -> a -> Maybe (a,EventType,Bool);
+    eventFirstAfterUntil :: (DeltaSmaller a) => PhaseSet a -> a -> a -> Maybe (a,EventType);
     eventFirstAfterUntil ps t limit = let
     {
-        current = member ps t;
         mrI = ssFirstAfterUntil (sfChanges (psIntervals ps)) t limit;
         mrX = ssFirstAfterUntil (psExceptions ps) t limit;
     } in case (mrI,mrX) of
     {
         (Just rI,Just rX) -> Just (case compare rI rX of
         {
-            LT -> (rI,ETChange,not current);
-            EQ -> (rI,ETLateChange,not current);
-            GT -> (rX,ETPoint,not current);
+            LT -> (rI,ETChange);
+            EQ -> (rI,ETLateChange);
+            GT -> (rX,ETPoint);
         });
-        (Just rI,Nothing) -> Just (rI,ETChange,not current);
-        (Nothing,Just rX) -> Just (rX,ETPoint,not current);
+        (Just rI,Nothing) -> Just (rI,ETChange);
+        (Nothing,Just rX) -> Just (rX,ETPoint);
         (Nothing,Nothing) -> Nothing;
     };
 
     eventStateFirstAfterUntil :: (DeltaSmaller a) => PhaseSet a -> Bool -> a -> a -> Maybe (a,EventType);
     eventStateFirstAfterUntil ps state t limit = let
     {
-        current = member ps t;
         mrI = ssFirstAfterUntil (sfMatchChanges (psIntervals ps) ((==) state)) t limit;
         mrX = ssFirstAfterUntil (psExceptions ps) t limit;
     } in case (mrI,mrX) of
@@ -155,10 +153,10 @@ module Data.SetSearch.PhaseSet where
         {
             LT -> (rI,ETChange);
             EQ -> (rI,ETLateChange);
-            GT -> (rX,if current then ETLateChange else ETPoint);
+            GT -> (rX,if member (psIntervals ps) rX then ETLateChange else ETPoint);
         });
         (Just rI,Nothing) -> Just (rI,ETChange);
-        (Nothing,Just rX) -> Just (rX,if current then ETLateChange else ETPoint);
+        (Nothing,Just rX) -> Just (rX,if member (psIntervals ps) rX then ETLateChange else ETPoint);
         (Nothing,Nothing) -> Nothing;
     };
     
