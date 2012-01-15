@@ -70,12 +70,12 @@ module Data.TimePhase.Item where
             {
                 ETChange -> return (MkOrLater start False,Just (do
                 {
-                    (end,etype') <- eventStateFirstAfterUntil ps False t limit;
+                    (end,etype') <- eventStateFirstAfterUntil ps False start limit;
                     return (MkOrLater end (etype' == ETLateChange));
                 }));
                 ETLateChange -> return (MkOrLater start True,Just (do
                 {
-                    (end,etype') <- eventStateFirstAfterUntil ps False t limit;
+                    (end,etype') <- eventStateFirstAfterUntil ps False start limit;
                     return (MkOrLater end (etype' == ETLateChange));
                 }));
                 ETPoint -> return (MkOrLater start False,Nothing);

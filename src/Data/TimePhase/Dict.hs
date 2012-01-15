@@ -47,8 +47,9 @@ module Data.TimePhase.Dict (evalAtom) where
     dict :: String -> Maybe Value;
     dict "never" = Just (toValue (empty :: TimePhase));
     dict "always" = Just (toValue (full :: TimePhase));
-    dict "intersect" = Just (toValue (intersectAll :: [TimePhase] -> TimePhase));
-    dict "union" = Just (toValue (unionAll :: [TimePhase] -> TimePhase));
+    dict "not" = Just (toValue (invert :: TimePhase -> TimePhase));
+    dict "when" = Just (toValue (intersectAll :: [TimePhase] -> TimePhase));
+    dict "and" = Just (toValue (unionAll :: [TimePhase] -> TimePhase));
     dict "start" = Just (toValue startOf);
     dict "end" = Just (toValue endOf);
     dict "midnight" = Just (toValue midnights);

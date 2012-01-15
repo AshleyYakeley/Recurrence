@@ -1,4 +1,6 @@
-("Impossible" (intersect Wednesday Thursday))
+("Impossible" (when Wednesday Thursday))
+("TW" (and Tuesday Wednesday))
+("MT" (and Monday Tuesday))
 ("Sunday" Sunday)
 ("midnight" midnight)
 
