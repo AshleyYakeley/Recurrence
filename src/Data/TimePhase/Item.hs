@@ -58,7 +58,7 @@ module Data.TimePhase.Item where
     
     instance (Eq a) => ShowBasedOn (Event a) where
     {
-        showBasedOn show (MkEvent name (MkInterval start end)) = (showBasedOn show start) ++ ": " ++ name ++ (case (start,end) of
+        showBasedOn show (MkEvent name (MkInterval start end)) = (showBasedOn show start) ++ " " ++ name ++ (case (start,end) of
         {
             (Starts (MkCut s _),Ends (MkCut e _)) | s == e -> "";
             _ -> " (until " ++ (showBasedOn show end) ++ ")";

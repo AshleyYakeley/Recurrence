@@ -11,7 +11,7 @@ module Main where
     import Data.SetSearch;
 
     searchTime :: NominalDiffTime;
-    searchTime = 365.25 * 86400;
+    searchTime = 60 * 86400;
 
     showPoints :: T -> PointSet T -> String;
     showPoints now set = case ssFirstAfterUntil set now (addT searchTime now) of
