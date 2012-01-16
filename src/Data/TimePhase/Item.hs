@@ -34,50 +34,90 @@ module Data.TimePhase.Item where
     
     data Cut a = MkCut a Bool;
     
-    instance (Show a) => Show (Cut a) where
+    data Start a = Ongoing | Starts (Cut a);
+
+    instance (Show a) => Show (Start a) where
     {
-        show (MkCut a False) = show a;
-        show (MkCut a True) = "just after " ++ (show a); 
+        show Ongoing = "ongoing";
+        show (Starts (MkCut a False)) = show a;
+        show (Starts (MkCut a True)) = "just after " ++ (show a); 
+    };
+    
+    data End a = Whenever | Ends (Cut a);
+    
+    instance (Show a) => Show (End a) where
+    {
+        show Whenever = "whenever";
+        show (Ends (MkCut a False)) = show a;
+        show (Ends (MkCut a True)) = "including " ++ (show a);
     };
 
-    data Event a = MkEvent String (Maybe (Cut a)) (Maybe (Maybe (Cut a)));
+    data Event a = MkEvent String (Start a) (End a);
     
-    showEvent (MkEvent name mstart mmend) = (case mstart of
+    showEvent :: (Eq a,Show a) => Event a -> String;
+    showEvent (MkEvent name start end) = (show start) ++ ": " ++ name ++ (case (start,end) of
     {
-        Nothing -> "now";
-        Just start -> show start;
-    }) ++ ": " ++ name ++ (case mmend of
-    {
-        Nothing -> "";
-        Just Nothing -> " (until whenever)";
-        Just (Just end) -> " (until "++(show end)++")";
+        (Starts (MkCut s _),Ends (MkCut e _)) | s == e -> "";
+        _ -> " (until " ++ (show end) ++ ")";
     });
     
-    nextEvent :: forall a. (DeltaSmaller a) => a -> a -> Item a -> Maybe (Event a);
-    nextEvent t limit (MkItem name phase) = case eventCurrent phase t of
+    currentEvent :: forall a. (DeltaSmaller a) => Item a -> a -> a -> Maybe (Event a);
+    currentEvent (MkItem name phase) t limit = if member phase t then Just (case eventCurrent phase t of
     {
-        Just etype -> Just (MkEvent name Nothing (getCut t etype));
-        Nothing -> do
+        Just ETPoint -> MkEvent name (Starts (MkCut t False)) (Ends (MkCut t True));
+        Just ETChange -> MkEvent name (Starts (MkCut t False)) getEnd;
+        Just ETLateChange -> MkEvent name Ongoing (Ends (MkCut t True));
+        Nothing -> MkEvent name Ongoing getEnd;
+    })
+    else Nothing where
+    {
+        getEnd :: End a;
+        getEnd = case eventStateFirstAfterUntil phase False t limit of
+        {
+            Just (end,etype') -> Ends (MkCut end (etype' /= ETChange));
+            Nothing -> Whenever;
+        };
+    };
+{-    
+    nextEvent :: forall a. (DeltaSmaller a) => a -> a -> Item a -> Maybe (Event a);
+    nextEvent t limit (MkItem name phase) = case (member phase t,eventCurrent phase t) of
+    {
+        (True,Just ETPoint) -> Just (getEvent t ETPoint);
+        (True,Just ETChange) -> Just (getEvent t ETChange);
+        (False,Just ETLateChange) -> Just (getEvent t ETLateChange);
+
+        (False,Just ETPoint) -> Just (getEvent t ETLateChange);
+        (False,Just ETChange) -> do
         {
             (start,etype) <- eventStateFirstAfterUntil phase True t limit;
-            return (MkEvent name (Just (MkCut start False)) (getCut start etype));
+            return (getEvent start etype);
+        };
+        (True,Just ETLateChange) -> Just (MkEvent name Ongoing (getEnd t));
+
+        (True,Nothing) -> Just (MkEvent name Ongoing (getEnd t));
+        (False,Nothing) -> do
+        {
+            (start,etype) <- eventStateFirstAfterUntil phase True t limit;
+            return (getEvent start etype);
         };
     } where
     {
-        getCut :: a -> EventType -> Maybe (Maybe (Cut a));
-        getCut start ETChange = Just (do
+        getEnd :: a -> End a;
+        getEnd start = case eventStateFirstAfterUntil phase False start limit of
         {
-            (end,etype') <- eventStateFirstAfterUntil phase False start limit;
-            return (MkCut end (etype' == ETLateChange));
-        });
-        getCut start ETLateChange = Just (do
+            Just (end,etype') -> Ends (MkCut end (etype' == ETLateChange));
+            Nothing -> Whenever;
+        );
+        
+        getEvent :: a -> EventType -> Event a;
+        getEvent start etype = case etype of
         {
-            (end,etype') <- eventStateFirstAfterUntil phase False start limit;
-            return (MkCut end (etype' == ETLateChange));
-        });
-        getCut start ETPoint = Nothing;
+            ETPoint -> MkEvent name (Starts (MkCut start False)) (Ends (MkCut start True));
+            ETChange -> MkEvent name (Starts (MkCut start False)) (getEnd start);
+            ETLateChange -> MkEvent name (Starts (MkCut start True)) (getEnd start);
+        };
     };
-    
+-}    
     showEvents :: [Event T] -> IO ();
     showEvents events = mapM_ ff events where
     {
@@ -87,6 +127,6 @@ module Data.TimePhase.Item where
     showItems :: T -> T -> [Item T] -> IO ();
     showItems t limit items = showEvents events where
     {
-        events = mapMaybe (nextEvent t limit) items;
+        events = mapMaybe (\phase -> currentEvent phase t limit) items;
     };
 }
