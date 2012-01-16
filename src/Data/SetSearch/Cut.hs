@@ -1,5 +1,12 @@
 module Data.SetSearch.Cut where
 {
+    import Data.SetSearch.Set;
+
+    class (BasedOn s) => ShowBasedOn s where
+    {
+        showBasedOn :: (Base s -> String) -> s -> String;
+    };
+
     -- False means "just before", True means "just after".
     data Cut a = MkCut a Bool;
     
@@ -21,6 +28,11 @@ module Data.SetSearch.Cut where
         }) else ac;
     };
 
+    instance BasedOn (Cut a) where
+    {
+        type Base (Cut a) = a;
+    };
+
     data Start a = Ongoing | Starts (Cut a);
 
     instance (Eq a) => Eq (Start a) where
@@ -38,11 +50,16 @@ module Data.SetSearch.Cut where
         compare (Starts a1) (Starts a2) = compare a1 a2;
     };
 
-    instance (Show a) => Show (Start a) where
+    instance BasedOn (Start a) where
     {
-        show Ongoing = "ongoing";
-        show (Starts (MkCut a False)) = show a;
-        show (Starts (MkCut a True)) = "just after " ++ (show a); 
+        type Base (Start a) = a;
+    };
+
+    instance ShowBasedOn (Start a) where
+    {
+        showBasedOn _ Ongoing = "ongoing";
+        showBasedOn show (Starts (MkCut a False)) = show a;
+        showBasedOn show (Starts (MkCut a True)) = "just after " ++ (show a); 
     };
     
     data End a = Whenever | Ends (Cut a);
@@ -61,12 +78,17 @@ module Data.SetSearch.Cut where
         compare (Ends _) Whenever = LT;
         compare (Ends a1) (Ends a2) = compare a1 a2;
     };
-    
-    instance (Show a) => Show (End a) where
+
+    instance BasedOn (End a) where
     {
-        show Whenever = "whenever";
-        show (Ends (MkCut a False)) = show a;
-        show (Ends (MkCut a True)) = "including " ++ (show a);
+        type Base (End a) = a;
+    };
+    
+    instance ShowBasedOn (End a) where
+    {
+        showBasedOn _ Whenever = "whenever";
+        showBasedOn show (Ends (MkCut a False)) = show a;
+        showBasedOn show (Ends (MkCut a True)) = "including " ++ (show a);
     };
 
     data Interval a = MkInterval (Start a) (End a);
