@@ -123,6 +123,15 @@ module Data.SetSearch.PhaseSet where
     };
 
     data EventType = ETChange | ETLateChange | ETPoint deriving Eq;
+
+    eventCurrent :: (DeltaSmaller a) => PhaseSet a -> a -> Maybe EventType;
+    eventCurrent ps a = case (member (sfChanges (psIntervals ps)) a,member (psExceptions ps) a) of
+    {
+        (False,False) -> Nothing;
+        (True,False) -> Just ETChange;
+        (False,True) -> Just ETPoint;
+        (True,True) -> Just ETLateChange;
+    };
     
     eventFirstAfterUntil :: (DeltaSmaller a) => PhaseSet a -> a -> a -> Maybe (a,EventType);
     eventFirstAfterUntil ps t limit = let

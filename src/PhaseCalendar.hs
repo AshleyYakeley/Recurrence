@@ -20,7 +20,7 @@ module Main where
         Nothing -> "not in the next year"
     };
     
-    doHandle :: Handle -> IO [Item];
+    doHandle :: Handle -> IO [Item T];
     doHandle h = do
     {
         text <- hGetContents h;
