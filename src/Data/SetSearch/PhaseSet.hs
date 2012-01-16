@@ -154,4 +154,23 @@ module Data.SetSearch.PhaseSet where
             (Nothing,Nothing) -> Nothing;
         }
     };  
+    
+    cutNextInterval :: forall a. (DeltaSmaller a) => PhaseSet a -> Cut a -> a -> Maybe (Interval a);
+    cutNextInterval phase cut limit = if cutAfterMember phase cut
+     then Just (MkInterval
+        (if cutCurrent phase cut then Starts cut else Ongoing)
+        (getEnd cut)
+     )
+     else do
+    {
+        startcut <- cutFirstAfterUntil phase cut limit;
+        return (MkInterval (Starts startcut) (getEnd startcut));
+    } where
+    {
+        getEnd c = case cutFirstAfterUntil phase c limit of
+        {
+            Just end -> Ends end;
+            Nothing -> Whenever;
+        };
+    };
 }
