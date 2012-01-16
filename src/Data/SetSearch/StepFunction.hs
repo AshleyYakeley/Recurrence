@@ -40,6 +40,15 @@ module Data.SetSearch.StepFunction where
         type Base (StepFunction a b) = a;
     };
     
+    instance RemapBase (StepFunction a x) (StepFunction b x) where
+    {
+        remapBase ab ba sfa = MkStepFunction
+        {
+            sfValue = remapBase ab ba (sfValue sfa),
+            sfPossibleChanges = remapBase ab ba (sfPossibleChanges sfa)
+        };
+    };
+    
     sfChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> PointSet a;
     sfChanges sf = filterIntersect (\a -> case deltaSmaller a of
     {

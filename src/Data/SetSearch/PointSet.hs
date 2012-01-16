@@ -36,6 +36,16 @@ module Data.SetSearch.PointSet where
         type Base (PointSet a) = a;
     };
     
+    instance RemapBase (PointSet a) (PointSet b) where
+    {
+        remapBase ab ba psa = MkPointSet
+        {
+            ssMember = \b -> ssMember psa (ba b),
+            ssFirstAfterUntil = \b blimit -> fmap ab (ssFirstAfterUntil psa (ba b) (ba blimit)),
+            ssLastBeforeUntil = \b blimit -> fmap ab (ssLastBeforeUntil psa (ba b) (ba blimit))
+        };
+    };
+    
     instance (Ord a) => Set (PointSet a) where
     {
         empty = MkPointSet

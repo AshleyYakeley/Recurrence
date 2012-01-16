@@ -44,7 +44,11 @@ module Data.TimePhase.Dict (evalAtom) where
     weekDay :: Integer -> Intervals T;
     weekDay i = fmap (\day -> mod' (toModifiedJulianDay day) 7 == i) theDay;
     
+    delay :: NominalDiffTime -> TimePhase -> TimePhase;
+    delay dt = remapBase (addLocalTime dt) (addLocalTime (negate dt));
+    
     dict :: String -> Maybe Value;
+
     dict "never" = Just (toValue (empty :: TimePhase));
     dict "always" = Just (toValue (full :: TimePhase));
     dict "not" = Just (toValue (invert :: TimePhase -> TimePhase));
@@ -52,7 +56,11 @@ module Data.TimePhase.Dict (evalAtom) where
     dict "and" = Just (toValue (unionAll :: [TimePhase] -> TimePhase));
     dict "start" = Just (toValue startOf);
     dict "end" = Just (toValue endOf);
+    dict "delay" = Just (toValue delay);
+    dict "1h" = Just (toValue (3600 :: NominalDiffTime)); -- temp
+
     dict "midnight" = Just (toValue midnights);
+
     dict "Wednesday" = Just (toValue (weekDay 0));
     dict "Thursday" = Just (toValue (weekDay 1));
     dict "Friday" = Just (toValue (weekDay 2));
@@ -60,6 +68,7 @@ module Data.TimePhase.Dict (evalAtom) where
     dict "Sunday" = Just (toValue (weekDay 4));
     dict "Monday" = Just (toValue (weekDay 5));
     dict "Tuesday" = Just (toValue (weekDay 6));
+
     dict s = Nothing;
     
     evalAtom :: String -> Maybe Value;

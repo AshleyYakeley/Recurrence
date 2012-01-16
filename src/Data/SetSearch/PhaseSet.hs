@@ -47,6 +47,15 @@ module Data.SetSearch.PhaseSet where
         type Base (PhaseSet a) = a;
     };
     
+    instance RemapBase (PhaseSet a) (PhaseSet b) where
+    {
+        remapBase ab ba psa = MkPhaseSet
+        {
+            psIntervals = remapBase ab ba (psIntervals psa),
+            psExceptions = remapBase ab ba (psExceptions psa)
+        };
+    };
+    
     -- union, intersect and diff checked by test/TestPhaseSet
     instance (Ord a) => Set (PhaseSet a) where
     {

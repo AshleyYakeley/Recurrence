@@ -10,6 +10,12 @@ module Data.SetSearch.PointCoPointSet where
         type Base (PointCoPointSet a) = a;
     };
     
+    instance RemapBase (PointCoPointSet a) (PointCoPointSet b) where
+    {
+        remapBase ab ba (PointPCPSet seta) = PointPCPSet (remapBase ab ba seta);
+        remapBase ab ba (CoPointPCPSet seta) = CoPointPCPSet (remapBase ab ba seta);
+    };
+    
     instance (Ord a) => Set (PointCoPointSet a) where
     {
         empty = PointPCPSet empty;
