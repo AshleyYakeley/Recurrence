@@ -5,6 +5,7 @@ module Data.TimePhase.Item where
     import Control.Monad;
     import Language.SExpression;
     import Text.ParserCombinators.ReadPrec;
+    import Data.Time;
     import Data.SetSearch;
     import Data.TimePhase.Read;
     import Data.TimePhase.Value;
@@ -90,9 +91,48 @@ module Data.TimePhase.Item where
     compareEvents (MkEvent _ i1) (MkEvent _ i2) = compare i1 i2;
 
     showEvents :: [Event T] -> IO ();
-    showEvents events = mapM_ ff events where
+    showEvents [] = return ();
+    showEvents ee = showNew Nothing ee where
     {
-        ff event = putStrLn (showBasedOn show event);
+        getDay :: Event T -> Maybe Day;
+        getDay (MkEvent _ (MkInterval (Starts (MkCut t _)) _)) = Just (localDay t);
+        getDay _ = Nothing;
+    
+        showNew :: Maybe Day -> [Event T] -> IO ();
+        showNew mday ee = do
+        {
+            putStrLn (case mday of
+            {
+                Nothing -> "Ongoing";
+                Just day -> show day;
+            });
+            showOngoing mday ee;
+        };
+    
+        pad2 :: String -> String;
+        pad2 [] = "00";
+        pad2 s@[_] = '0':s;
+        pad2 s = s;
+    
+        showTimeOfDay :: TimeOfDay -> String;
+        showTimeOfDay tod | todSec tod == 0 = (pad2 (show (todHour tod))) ++ ":" ++ (pad2 (show (todMin tod)));
+        showTimeOfDay tod = show tod;
+    
+        showTime :: Maybe Day -> T -> String;
+        showTime mday t = let
+        {
+            day = localDay t;
+            tod = localTimeOfDay t;
+        } in if mday == Just day then showTimeOfDay tod else (show day) ++ " " ++ (showTimeOfDay tod);
+    
+        showOngoing :: Maybe Day -> [Event T] -> IO ();
+        showOngoing _ [] = return ();
+        showOngoing mday ee@(e:_) | mday /= (getDay e) = showNew (getDay e) ee;
+        showOngoing mday (e:es) = do
+        {
+            putStrLn (showBasedOn (showTime mday) e);
+            showOngoing mday es;
+        };
     };
     
     showItems :: T -> T -> [Item T] -> IO ();
