@@ -70,4 +70,17 @@ module Data.SetSearch.Cut where
     };
 
     data Interval a = MkInterval (Start a) (End a);
+    
+    instance (Eq a) => Eq (Interval a) where
+    {
+        (MkInterval s1 e1) == (MkInterval s2 e2) = (s1 == s2) && (e1 == e2);
+    };
+    
+    instance (Ord a) => Ord (Interval a) where
+    {
+        compare (MkInterval s1 e1) (MkInterval s2 e2) = let
+        {
+            sc = compare s1 s2;
+        } in if sc == EQ then compare e1 e2 else sc;
+    };
 }
