@@ -17,3 +17,8 @@
 ("MT (let)" (let ((t Tuesday)) (and Monday t) ))
 
 ("1am" (delay 1h midnight))
+("Wednesday start" (start Wednesday))
+("Wednesday end" (end Wednesday))
+("midnight start" (start midnight))
+("midnight end" (end midnight))
+
