@@ -1,10 +1,12 @@
 module Data.SetSearch.PhaseSet where
 {
+    import Control.Monad;
     import Data.SetSearch.Set;
     import Data.SetSearch.PointSet;
     import Data.SetSearch.Intervals;
     import Data.SetSearch.StepFunction;
     import Data.SetSearch.DeltaSmaller;
+    import Data.SetSearch.Cut;
 
     data PhaseSet a = MkPhaseSet
     {
@@ -122,51 +124,34 @@ module Data.SetSearch.PhaseSet where
         };
     };
 
-    data EventType = ETChange | ETLateChange | ETPoint deriving Eq;
+    cutCurrent :: (DeltaSmaller a) => PhaseSet a -> Cut a -> Bool;
+    cutCurrent phase (MkCut a False) = (member (sfChanges (psIntervals phase)) a) /= (member (psExceptions phase) a);
+    cutCurrent phase (MkCut a True) = member (psExceptions phase) a;
 
-    eventCurrent :: (DeltaSmaller a) => PhaseSet a -> a -> Maybe EventType;
-    eventCurrent ps a = case (member (sfChanges (psIntervals ps)) a,member (psExceptions ps) a) of
-    {
-        (False,False) -> Nothing;
-        (True,False) -> Just ETChange;
-        (False,True) -> Just ETPoint;
-        (True,True) -> Just ETLateChange;
-    };
-    
-    eventFirstAfterUntil :: (DeltaSmaller a) => PhaseSet a -> a -> a -> Maybe (a,EventType);
-    eventFirstAfterUntil ps t limit = let
-    {
-        mrI = ssFirstAfterUntil (sfChanges (psIntervals ps)) t limit;
-        mrX = ssFirstAfterUntil (psExceptions ps) t limit;
-    } in case (mrI,mrX) of
-    {
-        (Just rI,Just rX) -> Just (case compare rI rX of
-        {
-            LT -> (rI,ETChange);
-            EQ -> (rI,ETLateChange);
-            GT -> (rX,ETPoint);
-        });
-        (Just rI,Nothing) -> Just (rI,ETChange);
-        (Nothing,Just rX) -> Just (rX,ETPoint);
-        (Nothing,Nothing) -> Nothing;
-    };
+    cutAfterMember :: (DeltaSmaller a) => PhaseSet a -> Cut a -> Bool;
+    cutAfterMember phase (MkCut a False) = member phase a;
+    cutAfterMember phase (MkCut a True) = (member phase a) /= (member (psExceptions phase) a);
 
-    eventStateFirstAfterUntil :: (DeltaSmaller a) => PhaseSet a -> Bool -> a -> a -> Maybe (a,EventType);
-    eventStateFirstAfterUntil ps state t limit = let
+    cutFirstAfterUntil :: (DeltaSmaller a) => PhaseSet a -> Cut a -> a -> Maybe (Cut a);
+    cutFirstAfterUntil phase (MkCut a ff) limit = if ff then nextCut else (mplus thisCut nextCut) where
     {
-        mrI = ssFirstAfterUntil (sfMatchChanges (psIntervals ps) ((==) state)) t limit;
-        mrX = ssFirstAfterUntil (psExceptions ps) t limit;
-    } in case (mrI,mrX) of
-    {
-        (Just rI,Just rX) -> Just (case compare rI rX of
-        {
-            LT -> (rI,ETChange);
-            EQ -> (rI,ETLateChange);
-            GT -> (rX,if member (psIntervals ps) rX then ETLateChange else ETPoint);
-        });
-        (Just rI,Nothing) -> Just (rI,ETChange);
-        (Nothing,Just rX) -> Just (rX,if member (psIntervals ps) rX then ETLateChange else ETPoint);
-        (Nothing,Nothing) -> Nothing;
-    };
+        thisCut = if member (psExceptions phase) a then Just (MkCut a True) else Nothing;
     
+        nextCut = let
+        {
+            mrI = ssFirstAfterUntil (sfChanges (psIntervals phase)) a limit;
+            mrX = ssFirstAfterUntil (psExceptions phase) a limit;
+        } in case (mrI,mrX) of
+        {
+            (Just rI,Just rX) -> Just (case compare rI rX of
+            {
+                LT -> MkCut rI False;
+                EQ -> MkCut rI True;
+                GT -> MkCut rX False;
+            });
+            (Just rI,Nothing) -> Just (MkCut rI False);
+            (Nothing,Just rX) -> Just (MkCut rX False);
+            (Nothing,Nothing) -> Nothing;
+        }
+    };  
 }

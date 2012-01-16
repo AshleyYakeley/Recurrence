@@ -33,27 +33,6 @@ module Data.TimePhase.Item where
     readItems :: ReadPrec (M [Item T]);
     readItems = fmap (mapM interpretItem) readPhasesFile;
     
-    -- False means "just before", True means "just after".
-    data Cut a = MkCut a Bool;
-    
-    instance (Eq a) => Eq (Cut a) where
-    {
-        (MkCut a1 x1) == (MkCut a2 x2) = (a1 == a2) && (x1 == x2);
-    };
-    
-    instance (Ord a) => Ord (Cut a) where
-    {
-        compare (MkCut a1 x1) (MkCut a2 x2) = let
-        {
-            ac = compare a1 a2;
-        } in if ac == EQ then (case (x1, x2) of
-        {
-            (False,True) -> LT;
-            (True,False) -> GT;
-            _ -> EQ;
-        }) else ac;
-    };
-    
     data Start a = Ongoing | Starts (Cut a);
 
     instance (Eq a) => Eq (Start a) where
@@ -111,49 +90,22 @@ module Data.TimePhase.Item where
         _ -> " (until " ++ (show end) ++ ")";
     });
     
-    currentEvent :: forall a. (DeltaSmaller a) => Item a -> a -> a -> Maybe (Event a);
-    currentEvent (MkItem name phase) t limit = if member phase t then Just (case eventCurrent phase t of
+    nextEvent :: forall a. (DeltaSmaller a) => Item a -> Cut a -> a -> Maybe (Event a);
+    nextEvent (MkItem name phase) cut limit = if cutAfterMember phase cut
+     then Just (MkEvent name
+        (if cutCurrent phase cut then Starts cut else Ongoing)
+        (getEnd cut)
+     )
+     else do
     {
-        Just ETPoint -> MkEvent name (Starts (MkCut t False)) (Ends (MkCut t True));
-        Just ETChange -> MkEvent name (Starts (MkCut t False)) getEnd;
-        Just ETLateChange -> MkEvent name Ongoing (Ends (MkCut t True));
-        Nothing -> MkEvent name Ongoing getEnd;
-    })
-    else Nothing where
-    {
-        getEnd :: End a;
-        getEnd = case eventStateFirstAfterUntil phase False t limit of
-        {
-            Just (end,etype') -> Ends (MkCut end (etype' /= ETChange));
-            Nothing -> Whenever;
-        };
-    };
- 
-    nextEvent :: forall a. (DeltaSmaller a) => Item a -> a -> a -> Maybe (Event a);
-    nextEvent (MkItem name phase) t limit = case (member phase t,eventCurrent phase t) of
-    {
-        (False,Just ETLateChange) -> Just (getEvent t ETLateChange);
-        (False,Just ETPoint) -> Just (getEvent t ETLateChange);
-        _ -> do
-        {
-            (start,etype) <- eventStateFirstAfterUntil phase True t limit;
-            return (getEvent start etype);
-        };
+        startcut <- cutFirstAfterUntil phase cut limit;
+        return (MkEvent name (Starts startcut) (getEnd startcut));
     } where
     {
-        getEnd :: a -> End a;
-        getEnd start = case eventStateFirstAfterUntil phase False start limit of
+        getEnd c = case cutFirstAfterUntil phase c limit of
         {
-            Just (end,etype') -> Ends (MkCut end (etype' == ETLateChange));
+            Just end -> Ends end;
             Nothing -> Whenever;
-        };
-        
-        getEvent :: a -> EventType -> Event a;
-        getEvent start etype = case etype of
-        {
-            ETPoint -> MkEvent name (Starts (MkCut start False)) (Ends (MkCut start True));
-            ETChange -> MkEvent name (Starts (MkCut start False)) (getEnd start);
-            ETLateChange -> MkEvent name (Starts (MkCut start True)) (getEnd start);
         };
     };
 
@@ -166,6 +118,6 @@ module Data.TimePhase.Item where
     showItems :: T -> T -> [Item T] -> IO ();
     showItems t limit items = showEvents events where
     {
-        events = mapMaybe (\phase -> mplus (currentEvent phase t limit) (nextEvent phase t limit)) items;
+        events = mapMaybe (\phase -> nextEvent phase (MkCut t False) limit) items;
     };
 }

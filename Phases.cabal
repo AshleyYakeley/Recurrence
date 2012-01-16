@@ -22,6 +22,7 @@ library
         Data.SetSearch.StepFunction 
         Data.SetSearch.Intervals
         Data.SetSearch.PointCoPointSet
+        Data.SetSearch.Cut
         Data.SetSearch.PhaseSet
         Data.SetSearch
         Language.SExpression
