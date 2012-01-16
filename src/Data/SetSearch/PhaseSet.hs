@@ -42,10 +42,14 @@ module Data.SetSearch.PhaseSet where
         };
     };
     
+    instance BasedOn (PhaseSet a) where
+    {
+        type Base (PhaseSet a) = a;
+    };
+    
     -- union, intersect and diff checked by test/TestPhaseSet
     instance (Ord a) => Set (PhaseSet a) where
     {
-        type Base (PhaseSet a) = a;
         empty = MkPhaseSet
         {
             psIntervals = empty,

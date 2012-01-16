@@ -1,8 +1,12 @@
 module Data.SetSearch.Set where
 {
-    class Set (s :: *) where
+    class BasedOn (s :: *) where
     {
         type Base s :: *;
+    };
+    
+    class (BasedOn s) => Set (s :: *) where
+    {
         empty :: s;
         member :: s -> Base s -> Bool;
         union :: s -> s -> s;
@@ -46,9 +50,13 @@ module Data.SetSearch.Set where
     intersectAll [tp] = tp;
     intersectAll (tp:tps) = intersect tp (intersectAll tps);
 
+    instance BasedOn (a -> b) where
+    {
+        type Base (a -> b) = a;
+    };
+
     instance (Eq a) => Set (a -> Bool) where
     {
-        type Base (a -> Bool) = a;
         empty _ = False;
         member = id;
         union s1 s2 a = (s1 a) || (s2 a);

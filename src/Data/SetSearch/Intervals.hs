@@ -10,7 +10,6 @@ module Data.SetSearch.Intervals where
     
     instance (Ord a) => Set (Intervals a) where
     {
-        type Base (Intervals a) = a;
         empty = pure False;
         member = sfValue;
         union = liftA2 (||);

@@ -31,9 +31,13 @@ module Data.SetSearch.PointSet where
         Nothing -> False; -- never switched on
     };
     
-    instance (Ord a) => Set (PointSet a) where
+    instance BasedOn (PointSet a) where
     {
         type Base (PointSet a) = a;
+    };
+    
+    instance (Ord a) => Set (PointSet a) where
+    {
         empty = MkPointSet
         {
             ssMember = \_ -> False,

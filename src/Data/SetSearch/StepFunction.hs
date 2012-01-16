@@ -35,6 +35,11 @@ module Data.SetSearch.StepFunction where
         };
     };
     
+    instance BasedOn (StepFunction a b) where
+    {
+        type Base (StepFunction a b) = a;
+    };
+    
     sfChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> PointSet a;
     sfChanges sf = filterIntersect (\a -> case deltaSmaller a of
     {

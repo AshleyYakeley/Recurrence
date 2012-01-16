@@ -5,9 +5,13 @@ module Data.SetSearch.PointCoPointSet where
 
     data PointCoPointSet a = PointPCPSet (PointSet a) | CoPointPCPSet (PointSet a);
     
-    instance (Ord a) => Set (PointCoPointSet a) where
+    instance BasedOn (PointCoPointSet a) where
     {
         type Base (PointCoPointSet a) = a;
+    };
+    
+    instance (Ord a) => Set (PointCoPointSet a) where
+    {
         empty = PointPCPSet empty;
         member (PointPCPSet set) a = member set a;
         member (CoPointPCPSet set) a = not (member set a);

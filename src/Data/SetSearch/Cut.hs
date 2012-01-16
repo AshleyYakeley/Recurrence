@@ -1,5 +1,5 @@
 module Data.SetSearch.Cut where
-{ 
+{
     -- False means "just before", True means "just after".
     data Cut a = MkCut a Bool;
     
