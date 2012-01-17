@@ -30,6 +30,7 @@ library
         Data.TimePhase
         Data.TimePhase.Read
         Data.TimePhase.Value
+        Data.TimePhase.Atom
         Data.TimePhase.Dict
         Data.TimePhase.Eval
         Data.TimePhase.Item

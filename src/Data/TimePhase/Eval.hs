@@ -1,21 +1,11 @@
 module Data.TimePhase.Eval(evalWithDict) where
 {
-    import Data.Char;
-    import Data.Time;
     import Data.Traversable;
     import Control.Monad;
     import Language.SExpression;
     import Data.TimePhase.Value;
+    import Data.TimePhase.Atom;
     import Data.TimePhase.Dict;
-    
-    allowedName :: String -> Bool;
-    allowedName ('_':_) = True;
-    allowedName (c:_) | isLetter c = True;
-    allowedName _ = False;
-    
-    evalAtom :: String -> Maybe Value;
-    evalAtom "1h" = Just (toValue (3600 :: NominalDiffTime)); -- temp
-    evalAtom atom = Nothing;
     
     eval :: (?dict :: String -> Maybe Value) => SExpression String -> M Value;
     eval (AtomSExpression atom) = if allowedName atom then case ?dict atom of
