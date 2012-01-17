@@ -8,7 +8,8 @@ default: \
  duration.phases.diff \
  months.phases.diff \
  startend.phases.diff \
- to.phases.diff
+ to.phases.diff \
+ easter.phases.diff
 	@echo "Success!"
 
 

@@ -4,20 +4,6 @@ module Data.TimePhase.Value where
     import Data.SetSearch;
     import Data.Time;
 
-    nominalDayLength :: NominalDiffTime;
-    nominalDayLength = 86400;
-
-    addLocalTime :: NominalDiffTime -> LocalTime -> LocalTime;
-    addLocalTime ndt t = let
-    {
-        tod = (realToFrac (timeOfDayToTime (localTimeOfDay t))) + ndt;
-    } in
-    LocalTime
-    {
-        localDay = addDays (fromIntegral (div' tod nominalDayLength)) (localDay t),
-        localTimeOfDay = timeToTimeOfDay (realToFrac (mod' tod nominalDayLength))
-    };
-
     -- data Phase a = IntervalsPhase (Intervals a) | PointSetPhase (PointCoPointSet a);
     type Phase = PhaseSet;
     
@@ -25,9 +11,6 @@ module Data.TimePhase.Value where
 
     getNow :: IO T;
     getNow = fmap zonedTimeToLocalTime getZonedTime;
-
-    addT :: NominalDiffTime -> T -> T;
-    addT = addLocalTime;
 
     firstTime :: T;
     firstTime = LocalTime

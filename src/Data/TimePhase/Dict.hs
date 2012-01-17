@@ -2,6 +2,7 @@ module Data.TimePhase.Dict (dict) where
 {
     import Data.Fixed;
     import Data.Time;
+    import Data.Time.Calendar.Easter;
     import Data.TimePhase.Value;
     import Data.SetSearch;
 
@@ -14,9 +15,6 @@ module Data.TimePhase.Dict (dict) where
     to :: TimePhase -> TimePhase -> Intervals T;
     to pa pb = let {?first = firstTime} in
         intervalsFromTo (startOf pa) (endOf pb);
-    
-    delay :: NominalDiffTime -> TimePhase -> TimePhase;
-    delay dt = remapBase (addLocalTime dt) (addLocalTime (negate dt));
 
     midnights :: KnownPointSet T;
     midnights = MkKnownPointSet
@@ -68,12 +66,21 @@ module Data.TimePhase.Dict (dict) where
             return (midnightOf day);
         }
     };
- 
+
     theDay :: StepFunction T Day;
     theDay = MkStepFunction
     {
         sfValue = localDay,
         sfPossibleChanges = knownToPointSet midnights
+    };
+
+    specialDays :: KnownPointSet Day -> Intervals T;
+    specialDays kpsday = MkStepFunction
+    {
+        sfValue = \t -> kpsMember kpsday (localDay t),
+        sfPossibleChanges = union
+            (knownToPointSet (midnightsBefore kpsday))
+            (knownToPointSet (midnightsBefore (delay 1 kpsday)))
     };
     
     weekDay :: Integer -> Intervals T;
@@ -110,6 +117,30 @@ module Data.TimePhase.Dict (dict) where
     isMonth :: Int -> Intervals T;
     isMonth i = fmap (\(_,m) -> i == m) yearAndMonth;
 
+    yearOfDay :: Day -> Integer;
+    yearOfDay day = case toGregorian day of
+    {
+        (y,_,_) -> y;
+    };
+
+    easterDay :: KnownPointSet Day;
+    easterDay = MkKnownPointSet
+    {
+        kpsMember = \day -> day == gregorianEaster (yearOfDay day),
+        kpsFirstAfter = \day -> Just (let
+        {
+            thisEaster = gregorianEaster (yearOfDay day);
+            nextEaster = gregorianEaster ((yearOfDay day) + 1);
+        } in if day < thisEaster then thisEaster else nextEaster
+        ),
+        kpsLastBefore = \day -> Just (let
+        {
+            thisEaster = gregorianEaster (yearOfDay day);
+            prevEaster = gregorianEaster ((yearOfDay day) - 1);
+        } in if day > thisEaster then thisEaster else prevEaster
+        )
+    };
+
     dict :: String -> Maybe Value;
 
     dict "never" = Just (toValue (empty :: TimePhase));
@@ -121,7 +152,7 @@ module Data.TimePhase.Dict (dict) where
     dict "end" = Just (toValue endOf);
     dict "to" = Just (toValue to);
     
-    dict "delay" = Just (toValue delay);
+    dict "delay" = Just (toValue (delay :: NominalDiffTime -> TimePhase -> TimePhase));
 
     dict "midnight" = Just (toValue (knownToPointSet midnights));
 
@@ -145,6 +176,8 @@ module Data.TimePhase.Dict (dict) where
     dict "October" = Just (toValue (isMonth 10));
     dict "November" = Just (toValue (isMonth 11));
     dict "December" = Just (toValue (isMonth 12));
+
+    dict "Easter" = Just (toValue (specialDays easterDay));
 
     dict s = Nothing;
 }

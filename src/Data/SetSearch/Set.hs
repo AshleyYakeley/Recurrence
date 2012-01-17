@@ -1,5 +1,44 @@
 module Data.SetSearch.Set where
 {
+    import Data.Fixed;
+    import Data.Time;
+
+    class (Num (Difference a)) => Affine a where
+    {
+        type Difference a :: *;
+        addAffine :: Difference a -> a -> a;
+        diffAffine :: a -> a -> Difference a;
+    };
+
+    instance Affine Day where
+    {
+        type Difference Day = Integer;
+        addAffine = addDays;
+        diffAffine = diffDays;
+    };
+
+    nominalDayLength :: NominalDiffTime;
+    nominalDayLength = 86400;
+
+    instance Affine LocalTime where
+    {
+        type Difference LocalTime = NominalDiffTime;
+        addAffine ndt t = let
+        {
+            tod = (realToFrac (timeOfDayToTime (localTimeOfDay t))) + ndt;
+        } in
+        LocalTime
+        {
+            localDay = addDays (fromIntegral (div' tod nominalDayLength)) (localDay t),
+            localTimeOfDay = timeToTimeOfDay (realToFrac (mod' tod nominalDayLength))
+        };
+        diffAffine lt1 lt2 = let
+        {
+            dayDiffSeconds = (fromIntegral (diffAffine (localDay lt1) (localDay lt2))) * nominalDayLength;
+            todDiffSeconds = (timeOfDayToTime (localTimeOfDay lt1)) - (timeOfDayToTime (localTimeOfDay lt2));
+        } in dayDiffSeconds + (realToFrac todDiffSeconds);
+    };
+
     class BasedOn (s :: *) where
     {
         type Base s :: *;
@@ -9,6 +48,9 @@ module Data.SetSearch.Set where
     {
         remapBase :: (Base p -> Base q) -> (Base q -> Base p) -> p -> q;
     };
+    
+    delay :: (Affine (Base p),RemapBase p p) => Difference (Base p) -> p -> p;
+    delay diff = remapBase (addAffine diff) (addAffine (negate diff));
     
     class (BasedOn s) => Set (s :: *) where
     {

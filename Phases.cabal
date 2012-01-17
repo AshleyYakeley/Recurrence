@@ -15,6 +15,7 @@ library
         ImplicitParams
         TypeSynonymInstances
         MultiParamTypeClasses
+        FlexibleContexts
     build-depends: base, time >= 1.4
     exposed-modules: 
         Data.SetSearch.Set
@@ -48,6 +49,7 @@ executable time-phase
         ImplicitParams
         TypeSynonymInstances
         MultiParamTypeClasses
+        FlexibleContexts
     build-depends: base, time >= 1.4, Phases == 0.1
     main-is: TimePhase.hs
 
@@ -62,6 +64,7 @@ executable phase-calendar
         ImplicitParams
         TypeSynonymInstances
         MultiParamTypeClasses
+        FlexibleContexts
     build-depends: base, time >= 1.4, Phases == 0.1
     main-is: PhaseCalendar.hs
 

@@ -1,0 +1,5 @@
+("Palm Sunday" (delay -7d Easter))
+("Easter" Easter)
+("Ascension Day" (delay 39d Easter))
+("Pentecost" (delay 49d Easter))
+

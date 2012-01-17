@@ -29,4 +29,19 @@ module Data.SetSearch.KnownPointSet where
             if r >= limit then Just r else Nothing;
         }
     };
+    
+    instance BasedOn (KnownPointSet a) where
+    {
+        type Base (KnownPointSet a) = a;
+    };
+    
+    instance RemapBase (KnownPointSet a) (KnownPointSet b) where
+    {
+        remapBase ab ba kpsa = MkKnownPointSet
+        {
+            kpsMember = \b -> kpsMember kpsa (ba b),
+            kpsFirstAfter = \b -> fmap ab (kpsFirstAfter kpsa (ba b)),
+            kpsLastBefore = \b -> fmap ab (kpsLastBefore kpsa (ba b))
+        };
+    };
 }

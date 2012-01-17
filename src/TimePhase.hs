@@ -35,7 +35,7 @@ module Main where
     searchTime = 365.25 * 86400;
 
     showPoints :: T -> PointSet T -> String;
-    showPoints now set = case ssFirstAfterUntil set now (addT searchTime now) of
+    showPoints now set = case ssFirstAfterUntil set now (addAffine searchTime now) of
     {
         Just t -> show t;
         Nothing -> "not in the next year"
