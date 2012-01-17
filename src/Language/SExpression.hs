@@ -29,6 +29,16 @@ module Language.SExpression where
         if match found then return found else pfail;
     };
     
+    readIsEnd :: ReadPrec Bool;
+    readIsEnd = (get >> return False) <++ (return True);
+    
+    readEnd :: ReadPrec ();
+    readEnd = do
+    {
+        end <- readIsEnd;
+        if end then return () else pfail;
+    };
+    
     readThis :: Char -> ReadPrec ();
     readThis expected = readMatching (\found -> expected == found) >> return ();
     
@@ -50,8 +60,26 @@ module Language.SExpression where
             readZeroOrMore_ reader;
         }) <++ (return ());
     
+    isLineBreak :: Char -> Bool;
+    isLineBreak '\r' = True;
+    isLineBreak '\n' = True;
+    isLineBreak c = case generalCategory c of
+    {
+        LineSeparator -> True;
+        ParagraphSeparator -> True;
+        _ -> False;
+    };
+    
+    readComment :: ReadPrec ();
+    readComment = do
+    {
+        readThis '#';
+        readZeroOrMore_ (readMatching  (not . isLineBreak));
+        (readMatching isLineBreak >> return ()) <++ readEnd;
+    };
+    
     readAnyWhiteSpace :: ReadPrec ();
-    readAnyWhiteSpace = readZeroOrMore_ (readMatching isSpace);
+    readAnyWhiteSpace = readZeroOrMore_ (readComment <++ (readMatching isSpace >> return ()));
 
     readSExpression :: forall a. ReadPrec a -> ReadPrec (SExpression a);
     readSExpression readAtom = readExp where
