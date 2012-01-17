@@ -36,18 +36,11 @@ module Main where
         };
     };
 
-    readIt :: ReadPrec a -> String -> Maybe a;
-    readIt rp s = case readPrec_to_S rp 0 s of
-    {
-        [(a,"")] -> Just a;
-        _ -> Nothing;
-    };
-
     matchArgs [] = return (Nothing,[]);
     matchArgs ("--start":t:args) = do
     {
         (opts,files) <- matchArgs args;
-        case readIt readPrec t of
+        case runRead readPrec t of
         {
             Just time -> return (Just time,files);
             _ -> fail ("bad argument: " ++ (show t));

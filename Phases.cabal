@@ -26,6 +26,7 @@ library
         Data.SetSearch.Cut
         Data.SetSearch.PhaseSet
         Data.SetSearch
+        Data.TimePhase.SExpression.Read
         Language.SExpression
         Data.TimePhase
         Data.TimePhase.Read

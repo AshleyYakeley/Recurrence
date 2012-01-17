@@ -3,9 +3,10 @@ module Data.TimePhase.Item where
     import Data.Char;
     import Data.Maybe;
     import Control.Monad;
-    import Language.SExpression;
-    import Text.ParserCombinators.ReadPrec;
     import Data.Time;
+    import Text.ParserCombinators.ReadPrec;
+    import Language.SExpression;
+    import Data.TimePhase.SExpression.Read;
     import Data.SetSearch;
     import Data.TimePhase.Read;
     import Data.TimePhase.Value;

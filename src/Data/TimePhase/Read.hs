@@ -1,8 +1,9 @@
 module Data.TimePhase.Read (readExpression) where
 {
     import Data.Char;
-    import Language.SExpression;
     import Text.ParserCombinators.ReadPrec;
+    import Language.SExpression;
+    import Data.TimePhase.SExpression.Read;
     
     isGoodChar :: Char -> Bool;
     isGoodChar '"' = False;
