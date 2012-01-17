@@ -18,39 +18,98 @@ module Data.TimePhase.Dict (dict) where
     delay :: NominalDiffTime -> TimePhase -> TimePhase;
     delay dt = remapBase (addLocalTime dt) (addLocalTime (negate dt));
 
-    midnights :: PointSet T;
-    midnights = MkPointSet
+    midnights :: KnownPointSet T;
+    midnights = MkKnownPointSet
     {
-        ssMember = \t -> (localTimeOfDay t == midnight),
-        ssFirstAfterUntil = \t limit -> let
+        kpsMember = \t -> (localTimeOfDay t == midnight),
+        kpsFirstAfter = \t -> let
         {
             t' = LocalTime
             {
                 localDay = addDays 1 (localDay t),
                 localTimeOfDay = midnight
             };
-        } in if t' <= limit then Just t' else Nothing,
-        ssLastBeforeUntil = \t limit -> let
+        } in Just t',
+        kpsLastBefore = \t -> let
         {
-            day = localDay t;
+            today = localDay t;
             t' = LocalTime
             {
-                localDay = if localTimeOfDay t > midnight then day else addDays (-1) day,
+                localDay = if localTimeOfDay t > midnight
+                 then today
+                 else addDays (-1) today,
                 localTimeOfDay = midnight
             };
-        } in if t' >= limit then Just t' else Nothing
+        } in Just t'
     };
     
+    midnightOf :: Day -> LocalTime;
+    midnightOf day = LocalTime
+    {
+        localDay = day,
+        localTimeOfDay = midnight
+    };
+    
+    midnightsBefore :: KnownPointSet Day -> KnownPointSet T;
+    midnightsBefore kpsday = MkKnownPointSet
+    {
+        kpsMember = \t -> (localTimeOfDay t == midnight) && (kpsMember kpsday (localDay t)),
+        kpsFirstAfter = \t -> do
+        {
+            day <- kpsFirstAfter kpsday (localDay t);
+            return (midnightOf day);
+        },
+        kpsLastBefore = \t -> do
+        {
+            let {today = localDay t};
+            day <- if (localTimeOfDay t > midnight) && (kpsMember kpsday today)
+             then return today
+             else kpsLastBefore kpsday today;
+            return (midnightOf day);
+        }
+    };
+ 
     theDay :: StepFunction T Day;
     theDay = MkStepFunction
     {
         sfValue = localDay,
-        sfPossibleChanges = midnights
+        sfPossibleChanges = knownToPointSet midnights
     };
     
     weekDay :: Integer -> Intervals T;
     weekDay i = fmap (\day -> mod' (toModifiedJulianDay day) 7 == i) theDay;
     
+    monthFirsts :: KnownPointSet Day;
+    monthFirsts = MkKnownPointSet
+    {
+        kpsMember = \day -> case toGregorian day of
+        {
+            (_,_,1) -> True;
+            _ -> False;
+        },
+        kpsFirstAfter = \day -> Just (case toGregorian (addGregorianMonthsClip 1 day) of
+        {
+            (y,m,_) -> fromGregorian y m 1;
+        }),
+        kpsLastBefore = \day -> Just (case toGregorian (addDays (-1) day) of
+        {
+            (y,m,_) -> fromGregorian y m 1;
+        })
+    };
+ 
+    yearAndMonth :: StepFunction T (Integer,Int);
+    yearAndMonth = MkStepFunction
+    {
+        sfValue = (\day -> case toGregorian day of
+        {
+            (y,m,_) -> (y,m);
+        }) . localDay,
+        sfPossibleChanges = knownToPointSet (midnightsBefore monthFirsts)
+    };
+
+    isMonth :: Int -> Intervals T;
+    isMonth i = fmap (\(_,m) -> i == m) yearAndMonth;
+
     dict :: String -> Maybe Value;
 
     dict "never" = Just (toValue (empty :: TimePhase));
@@ -64,7 +123,7 @@ module Data.TimePhase.Dict (dict) where
     
     dict "delay" = Just (toValue delay);
 
-    dict "midnight" = Just (toValue midnights);
+    dict "midnight" = Just (toValue (knownToPointSet midnights));
 
     dict "Wednesday" = Just (toValue (weekDay 0));
     dict "Thursday" = Just (toValue (weekDay 1));
@@ -73,6 +132,19 @@ module Data.TimePhase.Dict (dict) where
     dict "Sunday" = Just (toValue (weekDay 4));
     dict "Monday" = Just (toValue (weekDay 5));
     dict "Tuesday" = Just (toValue (weekDay 6));
+
+    dict "January" = Just (toValue (isMonth 1));
+    dict "February" = Just (toValue (isMonth 2));
+    dict "March" = Just (toValue (isMonth 3));
+    dict "April" = Just (toValue (isMonth 4));
+    dict "May" = Just (toValue (isMonth 5));
+    dict "June" = Just (toValue (isMonth 6));
+    dict "July" = Just (toValue (isMonth 7));
+    dict "August" = Just (toValue (isMonth 8));
+    dict "September" = Just (toValue (isMonth 9));
+    dict "October" = Just (toValue (isMonth 10));
+    dict "November" = Just (toValue (isMonth 11));
+    dict "December" = Just (toValue (isMonth 12));
 
     dict s = Nothing;
 }

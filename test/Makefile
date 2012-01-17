@@ -1,7 +1,14 @@
 GHC = ghc
 GHCFLAGS = -package Phases
 
-default: TestSets.diff0 TestPhaseSet.diff0 test.phases.diff duration.phases.diff startend.phases.diff to.phases.diff
+default: \
+ TestSets.diff0 \
+ TestPhaseSet.diff0 \
+ test.phases.diff \
+ duration.phases.diff \
+ months.phases.diff \
+ startend.phases.diff \
+ to.phases.diff
 	@echo "Success!"
 
 

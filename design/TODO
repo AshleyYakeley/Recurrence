@@ -1,9 +1,9 @@
 show dates
 nth-after
 nth-in
-months
 date formats
 time formats
+grammar doc
 * release 0.1
 lambda
 UTC & time zones

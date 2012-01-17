@@ -17,10 +17,11 @@ library
         MultiParamTypeClasses
     build-depends: base, time >= 1.4
     exposed-modules: 
-        Data.SetSearch.Set 
-        Data.SetSearch.PointSet 
+        Data.SetSearch.Set
+        Data.SetSearch.PointSet
+        Data.SetSearch.KnownPointSet
         Data.SetSearch.DeltaSmaller
-        Data.SetSearch.StepFunction 
+        Data.SetSearch.StepFunction
         Data.SetSearch.Intervals
         Data.SetSearch.PointCoPointSet
         Data.SetSearch.Cut
