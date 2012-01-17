@@ -34,8 +34,16 @@ module Data.TimePhase.Atom(allowedName,evalAtom) where
         return ((realToFrac n) * m);
     };
     
+    readOptionalMinus :: ReadPrec Bool;
+    readOptionalMinus = (readThis '-' >> return True) <++ (return False);
+    
     readDuration :: ReadPrec NominalDiffTime;
-    readDuration = fmap sum (readOneOrMore readDurationPiece);
+    readDuration = do
+    {
+        minus <- readOptionalMinus;
+        d <- fmap sum (readOneOrMore readDurationPiece);
+        return (if minus then negate d else d);
+    };
     
     readAtom :: ReadPrec Value;
     readAtom = (fmap toValue readNumerals) +++ (fmap toValue readDuration);
