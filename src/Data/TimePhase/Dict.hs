@@ -1,4 +1,4 @@
-module Data.TimePhase.Dict (evalAtom) where
+module Data.TimePhase.Dict (dict) where
 {
     import Data.Fixed;
     import Data.Time;
@@ -63,7 +63,6 @@ module Data.TimePhase.Dict (evalAtom) where
     dict "to" = Just (toValue to);
     
     dict "delay" = Just (toValue delay);
-    dict "1h" = Just (toValue (3600 :: NominalDiffTime)); -- temp
 
     dict "midnight" = Just (toValue midnights);
 
@@ -76,7 +75,4 @@ module Data.TimePhase.Dict (evalAtom) where
     dict "Tuesday" = Just (toValue (weekDay 6));
 
     dict s = Nothing;
-    
-    evalAtom :: String -> Maybe Value;
-    evalAtom = dict;
 }

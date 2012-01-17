@@ -1,16 +1,31 @@
 module Data.TimePhase.Eval(evalWithDict) where
 {
+    import Data.Char;
+    import Data.Time;
     import Data.Traversable;
     import Control.Monad;
     import Language.SExpression;
     import Data.TimePhase.Value;
     import Data.TimePhase.Dict;
     
-    eval :: (?evalatom :: String -> Maybe Value) => SExpression String -> M Value;
-    eval (AtomSExpression atom) = case ?evalatom atom of
+    allowedName :: String -> Bool;
+    allowedName ('_':_) = True;
+    allowedName (c:_) | isLetter c = True;
+    allowedName _ = False;
+    
+    evalAtom :: String -> Maybe Value;
+    evalAtom "1h" = Just (toValue (3600 :: NominalDiffTime)); -- temp
+    evalAtom atom = Nothing;
+    
+    eval :: (?dict :: String -> Maybe Value) => SExpression String -> M Value;
+    eval (AtomSExpression atom) = if allowedName atom then case ?dict atom of
     {
         Just v -> return v;
-        _ -> reportError ("unknown: " ++ (show atom));
+        _ -> reportError ("unknown binding: " ++ (show atom));
+    } else case evalAtom atom of
+    {
+        Just v -> return v;
+        _ -> reportError ("bad name: " ++ (show atom));
     };
     eval (ListSExpression []) = reportError "empty list";
     eval (ListSExpression (AtomSExpression "let":rest)) = case rest of
@@ -19,16 +34,16 @@ module Data.TimePhase.Eval(evalWithDict) where
         {
             bindings <- traverse (\bindingPair -> case bindingPair of
             {
-                ListSExpression [AtomSExpression name,valueExpr] -> do
+                ListSExpression [AtomSExpression name,valueExpr] -> if allowedName name then do
                 {
                     value <- eval valueExpr;
                     return (name,value);
-                };
+                } else reportError ("bad binding name: " ++ (show name));
                 _ -> reportError "badly-formed bindings in let";
             }) bindingPairs;
             let
             {
-                ?evalatom = \s -> mplus (findInPairs bindings s) (?evalatom s);
+                ?dict = \s -> mplus (findInPairs bindings s) (?dict s);
             } in eval subjectExpr;
         };
         _ -> reportError "badly-formed let"
@@ -53,6 +68,6 @@ module Data.TimePhase.Eval(evalWithDict) where
     };
     
     evalWithDict :: SExpression String -> M Value;
-    evalWithDict = let {?evalatom = evalAtom} in eval;
+    evalWithDict = let {?dict = dict} in eval;
 }
 
