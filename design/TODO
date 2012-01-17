@@ -4,7 +4,6 @@ nth-in
 months
 date formats
 time formats
-duration formats
 * release 0.1
 lambda
 UTC & time zones
