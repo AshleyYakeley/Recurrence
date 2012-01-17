@@ -18,18 +18,19 @@ module Data.SetSearch.PointSet where
     ssLastBefore ps a = ssLastBeforeUntil ps a ?first;
 
     
-    -- | True if kpsOn switched on more recently than psOff
+    -- | True if psOn switched on more recently than psOff
     ;
     onAndOff :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Bool;
-    onAndOff kpsOn psOff a = case ssLastBefore kpsOn a of
-    {
-        Just r1 -> case ssFirstAfterUntil psOff r1 a of -- to switch off, it must be strictly after the on 
+    onAndOff psOn psOff a = ((member psOn a) && not (member psOff a)) ||
+        case ssLastBefore psOn a of
         {
-            Just _ -> False; -- off after on
-            Nothing -> True; -- no off after on
+            Just r1 -> case ssFirstAfterUntil psOff r1 a of -- to switch off, it must be strictly after the on 
+            {
+                Just _ -> False; -- off after on
+                Nothing -> True; -- no off after on
+            };
+            Nothing -> False; -- never switched on
         };
-        Nothing -> False; -- never switched on
-    };
     
     instance BasedOn (PointSet a) where
     {

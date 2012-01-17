@@ -1,0 +1,7 @@
+("weekend and" (and Saturday Sunday))
+("weekend to" (to Saturday Sunday))
+("midnight" midnight)
+("1am" (delay 1h midnight))
+("both" (and midnight (delay 1h midnight)))
+("first hour" (to midnight (delay 1h midnight)))
+

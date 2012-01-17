@@ -11,6 +11,13 @@ module Data.TimePhase.Dict (evalAtom) where
     endOf :: TimePhase -> PointSet T;
     endOf ps = union (psExceptions ps) (intervalsEndOf (psIntervals ps));
 
+    to :: TimePhase -> TimePhase -> Intervals T;
+    to pa pb = let {?first = firstTime} in
+        intervalsFromTo (startOf pa) (endOf pb);
+    
+    delay :: NominalDiffTime -> TimePhase -> TimePhase;
+    delay dt = remapBase (addLocalTime dt) (addLocalTime (negate dt));
+
     midnights :: PointSet T;
     midnights = MkPointSet
     {
@@ -44,9 +51,6 @@ module Data.TimePhase.Dict (evalAtom) where
     weekDay :: Integer -> Intervals T;
     weekDay i = fmap (\day -> mod' (toModifiedJulianDay day) 7 == i) theDay;
     
-    delay :: NominalDiffTime -> TimePhase -> TimePhase;
-    delay dt = remapBase (addLocalTime dt) (addLocalTime (negate dt));
-    
     dict :: String -> Maybe Value;
 
     dict "never" = Just (toValue (empty :: TimePhase));
@@ -56,6 +60,8 @@ module Data.TimePhase.Dict (evalAtom) where
     dict "and" = Just (toValue (unionAll :: [TimePhase] -> TimePhase));
     dict "start" = Just (toValue startOf);
     dict "end" = Just (toValue endOf);
+    dict "to" = Just (toValue to);
+    
     dict "delay" = Just (toValue delay);
     dict "1h" = Just (toValue (3600 :: NominalDiffTime)); -- temp
 

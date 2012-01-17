@@ -29,6 +29,13 @@ module Data.TimePhase.Value where
     addT :: NominalDiffTime -> T -> T;
     addT = addLocalTime;
 
+    firstTime :: T;
+    firstTime = LocalTime
+    {
+        localDay = ModifiedJulianDay 0,
+        localTimeOfDay = midnight
+    };
+
     type TimePhase = Phase T;
     
     type M = Either String;
