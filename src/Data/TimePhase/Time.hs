@@ -63,21 +63,25 @@ module Data.TimePhase.Time where
         localTimeOfDay = midnight
     };
     
-    midnightsBefore :: KnownPointSet Day -> KnownPointSet T;
-    midnightsBefore kpsday = MkKnownPointSet
+    midnightsBefore :: PointSet Day -> PointSet T;
+    midnightsBefore psday = MkPointSet
     {
-        kpsMember = \t -> (localTimeOfDay t == midnight) && (kpsMember kpsday (localDay t)),
-        kpsFirstAfter = \t -> do
+        ssMember = \t -> (localTimeOfDay t == midnight) && (ssMember psday (localDay t)),
+        ssFirstAfterUntil = \t limit -> do
         {
-            day <- kpsFirstAfter kpsday (localDay t);
+            day <- ssFirstAfterUntil psday (localDay t) (localDay limit);
             return (midnightOf day);
         },
-        kpsLastBefore = \t -> do
+        ssLastBeforeUntil = \t limit -> do
         {
-            let {today = localDay t};
-            day <- if (localTimeOfDay t > midnight) && (kpsMember kpsday today)
+            let 
+            {
+                today = localDay t;
+                limitday = if localTimeOfDay limit == midnight then localDay limit else addDays 1 (localDay limit);
+            };
+            day <- if (localTimeOfDay t > midnight) && (ssMember psday today)
              then return today
-             else kpsLastBefore kpsday today;
+             else ssLastBeforeUntil psday today limitday;
             return (midnightOf day);
         }
     };
@@ -89,20 +93,20 @@ module Data.TimePhase.Time where
         sfPossibleChanges = knownToPointSet midnights
     };
 
-    specialDays :: KnownPointSet Day -> Intervals T;
-    specialDays kpsday = MkStepFunction
+    specialDays :: PointSet Day -> Intervals T;
+    specialDays psday = MkStepFunction
     {
-        sfValue = \t -> kpsMember kpsday (localDay t),
+        sfValue = \t -> ssMember psday (localDay t),
         sfPossibleChanges = union
-            (knownToPointSet (midnightsBefore kpsday))
-            (knownToPointSet (midnightsBefore (delay 1 kpsday)))
+            (midnightsBefore psday)
+            (midnightsBefore (delay 1 psday))
     };
     
     weekDay :: Integer -> Intervals T;
     weekDay i = fmap (\day -> mod' (toModifiedJulianDay day) 7 == i) theDay;
     
-    monthFirsts :: KnownPointSet Day;
-    monthFirsts = MkKnownPointSet
+    monthFirsts :: PointSet Day;
+    monthFirsts = knownToPointSet MkKnownPointSet
     {
         kpsMember = \day -> case toGregorian day of
         {
@@ -120,7 +124,7 @@ module Data.TimePhase.Time where
     };
 
     newMonth :: PointSet T;
-    newMonth = knownToPointSet (midnightsBefore monthFirsts);
+    newMonth = midnightsBefore monthFirsts;
 
     theYearAndMonth :: StepFunction T (Integer,Int);
     theYearAndMonth = MkStepFunction
@@ -135,8 +139,8 @@ module Data.TimePhase.Time where
     isMonth :: Int -> Intervals T;
     isMonth i = fmap (\(_,m) -> i == m) theYearAndMonth;
     
-    yearFirsts :: KnownPointSet Day;
-    yearFirsts = MkKnownPointSet
+    yearFirsts :: PointSet Day;
+    yearFirsts = knownToPointSet MkKnownPointSet
     {
         kpsMember = \day -> case toGregorian day of
         {
@@ -154,7 +158,7 @@ module Data.TimePhase.Time where
     };
 
     newYear :: PointSet T;
-    newYear = knownToPointSet (midnightsBefore yearFirsts);
+    newYear = midnightsBefore yearFirsts;
 
     theYear :: StepFunction T Integer;
     theYear = MkStepFunction
@@ -175,21 +179,53 @@ module Data.TimePhase.Time where
         (y,_,_) -> y;
     };
 
-    dayEachYear :: (Integer -> Day) -> KnownPointSet Day;
-    dayEachYear yday = MkKnownPointSet
+    dayEachYear :: (Integer -> Day) -> PointSet Day;
+    dayEachYear f = knownToPointSet MkKnownPointSet
     {
-        kpsMember = \day -> day == yday (yearOfDay day),
+        kpsMember = \day -> day == f (yearOfDay day),
         kpsFirstAfter = \day -> Just (let
         {
-            thisOne = yday (yearOfDay day);
-            nextOne= yday ((yearOfDay day) + 1);
+            thisOne = f (yearOfDay day);
+            nextOne= f ((yearOfDay day) + 1);
         } in if day < thisOne then thisOne else nextOne
         ),
         kpsLastBefore = \day -> Just (let
         {
-            thisOne = yday (yearOfDay day);
-            prevOne = yday ((yearOfDay day) - 1);
+            thisOne = f (yearOfDay day);
+            prevOne = f ((yearOfDay day) - 1);
         } in if day > thisOne then thisOne else prevOne
         )
+    };
+
+    maybeDayEachYear :: (Integer -> Maybe Day) -> PointSet Day;
+    maybeDayEachYear f = MkPointSet
+    {
+        ssMember = \day -> (Just day) == f (yearOfDay day),
+        ssFirstAfterUntil = \day limit -> let
+        {
+            yday = yearOfDay day;
+            ylimit = yearOfDay limit;
+            maxOffset = ylimit - yday;
+            findN i | i > maxOffset = Nothing;
+            findN i = case f (yday + i) of
+            {
+                Just found | found > limit -> Nothing;
+                Just found | found > day -> Just found;
+                _ -> findN (i + 1);
+            };
+        } in findN 0,
+        ssLastBeforeUntil = \day limit -> let
+        {
+            yday = yearOfDay day;
+            ylimit = yearOfDay limit;
+            maxOffset = yday - ylimit;
+            findN i | i > maxOffset = Nothing;
+            findN i = case f (yday - i) of
+            {
+                Just found | found < limit -> Nothing;
+                Just found | found < day -> Just found;
+                _ -> findN (i + 1);
+            };
+        } in findN 0
     };
 }

@@ -6,7 +6,7 @@ default: \
  TestPhaseSet.diff0 \
  test.phases.diff \
  duration.phases.diff \
- timeformats.phases.diff \
+ timeformats.phases.10y.diff \
  months.phases.diff \
  startend.phases.diff \
  to.phases.diff \
@@ -25,6 +25,9 @@ clean:
 
 %.phases.out: %.phases
 	../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" $< > $@
+
+%.phases.10y.out: %.phases
+	../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 3650 $< > $@
 
 %.diff: %.ref %.out
 	diff -u $^

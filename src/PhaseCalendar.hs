@@ -10,16 +10,6 @@ module Main where
     import Data.TimePhase;
     import Data.TimePhase.Value;
     import Data.SetSearch;
-
-    searchTime :: NominalDiffTime;
-    searchTime = 60 * 86400;
-
-    showPoints :: T -> PointSet T -> String;
-    showPoints now set = case ssFirstAfterUntil set now (addAffine searchTime now) of
-    {
-        Just t -> show t;
-        Nothing -> "not in the next year"
-    };
     
     doHandle :: Handle -> IO [Item T];
     doHandle h = do
@@ -37,13 +27,22 @@ module Main where
         };
     };
 
-    matchArgs [] = return (Nothing,[]);
+    matchArgs [] = return ((Nothing,Nothing),[]);
     matchArgs ("--start":t:args) = do
     {
-        (opts,files) <- matchArgs args;
+        ((_,days),files) <- matchArgs args;
         case runRead readPrec t of
         {
-            Just time -> return (Just time,files);
+            Just value -> return ((Just value,days),files);
+            _ -> fail ("bad argument: " ++ (show t));
+        };
+    };
+    matchArgs ("--days":t:args) = do
+    {
+        ((start,_),files) <- matchArgs args;
+        case runRead readPrec t of
+        {
+            Just value -> return ((start,Just value),files);
             _ -> fail ("bad argument: " ++ (show t));
         };
     };
@@ -58,13 +57,18 @@ module Main where
     main = do
     {
         args <- getArgs;
-        (mtime,filepaths) <- matchArgs args;
-        time <- case mtime of
+        ((mtime,mdays),filepaths) <- matchArgs args;
+        start <- case mtime of
         {
             Just time -> return time;
             Nothing -> getNow;
         };
+        end <- return (case mdays of
+        {
+            Just days -> addAffine ((fromIntegral days) * nominalDayLength) start;
+            Nothing -> addAffine ((fromIntegral 60) * nominalDayLength) start;
+        });
         itemlists <- mapM (\filepath -> withFile filepath ReadMode (doHandle)) filepaths;
-        showItems time (addAffine searchTime time) (concat itemlists);
+        showItems start end (concat itemlists);
     };
 }
