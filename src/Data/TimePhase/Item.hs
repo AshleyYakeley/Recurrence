@@ -95,22 +95,18 @@ module Data.TimePhase.Item where
 
     showEvents :: [Event T] -> IO ();
     showEvents [] = return ();
-    showEvents ee = showNew Nothing ee where
+    showEvents ee = showOngoing Nothing ee where
     {
         getDay :: Event T -> Maybe Day;
         getDay (MkEvent _ (MkInterval (Starts (MkCut t _)) _)) = Just (localDay t);
         getDay _ = Nothing;
     
-        showNew :: Maybe Day -> [Event T] -> IO ();
-        showNew mday ee = do
+        showHeader :: Maybe Day -> IO ();
+        showHeader mday = putStrLn (case mday of
         {
-            putStrLn (case mday of
-            {
-                Nothing -> "Ongoing";
-                Just day -> show day;
-            });
-            showOngoing mday ee;
-        };
+            Nothing -> "Ongoing";
+            Just day -> show day;
+        });
     
         pad2 :: String -> String;
         pad2 [] = "00";
@@ -128,13 +124,17 @@ module Data.TimePhase.Item where
             tod = localTimeOfDay t;
         } in if mday == Just day then showTimeOfDay tod else (show day) ++ " " ++ (showTimeOfDay tod);
     
-        showOngoing :: Maybe Day -> [Event T] -> IO ();
+        showOngoing :: Maybe (Maybe Day) -> [Event T] -> IO ();
         showOngoing _ [] = return ();
-        showOngoing mday ee@(e:_) | mday /= (getDay e) = showNew (getDay e) ee;
-        showOngoing mday (e:es) = do
+        showOngoing mmday@(Just mday) (e:es) | mday == (getDay e) = do
         {
             putStrLn (showBasedOn (showTime mday) e);
-            showOngoing mday es;
+            showOngoing mmday es;
+        };
+        showOngoing _ ee@(e:_) = do
+        {
+            showHeader (getDay e);
+            showOngoing (Just (getDay e)) ee;
         };
     };
     
