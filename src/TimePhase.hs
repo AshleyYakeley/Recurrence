@@ -4,7 +4,7 @@ module Main where
     import System.Environment;
     import Data.Time;
     import Text.ParserCombinators.ReadPrec;
-    import Language.SExpression;
+    import Data.TimePhase.SExpression;
     import Data.TimePhase;
     import Data.TimePhase.Value;
     import Data.SetSearch;

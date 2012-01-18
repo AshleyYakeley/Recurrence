@@ -5,7 +5,7 @@ module Data.TimePhase.Item where
     import Control.Monad;
     import Data.Time;
     import Text.ParserCombinators.ReadPrec;
-    import Language.SExpression;
+    import Data.TimePhase.SExpression;
     import Data.TimePhase.SExpression.Read;
     import Data.SetSearch;
     import Data.TimePhase.Read;

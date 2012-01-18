@@ -1,4 +1,4 @@
-module Language.SExpression where
+module Data.TimePhase.SExpression where
 {
     import Data.Char;
     import Data.List;

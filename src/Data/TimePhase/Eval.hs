@@ -2,7 +2,7 @@ module Data.TimePhase.Eval(evalWithDict) where
 {
     import Data.Traversable;
     import Control.Monad;
-    import Language.SExpression;
+    import Data.TimePhase.SExpression;
     import Data.TimePhase.Value;
     import Data.TimePhase.Atom;
     import Data.TimePhase.Dict;

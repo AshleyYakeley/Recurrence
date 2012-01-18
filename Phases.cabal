@@ -29,7 +29,7 @@ library
         Data.SetSearch.PhaseSet
         Data.SetSearch
         Data.TimePhase.SExpression.Read
-        Language.SExpression
+        Data.TimePhase.SExpression
         Data.TimePhase
         Data.TimePhase.Read
         Data.TimePhase.Value
