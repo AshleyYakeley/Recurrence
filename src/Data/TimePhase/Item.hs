@@ -1,5 +1,6 @@
 module Data.TimePhase.Item where
 {
+    import Data.List;
     import Data.Char;
     import Data.Maybe;
     import Control.Monad;
@@ -93,51 +94,60 @@ module Data.TimePhase.Item where
     compareEvents :: (Ord a) => Event a -> Event a -> Ordering;
     compareEvents (MkEvent _ i1) (MkEvent _ i2) = compare i1 i2;
 
-    showEvents :: [Event T] -> IO ();
-    showEvents [] = return ();
-    showEvents ee = showOngoing Nothing ee where
+    groupByFunc :: (Eq b) => (a -> b) -> [a] -> [(b,[a])];
+    groupByFunc f [] = [];
+    groupByFunc f aa@(a:_) = let
     {
-        getDay :: Event T -> Maybe Day;
-        getDay (MkEvent _ (MkInterval (Starts (MkCut t _)) _)) = Just (localDay t);
-        getDay _ = Nothing;
+        b = f a;
+        (matching,rest) = span (\a' -> f a' == b) aa;
+    } in (b,matching):(groupByFunc f rest); 
+
+    getStartTime :: Event T -> Maybe T;
+    getStartTime (MkEvent _ (MkInterval (Starts (MkCut t _)) _)) = Just t;
+    getStartTime _ = Nothing;
+
+    groupEvents :: [Event T] -> [(Maybe Day,[(Maybe TimeOfDay,[Event T])])];
+    groupEvents events = fmap (\(mday,dayevents) -> (mday,groupByFunc ((fmap localTimeOfDay) . getStartTime) dayevents))
+     (groupByFunc ((fmap localDay) . getStartTime) events);
     
-        showHeader :: Maybe Day -> IO ();
-        showHeader mday = putStrLn (case mday of
+    showHeader :: Maybe Day -> IO ();
+    showHeader mday = putStrLn (case mday of
+    {
+        Nothing -> "Ongoing";
+        Just day -> show day;
+    });
+    
+    pad2 :: String -> String;
+    pad2 [] = "00";
+    pad2 s@[_] = '0':s;
+    pad2 s = s;
+    
+    showTimeOfDay :: TimeOfDay -> String;
+    showTimeOfDay tod | todSec tod == 0 = (pad2 (show (todHour tod))) ++ ":" ++ (pad2 (show (todMin tod)));
+    showTimeOfDay tod = show tod;
+
+    showEvent :: Event T -> String;
+    showEvent (MkEvent name (MkInterval start end)) = name ++ (case (start,end) of
+    {
+        (Starts (MkCut s _),Ends (MkCut e _)) | s == e -> "";
+        _ -> " (until " ++ (showBasedOn show end) ++ ")";
+    });
+
+    showEvents :: [Event T] -> IO ();
+    showEvents events = mapM_ (\(mday,dayevents) -> do
+    {
+        showHeader mday;
+        mapM_ (\(mtod,timeevents) -> do
         {
-            Nothing -> "Ongoing";
-            Just day -> show day;
-        });
-    
-        pad2 :: String -> String;
-        pad2 [] = "00";
-        pad2 s@[_] = '0':s;
-        pad2 s = s;
-    
-        showTimeOfDay :: TimeOfDay -> String;
-        showTimeOfDay tod | todSec tod == 0 = (pad2 (show (todHour tod))) ++ ":" ++ (pad2 (show (todMin tod)));
-        showTimeOfDay tod = show tod;
-    
-        showTime :: Maybe Day -> T -> String;
-        showTime mday t = let
-        {
-            day = localDay t;
-            tod = localTimeOfDay t;
-        } in if mday == Just day then showTimeOfDay tod else (show day) ++ " " ++ (showTimeOfDay tod);
-    
-        showOngoing :: Maybe (Maybe Day) -> [Event T] -> IO ();
-        showOngoing _ [] = return ();
-        showOngoing mmday@(Just mday) (e:es) | mday == (getDay e) = do
-        {
-            putStrLn (showBasedOn (showTime mday) e);
-            showOngoing mmday es;
-        };
-        showOngoing _ ee@(e:_) = do
-        {
-            showHeader (getDay e);
-            showOngoing (Just (getDay e)) ee;
-        };
-    };
-    
+            case mtod of
+            {
+                Just tod -> putStr ((showTimeOfDay tod) ++ " ");
+                Nothing -> return ();
+            };
+            putStrLn (intercalate ", " (fmap showEvent timeevents));
+        }) dayevents;
+    }) (groupEvents events);
+   
     showItems :: T -> T -> [Item T] -> IO ();
     showItems t limit items = showEvents events where
     {
