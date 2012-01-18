@@ -37,6 +37,9 @@ module Data.TimePhase.SExpression.Read where
     readThis :: Char -> ReadPrec ();
     readThis expected = readMatching (\found -> expected == found) >> return ();
     
+    readMaybe :: ReadPrec a -> ReadPrec (Maybe a);
+    readMaybe reader = (fmap Just reader) <++ (return Nothing);
+    
     readOneOrMore :: forall b. ReadPrec b -> ReadPrec [b];
     readOneOrMore reader = do
     {

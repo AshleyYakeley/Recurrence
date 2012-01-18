@@ -3,23 +3,7 @@ module Data.TimePhase.Value where
     import Data.Fixed;
     import Data.SetSearch;
     import Data.Time;
-
-    -- data Phase a = IntervalsPhase (Intervals a) | PointSetPhase (PointCoPointSet a);
-    type Phase = PhaseSet;
-    
-    type T = LocalTime;
-
-    getNow :: IO T;
-    getNow = fmap zonedTimeToLocalTime getZonedTime;
-
-    firstTime :: T;
-    firstTime = LocalTime
-    {
-        localDay = ModifiedJulianDay 0,
-        localTimeOfDay = midnight
-    };
-
-    type TimePhase = Phase T;
+    import Data.TimePhase.Time;
     
     type M = Either String;
     reportError :: String -> M a;

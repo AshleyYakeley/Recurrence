@@ -3,143 +3,9 @@ module Data.TimePhase.Dict (dict) where
     import Data.Fixed;
     import Data.Time;
     import Data.Time.Calendar.Easter;
-    import Data.TimePhase.Value;
     import Data.SetSearch;
-
-    startOf :: TimePhase -> PointSet T;
-    startOf ps = union (psExceptions ps) (intervalsStartOf (psIntervals ps));
-
-    endOf :: TimePhase -> PointSet T;
-    endOf ps = union (psExceptions ps) (intervalsEndOf (psIntervals ps));
-
-    to :: TimePhase -> TimePhase -> Intervals T;
-    to pa pb = let {?first = firstTime} in
-        intervalsFromTo (startOf pa) (endOf pb);
-
-    midnights :: KnownPointSet T;
-    midnights = MkKnownPointSet
-    {
-        kpsMember = \t -> (localTimeOfDay t == midnight),
-        kpsFirstAfter = \t -> let
-        {
-            t' = LocalTime
-            {
-                localDay = addDays 1 (localDay t),
-                localTimeOfDay = midnight
-            };
-        } in Just t',
-        kpsLastBefore = \t -> let
-        {
-            today = localDay t;
-            t' = LocalTime
-            {
-                localDay = if localTimeOfDay t > midnight
-                 then today
-                 else addDays (-1) today,
-                localTimeOfDay = midnight
-            };
-        } in Just t'
-    };
-    
-    midnightOf :: Day -> LocalTime;
-    midnightOf day = LocalTime
-    {
-        localDay = day,
-        localTimeOfDay = midnight
-    };
-    
-    midnightsBefore :: KnownPointSet Day -> KnownPointSet T;
-    midnightsBefore kpsday = MkKnownPointSet
-    {
-        kpsMember = \t -> (localTimeOfDay t == midnight) && (kpsMember kpsday (localDay t)),
-        kpsFirstAfter = \t -> do
-        {
-            day <- kpsFirstAfter kpsday (localDay t);
-            return (midnightOf day);
-        },
-        kpsLastBefore = \t -> do
-        {
-            let {today = localDay t};
-            day <- if (localTimeOfDay t > midnight) && (kpsMember kpsday today)
-             then return today
-             else kpsLastBefore kpsday today;
-            return (midnightOf day);
-        }
-    };
-
-    theDay :: StepFunction T Day;
-    theDay = MkStepFunction
-    {
-        sfValue = localDay,
-        sfPossibleChanges = knownToPointSet midnights
-    };
-
-    specialDays :: KnownPointSet Day -> Intervals T;
-    specialDays kpsday = MkStepFunction
-    {
-        sfValue = \t -> kpsMember kpsday (localDay t),
-        sfPossibleChanges = union
-            (knownToPointSet (midnightsBefore kpsday))
-            (knownToPointSet (midnightsBefore (delay 1 kpsday)))
-    };
-    
-    weekDay :: Integer -> Intervals T;
-    weekDay i = fmap (\day -> mod' (toModifiedJulianDay day) 7 == i) theDay;
-    
-    monthFirsts :: KnownPointSet Day;
-    monthFirsts = MkKnownPointSet
-    {
-        kpsMember = \day -> case toGregorian day of
-        {
-            (_,_,1) -> True;
-            _ -> False;
-        },
-        kpsFirstAfter = \day -> Just (case toGregorian (addGregorianMonthsClip 1 day) of
-        {
-            (y,m,_) -> fromGregorian y m 1;
-        }),
-        kpsLastBefore = \day -> Just (case toGregorian (addDays (-1) day) of
-        {
-            (y,m,_) -> fromGregorian y m 1;
-        })
-    };
- 
-    yearAndMonth :: StepFunction T (Integer,Int);
-    yearAndMonth = MkStepFunction
-    {
-        sfValue = (\day -> case toGregorian day of
-        {
-            (y,m,_) -> (y,m);
-        }) . localDay,
-        sfPossibleChanges = knownToPointSet (midnightsBefore monthFirsts)
-    };
-
-    isMonth :: Int -> Intervals T;
-    isMonth i = fmap (\(_,m) -> i == m) yearAndMonth;
-
-    yearOfDay :: Day -> Integer;
-    yearOfDay day = case toGregorian day of
-    {
-        (y,_,_) -> y;
-    };
-
-    easterDay :: KnownPointSet Day;
-    easterDay = MkKnownPointSet
-    {
-        kpsMember = \day -> day == gregorianEaster (yearOfDay day),
-        kpsFirstAfter = \day -> Just (let
-        {
-            thisEaster = gregorianEaster (yearOfDay day);
-            nextEaster = gregorianEaster ((yearOfDay day) + 1);
-        } in if day < thisEaster then thisEaster else nextEaster
-        ),
-        kpsLastBefore = \day -> Just (let
-        {
-            thisEaster = gregorianEaster (yearOfDay day);
-            prevEaster = gregorianEaster ((yearOfDay day) - 1);
-        } in if day > thisEaster then thisEaster else prevEaster
-        )
-    };
+    import Data.TimePhase.Time;
+    import Data.TimePhase.Value;
 
     dict :: String -> Maybe Value;
 
@@ -154,7 +20,10 @@ module Data.TimePhase.Dict (dict) where
     
     dict "delay" = Just (toValue (delay :: NominalDiffTime -> TimePhase -> TimePhase));
 
-    dict "midnight" = Just (toValue (knownToPointSet midnights));
+    dict "midnight" = Just (toValue newDay);
+    dict "new-day" = Just (toValue newDay);
+    dict "new-month" = Just (toValue newMonth);
+    dict "new-year" = Just (toValue newYear);
 
     dict "Wednesday" = Just (toValue (weekDay 0));
     dict "Thursday" = Just (toValue (weekDay 1));
@@ -177,7 +46,7 @@ module Data.TimePhase.Dict (dict) where
     dict "November" = Just (toValue (isMonth 11));
     dict "December" = Just (toValue (isMonth 12));
 
-    dict "Easter" = Just (toValue (specialDays easterDay));
+    dict "Easter" = Just (toValue (specialDays (dayEachYear gregorianEaster)));
 
     dict s = Nothing;
 }

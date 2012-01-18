@@ -6,6 +6,7 @@ module Data.TimePhase.Item where
     import Data.Time;
     import Text.ParserCombinators.ReadPrec;
     import Data.SetSearch;
+    import Data.TimePhase.Time;
     import Data.TimePhase.SExpression;
     import Data.TimePhase.SExpression.Read;
     import Data.TimePhase.Atom;
@@ -28,7 +29,7 @@ module Data.TimePhase.Item where
     mergeByListPresorted cmp (list:lists) = mergeByPairPresorted cmp list (mergeByListPresorted cmp lists);
     
 
-    data Item a = MkItem String (Phase a);
+    data Item a = MkItem String (PhaseSet a);
     
     readPhasesFile :: ReadPrec [SExpression Atom];
     readPhasesFile = do

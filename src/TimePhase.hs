@@ -4,6 +4,7 @@ module Main where
     import System.Environment;
     import Data.Time;
     import Text.ParserCombinators.ReadPrec;
+    import Data.TimePhase.Time;
     import Data.TimePhase.SExpression;
     import Data.TimePhase;
     import Data.TimePhase.Value;
@@ -41,7 +42,7 @@ module Main where
         Nothing -> "not in the next year"
     };
     
-    showPhase :: T -> Phase T -> String;
+    showPhase :: T -> PhaseSet T -> String;
     showPhase now ps = if member ps now then "happening" else "not happening";
 {-    
     (IntervalsPhase ints) = 

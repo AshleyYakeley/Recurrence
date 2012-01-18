@@ -5,6 +5,7 @@ module Main where
     import Data.Time;
     import Text.Read;
     import Text.ParserCombinators.ReadPrec;
+    import Data.TimePhase.Time;
     import Data.TimePhase.SExpression;
     import Data.TimePhase;
     import Data.TimePhase.Value;

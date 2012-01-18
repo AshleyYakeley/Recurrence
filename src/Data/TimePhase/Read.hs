@@ -3,6 +3,8 @@ module Data.TimePhase.Read (readExpression) where
     import Data.Char;
     import Data.Time;
     import Text.ParserCombinators.ReadPrec;
+    import Data.SetSearch;
+    import Data.TimePhase.Time;
     import Data.TimePhase.SExpression;
     import Data.TimePhase.SExpression.Read;
     import Data.TimePhase.Value;
@@ -51,24 +53,6 @@ module Data.TimePhase.Read (readExpression) where
 
     readIdentifier :: ReadPrec String;
     readIdentifier = readQuoted <++ readUnquotedIdentifier;
-{-   
-    readBracketed :: ReadPrec String;
-    readBracketed = do
-    {
-        readThis '[';
-        s <- readZeroOrMore (bsChar <++ (readMatching isInQuoteChar));
-        readThis ']';
-        return s;
-    };
--}
-
-
-
-    
-    allowedName :: String -> Bool;
-    allowedName ('_':_) = True;
-    allowedName (c:_) | isLetter c = True;
-    allowedName _ = False;
     
     toNumber :: Int -> [Int] -> Int;
     toNumber n [] = n;
@@ -76,6 +60,76 @@ module Data.TimePhase.Read (readExpression) where
     
     readNumerals :: ReadPrec Int;
     readNumerals = fmap (toNumber 0) (readOneOrMore readDigit);
+
+    {-
+    -d
+    -}
+    readD :: ReadPrec (Intervals T);
+    readD = do
+    {
+        readThis '-';
+        day <- readNumerals;
+        pfail; -- day;
+    };
+    
+    {-
+    -m-d
+    -m-
+    -}
+    readM :: ReadPrec (Intervals T);
+    readM = do
+    {
+        readThis '-';
+        month <- readNumerals;
+        readThis '-';
+        mday <- readMaybe readNumerals;
+        return (case mday of
+        {
+            Nothing -> isMonth month;
+            Just day -> specialDays (dayEachYear (\year -> fromGregorian year month day));
+        });
+    };
+    
+    {-
+    y-m-d
+    y-m-
+    y-
+    -}
+    readY :: ReadPrec (Intervals T);
+    readY = do
+    {
+        (year :: Integer) <- fmap fromIntegral readNumerals;
+        readThis '-';
+        mmonthmday <- readMaybe (do
+        {
+            month <- readNumerals;
+            readThis '-';
+            mday <- readMaybe readNumerals;
+            return (month,mday);
+        });
+        return (case mmonthmday of
+        {
+            Nothing -> isYear year;
+            Just (month,Nothing) -> fmap ((==) (year,month)) theYearAndMonth;
+            Just (month,Just day) -> fmap ((==) (fromGregorian year month day)) theDay;
+        });
+    };
+    
+    readBracketed :: ReadPrec TimePhase;
+    readBracketed = do
+    {
+        readThis '[';
+        readZeroOrMore_ (readMatching isSpace);
+        dayIntervals <- readY <++ readM <++ readD;        
+        readZeroOrMore_ (readMatching isSpace);
+        readThis ']';
+        return (toPhaseSet dayIntervals);
+    };
+    
+    allowedName :: String -> Bool;
+    allowedName ('_':_) = True;
+    allowedName (c:_) | isLetter c = True;
+    allowedName _ = False;
     
     durationType :: Char -> Maybe NominalDiffTime;
     durationType 's' = Just 1;
@@ -108,7 +162,7 @@ module Data.TimePhase.Read (readExpression) where
     readLiteral = (fmap toValue readDuration) <++ (fmap toValue readNumerals);
 
     readAtom :: ReadPrec Atom;
-    readAtom = (fmap IdentifierAtom readIdentifier) <++ (fmap LiteralAtom readLiteral);
+    readAtom = (fmap IdentifierAtom readIdentifier) <++ (fmap (LiteralAtom . toValue) readBracketed) <++ (fmap LiteralAtom readLiteral);
 
     readExpression :: ReadPrec (SExpression Atom);
     readExpression = readSExpression readAtom;

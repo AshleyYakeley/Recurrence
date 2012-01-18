@@ -31,6 +31,7 @@ library
         Data.TimePhase.SExpression.Read
         Data.TimePhase.SExpression
         Data.TimePhase
+        Data.TimePhase.Time
         Data.TimePhase.Read
         Data.TimePhase.Value
         Data.TimePhase.Atom

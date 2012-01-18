@@ -6,6 +6,7 @@ default: \
  TestPhaseSet.diff0 \
  test.phases.diff \
  duration.phases.diff \
+ timeformats.phases.diff \
  months.phases.diff \
  startend.phases.diff \
  to.phases.diff \
