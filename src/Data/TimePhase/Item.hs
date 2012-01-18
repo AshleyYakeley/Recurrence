@@ -5,9 +5,10 @@ module Data.TimePhase.Item where
     import Control.Monad;
     import Data.Time;
     import Text.ParserCombinators.ReadPrec;
+    import Data.SetSearch;
     import Data.TimePhase.SExpression;
     import Data.TimePhase.SExpression.Read;
-    import Data.SetSearch;
+    import Data.TimePhase.Atom;
     import Data.TimePhase.Read;
     import Data.TimePhase.Value;
     import Data.TimePhase.Dict;
@@ -29,7 +30,7 @@ module Data.TimePhase.Item where
 
     data Item a = MkItem String (Phase a);
     
-    readPhasesFile :: ReadPrec [SExpression String];
+    readPhasesFile :: ReadPrec [SExpression Atom];
     readPhasesFile = do
     {
         exps <- readZeroOrMore readExpression;
@@ -37,8 +38,8 @@ module Data.TimePhase.Item where
         return exps;
     };
     
-    interpretItem :: SExpression String -> M (Item T);
-    interpretItem (ListSExpression [AtomSExpression name,defn]) = do
+    interpretItem :: SExpression Atom -> M (Item T);
+    interpretItem (ListSExpression [AtomSExpression (IdentifierAtom name),defn]) = do
     {
         value <- evalWithDict defn;
         phase <- fromValue value;

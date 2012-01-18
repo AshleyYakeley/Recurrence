@@ -7,28 +7,25 @@ module Data.TimePhase.Eval(evalWithDict) where
     import Data.TimePhase.Atom;
     import Data.TimePhase.Dict;
     
-    eval :: (?dict :: String -> Maybe Value) => SExpression String -> M Value;
-    eval (AtomSExpression atom) = if allowedName atom then case ?dict atom of
+    eval :: (?dict :: String -> Maybe Value) => SExpression Atom -> M Value;
+    eval (AtomSExpression (LiteralAtom value)) = return value;
+    eval (AtomSExpression (IdentifierAtom name)) = case ?dict name of
     {
         Just v -> return v;
-        _ -> reportError ("unknown binding: " ++ (show atom));
-    } else case evalAtom atom of
-    {
-        Just v -> return v;
-        _ -> reportError ("bad name: " ++ (show atom));
+        _ -> reportError ("unknown binding: " ++ (show name));
     };
     eval (ListSExpression []) = reportError "empty list";
-    eval (ListSExpression (AtomSExpression "let":rest)) = case rest of
+    eval (ListSExpression (AtomSExpression (IdentifierAtom "let"):rest)) = case rest of
     {
         [ListSExpression bindingPairs,subjectExpr] -> do
         {
             bindings <- traverse (\bindingPair -> case bindingPair of
             {
-                ListSExpression [AtomSExpression name,valueExpr] -> if allowedName name then do
+                ListSExpression [AtomSExpression (IdentifierAtom name),valueExpr] -> do
                 {
                     value <- eval valueExpr;
                     return (name,value);
-                } else reportError ("bad binding name: " ++ (show name));
+                };
                 _ -> reportError "badly-formed bindings in let";
             }) bindingPairs;
             let
@@ -57,7 +54,7 @@ module Data.TimePhase.Eval(evalWithDict) where
         };
     };
     
-    evalWithDict :: SExpression String -> M Value;
+    evalWithDict :: SExpression Atom -> M Value;
     evalWithDict = let {?dict = dict} in eval;
 }
 
