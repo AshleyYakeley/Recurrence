@@ -12,6 +12,7 @@ default: \
  startend.phases.diff \
  from-until.phases.diff \
  to.phases.diff \
+ nth.phases.diff \
  easter.phases.diff
 	@echo "Success!"
 

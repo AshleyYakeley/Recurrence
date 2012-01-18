@@ -18,12 +18,6 @@ module Data.TimePhase.Time where
 
     type TimePhase = PhaseSet T;
 
-    startOf :: TimePhase -> PointSet T;
-    startOf ps = union (psExceptions ps) (intervalsStartOf (psIntervals ps));
-
-    endOf :: TimePhase -> PointSet T;
-    endOf ps = union (psExceptions ps) (intervalsEndOf (psIntervals ps));
-
     fromTo :: TimePhase -> TimePhase -> Intervals T;
     fromTo pa pb = let {?first = firstTime} in
         intervalsFromTo (startOf pa) (endOf pb);
@@ -31,6 +25,10 @@ module Data.TimePhase.Time where
     onAfter :: TimePhase -> Intervals T;
     onAfter phase = let {?first = firstTime} in
         intervalsOnAfter (startOf phase);
+
+    nthIn :: Int -> TimePhase -> TimePhase -> TimePhase;
+    nthIn n psubject pdelimiter = let {?first = firstTime} in intersect psubject
+        (toPhaseSet (fmap ((==) (Just n)) (sfCountSince (startOf pdelimiter) (startOf psubject))));
 
     midnights :: KnownPointSet T;
     midnights = MkKnownPointSet

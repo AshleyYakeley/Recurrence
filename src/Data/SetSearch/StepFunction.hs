@@ -65,4 +65,23 @@ module Data.SetSearch.StepFunction where
     
     sfMatchChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> (b -> Bool) -> PointSet a;
     sfMatchChanges sf match = filterIntersect (match . (sfValue sf)) (sfChanges sf);
+
+    sfCountSince :: (Ord a,?first :: a) => PointSet a -> PointSet a -> StepFunction a (Maybe Int);
+    sfCountSince delimiter subject = MkStepFunction
+    {
+        sfValue = \a -> do
+        {
+            lastdel <- ssLastBefore delimiter a;
+            let
+            {
+                count t = case ssLastBeforeUntil subject t lastdel of
+                {
+                    Nothing -> 0;
+                    Just t' -> 1 + (count t');
+                };
+            };
+            return ((count a) + (if member subject a then 1 else 0));
+        },
+        sfPossibleChanges = union delimiter subject
+    };
 }

@@ -14,11 +14,12 @@ module Data.TimePhase.Dict (dict) where
     dict "not" = Just (toValue (invert :: TimePhase -> TimePhase));
     dict "when" = Just (toValue (intersectAll :: [TimePhase] -> TimePhase));
     dict "and" = Just (toValue (unionAll :: [TimePhase] -> TimePhase));
-    dict "start" = Just (toValue startOf);
-    dict "end" = Just (toValue endOf);
+    dict "start" = Just (toValue (startOf :: TimePhase -> PointSet T));
+    dict "end" = Just (toValue (endOf :: TimePhase -> PointSet T));
     dict "interval" = Just (toValue fromTo);
     dict "from" = Just (toValue onAfter);
     dict "until" = Just (toValue (invert . onAfter));
+    dict "nth" = Just (toValue nthIn);
     
     dict "delay" = Just (toValue (delay :: NominalDiffTime -> TimePhase -> TimePhase));
 

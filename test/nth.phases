@@ -1,0 +1,12 @@
+("first Sunday" (nth 1 Sunday new-month))
+("first Monday" (nth 1 Monday new-month))
+("first Tuesday" (nth 1 Tuesday new-month))
+("first Wednesday" (nth 1 Wednesday new-month))
+("first Thursday" (nth 1 Thursday new-month))
+("first Friday" (nth 1 Friday new-month))
+("first Saturday" (nth 1 Saturday new-month))
+
+("third Sunday" (nth 3 Sunday new-month))
+("third Sunday in April" (nth 3 Sunday April))
+("third Sunday in May" (nth 3 Sunday May))
+("third 3pm in May" (nth 3 [15:00] May))

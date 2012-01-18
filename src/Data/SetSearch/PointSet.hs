@@ -17,20 +17,30 @@ module Data.SetSearch.PointSet where
     ssLastBefore :: (Ord a,?first :: a) => PointSet a -> a -> Maybe a;
     ssLastBefore ps a = ssLastBeforeUntil ps a ?first;
 
+    -- | which one was before. ps2 takes priority over ps1
+    pointSetFirstBefore :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
+    pointSetFirstBefore ps1 ps2 a = 
+    if member ps2 a then Just (Right a)
+    else if member ps1 a then Just (Left a)
+    else case ssLastBefore ps1 a of
+    {
+        Just r1 -> case ssFirstAfterUntil ps2 r1 a of -- to switch off, it must be strictly after the on 
+        {
+            Just r2 -> Just (Right r2);
+            Nothing -> Just (Left r1);
+        };
+        Nothing -> Nothing; -- never switched on
+    };
     
     -- | True if psOn switched on more recently than psOff
     ;
     pointSetOnAndOff :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Bool;
-    pointSetOnAndOff psOn psOff a = ((member psOn a) && not (member psOff a)) ||
-        case ssLastBefore psOn a of
-        {
-            Just r1 -> case ssFirstAfterUntil psOff r1 a of -- to switch off, it must be strictly after the on 
-            {
-                Just _ -> False; -- off after on
-                Nothing -> True; -- no off after on
-            };
-            Nothing -> False; -- never switched on
-        };
+    pointSetOnAndOff psOn psOff a = case pointSetFirstBefore psOn psOff a of
+    {
+        Just (Left _) -> True;
+        Just (Right _) -> False;
+        Nothing -> False;
+    };
     
     pointSetOnAfter :: (Ord a,?first :: a) => PointSet a -> a -> Bool;
     pointSetOnAfter psOn a = (member psOn a) ||

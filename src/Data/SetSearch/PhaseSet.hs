@@ -186,4 +186,10 @@ module Data.SetSearch.PhaseSet where
             Nothing -> Whenever;
         };
     };
+
+    startOf :: (DeltaSmaller a) => PhaseSet a -> PointSet a;
+    startOf ps = union (psExceptions ps) (intervalsStartOf (psIntervals ps));
+
+    endOf :: (DeltaSmaller a) => PhaseSet a -> PointSet a;
+    endOf ps = union (psExceptions ps) (intervalsEndOf (psIntervals ps));
 }
