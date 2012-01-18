@@ -139,6 +139,16 @@ module Data.TimePhase.Time where
     isMonth :: Int -> Intervals T;
     isMonth i = fmap (\(_,m) -> i == m) theYearAndMonth;
     
+    dayOfMonth :: Int -> PointSet Day;
+    dayOfMonth dd = psSearch (\day -> case toGregorian day of
+    {
+        (y,m,d) -> y * 12 + (fromIntegral (m - 1));
+    }) (\i -> let
+    {
+        y = div i 12;
+        m = (fromIntegral (mod i 12)) + 1;
+    } in fromGregorianValid y m dd);
+
     yearFirsts :: PointSet Day;
     yearFirsts = knownToPointSet MkKnownPointSet
     {
@@ -180,52 +190,8 @@ module Data.TimePhase.Time where
     };
 
     dayEachYear :: (Integer -> Day) -> PointSet Day;
-    dayEachYear f = knownToPointSet MkKnownPointSet
-    {
-        kpsMember = \day -> day == f (yearOfDay day),
-        kpsFirstAfter = \day -> Just (let
-        {
-            thisOne = f (yearOfDay day);
-            nextOne= f ((yearOfDay day) + 1);
-        } in if day < thisOne then thisOne else nextOne
-        ),
-        kpsLastBefore = \day -> Just (let
-        {
-            thisOne = f (yearOfDay day);
-            prevOne = f ((yearOfDay day) - 1);
-        } in if day > thisOne then thisOne else prevOne
-        )
-    };
+    dayEachYear f = knownToPointSet (kpsEach yearOfDay f);
 
     maybeDayEachYear :: (Integer -> Maybe Day) -> PointSet Day;
-    maybeDayEachYear f = MkPointSet
-    {
-        ssMember = \day -> (Just day) == f (yearOfDay day),
-        ssFirstAfterUntil = \day limit -> let
-        {
-            yday = yearOfDay day;
-            ylimit = yearOfDay limit;
-            maxOffset = ylimit - yday;
-            findN i | i > maxOffset = Nothing;
-            findN i = case f (yday + i) of
-            {
-                Just found | found > limit -> Nothing;
-                Just found | found > day -> Just found;
-                _ -> findN (i + 1);
-            };
-        } in findN 0,
-        ssLastBeforeUntil = \day limit -> let
-        {
-            yday = yearOfDay day;
-            ylimit = yearOfDay limit;
-            maxOffset = yday - ylimit;
-            findN i | i > maxOffset = Nothing;
-            findN i = case f (yday - i) of
-            {
-                Just found | found < limit -> Nothing;
-                Just found | found < day -> Just found;
-                _ -> findN (i + 1);
-            };
-        } in findN 0
-    };
+    maybeDayEachYear = psSearch yearOfDay;
 }

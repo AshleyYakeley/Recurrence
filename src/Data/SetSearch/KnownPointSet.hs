@@ -44,4 +44,22 @@ module Data.SetSearch.KnownPointSet where
             kpsLastBefore = \b -> fmap ab (kpsLastBefore kpsa (ba b))
         };
     };
+
+    kpsEach :: (Ord a,Enum t) => (a -> t) -> (t -> a) -> KnownPointSet a;
+    kpsEach back f = MkKnownPointSet
+    {
+        kpsMember = \day -> day == f (back day),
+        kpsFirstAfter = \day -> Just (let
+        {
+            thisOne = f (back day);
+            nextOne= f (succ (back day));
+        } in if day < thisOne then thisOne else nextOne
+        ),
+        kpsLastBefore = \day -> Just (let
+        {
+            thisOne = f (back day);
+            prevOne = f (pred (back day));
+        } in if day > thisOne then thisOne else prevOne
+        )
+    };
 }

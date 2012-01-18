@@ -180,4 +180,34 @@ module Data.SetSearch.PointSet where
             } in search a'
         };
     };
+
+    psSearch :: (Ord a,Enum t,Ord t) => (a -> t) -> (t -> Maybe a) -> PointSet a;
+    psSearch back f = MkPointSet
+    {
+        ssMember = \day -> (Just day) == f (back day),
+        ssFirstAfterUntil = \day limit -> let
+        {
+            yday = back day;
+            ylimit = back limit;
+            findN yday | yday > ylimit = Nothing;
+            findN yday = case f yday of
+            {
+                Just found | found > limit -> Nothing;
+                Just found | found > day -> Just found;
+                _ -> findN (succ yday);
+            };
+        } in findN yday,
+        ssLastBeforeUntil = \day limit -> let
+        {
+            yday = back day;
+            ylimit = back limit;
+            findN yday | yday < ylimit = Nothing;
+            findN yday = case f yday of
+            {
+                Just found | found < limit -> Nothing;
+                Just found | found < day -> Just found;
+                _ -> findN (pred yday);
+            };
+        } in findN yday
+    };
 }

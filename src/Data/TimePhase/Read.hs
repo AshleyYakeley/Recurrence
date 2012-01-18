@@ -68,8 +68,8 @@ module Data.TimePhase.Read (readExpression) where
     readD = do
     {
         readThis '-';
-        day <- readNumerals;
-        pfail; -- day;
+        d <- readNumerals;
+        return (daysToTimeIntervals (dayOfMonth d));
     };
     
     {-
