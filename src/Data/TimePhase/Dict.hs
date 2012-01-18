@@ -16,7 +16,9 @@ module Data.TimePhase.Dict (dict) where
     dict "and" = Just (toValue (unionAll :: [TimePhase] -> TimePhase));
     dict "start" = Just (toValue startOf);
     dict "end" = Just (toValue endOf);
-    dict "to" = Just (toValue to);
+    dict "interval" = Just (toValue fromTo);
+    dict "from" = Just (toValue onAfter);
+    dict "until" = Just (toValue (invert . onAfter));
     
     dict "delay" = Just (toValue (delay :: NominalDiffTime -> TimePhase -> TimePhase));
 

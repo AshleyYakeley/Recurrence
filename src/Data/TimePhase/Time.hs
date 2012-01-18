@@ -24,9 +24,13 @@ module Data.TimePhase.Time where
     endOf :: TimePhase -> PointSet T;
     endOf ps = union (psExceptions ps) (intervalsEndOf (psIntervals ps));
 
-    to :: TimePhase -> TimePhase -> Intervals T;
-    to pa pb = let {?first = firstTime} in
+    fromTo :: TimePhase -> TimePhase -> Intervals T;
+    fromTo pa pb = let {?first = firstTime} in
         intervalsFromTo (startOf pa) (endOf pb);
+
+    onAfter :: TimePhase -> Intervals T;
+    onAfter phase = let {?first = firstTime} in
+        intervalsOnAfter (startOf phase);
 
     midnights :: KnownPointSet T;
     midnights = MkKnownPointSet

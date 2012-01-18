@@ -10,6 +10,7 @@ default: \
  timeformats.phases.7d.diff \
  months.phases.diff \
  startend.phases.diff \
+ from-until.phases.diff \
  to.phases.diff \
  easter.phases.diff
 	@echo "Success!"
