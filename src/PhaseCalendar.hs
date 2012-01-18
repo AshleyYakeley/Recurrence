@@ -69,6 +69,6 @@ module Main where
             Nothing -> addAffine ((fromIntegral 60) * nominalDayLength) start;
         });
         itemlists <- mapM (\filepath -> withFile filepath ReadMode (doHandle)) filepaths;
-        showItems start end (concat itemlists);
+        printItems start end (concat itemlists);
     };
 }

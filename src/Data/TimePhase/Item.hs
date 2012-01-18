@@ -105,17 +105,10 @@ module Data.TimePhase.Item where
     getStartTime :: Event T -> Maybe T;
     getStartTime (MkEvent _ (MkInterval (Starts (MkCut t _)) _)) = Just t;
     getStartTime _ = Nothing;
-
-    groupEvents :: [Event T] -> [(Maybe Day,[(Maybe TimeOfDay,[Event T])])];
-    groupEvents events = fmap (\(mday,dayevents) -> (mday,groupByFunc ((fmap localTimeOfDay) . getStartTime) dayevents))
-     (groupByFunc ((fmap localDay) . getStartTime) events);
     
-    showHeader :: Maybe Day -> IO ();
-    showHeader mday = putStrLn (case mday of
-    {
-        Nothing -> "Ongoing";
-        Just day -> show day;
-    });
+    showHeader :: Maybe Day -> String;
+    showHeader Nothing = "Ongoing";
+    showHeader (Just day) = show day;
     
     pad2 :: String -> String;
     pad2 [] = "00";
@@ -133,10 +126,55 @@ module Data.TimePhase.Item where
         _ -> " (until " ++ (showBasedOn show end) ++ ")";
     });
 
-    showEvents :: [Event T] -> IO ();
-    showEvents events = mapM_ (\(mday,dayevents) -> do
+    isWholeDayStart :: Start T -> Maybe (Maybe Day);
+    isWholeDayStart (Starts (MkCut t False)) | localTimeOfDay t == midnight = Just (Just (localDay t));
+    isWholeDayStart Ongoing = Just Nothing;
+    isWholeDayStart _ = Nothing;
+
+    isWholeDayEnd :: End T -> Maybe (Maybe Day);
+    isWholeDayEnd (Ends (MkCut t False)) | localTimeOfDay t == midnight = Just (Just (localDay t));
+    isWholeDayEnd Whenever = Just Nothing;
+    isWholeDayEnd _ = Nothing;
+
+    isWholeDayInterval :: Interval T -> Maybe (Maybe Day,Maybe Day);
+    isWholeDayInterval (MkInterval start end) = do
     {
-        showHeader mday;
+        smday <- isWholeDayStart start;
+        emday <- isWholeDayEnd end;
+        return (smday,emday);
+    };
+
+    isWholeDayEvent :: Event T -> Maybe (Maybe Day,Maybe Day);
+    isWholeDayEvent (MkEvent _ interval) = isWholeDayInterval interval;
+
+    filterMaybe :: (a -> Maybe b) -> [a] -> ([(b,a)],[a]);
+    filterMaybe _ [] = ([],[]);
+    filterMaybe f (a:as) = let
+    {
+        (rj,rn) = filterMaybe f as;
+    } in case f a of
+    {
+        Just b -> ((b,a):rj,rn);
+        Nothing -> (rj,a:rn);
+    };
+
+    showWDInterval :: (Maybe Day,Maybe Day) -> String;
+    showWDInterval (Just start,Just end) | end == addDays 1 start = "";
+    showWDInterval (_,Just end) = " (to "++(show (addDays (-1) end))++")";
+    showWDInterval (_,Nothing) = " (to whenever)";
+
+    showWDEvent :: ((Maybe Day,Maybe Day),Event T) -> String;
+    showWDEvent (interval,MkEvent name _) = " " ++ name ++ (showWDInterval interval);
+
+    printEvents :: [Event T] -> IO ();
+    printEvents events = mapM_ (\(mday,dayevents) -> do
+    {
+        let
+        {
+            (wdevents,otherevents) = filterMaybe isWholeDayEvent dayevents;           
+        };
+        putStr (showHeader mday);
+        putStrLn (intercalate "," (fmap showWDEvent wdevents));       
         mapM_ (\(mtod,timeevents) -> do
         {
             case mtod of
@@ -145,14 +183,13 @@ module Data.TimePhase.Item where
                 Nothing -> return ();
             };
             putStrLn (intercalate ", " (fmap showEvent timeevents));
-        }) dayevents;
-    }) (groupEvents events);
+        }) (groupByFunc ((fmap localTimeOfDay) . getStartTime) otherevents);
+        
+    }) (groupByFunc ((fmap localDay) . getStartTime) events);
    
-    showItems :: T -> T -> [Item T] -> IO ();
-    showItems t limit items = showEvents events where
+    printItems :: T -> T -> [Item T] -> IO ();
+    printItems t limit items = printEvents events where
     {
-        -- events = mapMaybe (\phase -> nextEvent phase (MkCut t False) limit) items;
-        -- events = items >>= (\phase -> allEvents phase (MkCut t False) limit);
         events = mergeByListPresorted compareEvents (fmap (\phase -> allEvents phase (MkCut t False) limit) items);
     };
 }

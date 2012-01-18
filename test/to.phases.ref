@@ -1,382 +1,182 @@
 2012-04-17
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-17 01:00:00)
+01:00 1am, both
 2012-04-18
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-18 01:00:00)
+01:00 1am, both
 2012-04-19
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-19 01:00:00)
+01:00 1am, both
 2012-04-20
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
-2012-04-21
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-00:00 weekend and (until 2012-04-23 00:00)
-00:00 weekend to (until 2012-04-23 00:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-20 01:00:00)
+01:00 1am, both
+2012-04-21 weekend and (to 2012-04-22), weekend to (to 2012-04-22)
+00:00 midnight, both, first hour (until 2012-04-21 01:00:00)
+01:00 1am, both
 2012-04-22
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-22 01:00:00)
+01:00 1am, both
 2012-04-23
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-23 01:00:00)
+01:00 1am, both
 2012-04-24
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-24 01:00:00)
+01:00 1am, both
 2012-04-25
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-25 01:00:00)
+01:00 1am, both
 2012-04-26
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-26 01:00:00)
+01:00 1am, both
 2012-04-27
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
-2012-04-28
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-00:00 weekend and (until 2012-04-30 00:00)
-00:00 weekend to (until 2012-04-30 00:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-27 01:00:00)
+01:00 1am, both
+2012-04-28 weekend and (to 2012-04-29), weekend to (to 2012-04-29)
+00:00 midnight, both, first hour (until 2012-04-28 01:00:00)
+01:00 1am, both
 2012-04-29
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-29 01:00:00)
+01:00 1am, both
 2012-04-30
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-04-30 01:00:00)
+01:00 1am, both
 2012-05-01
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-01 01:00:00)
+01:00 1am, both
 2012-05-02
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-02 01:00:00)
+01:00 1am, both
 2012-05-03
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-03 01:00:00)
+01:00 1am, both
 2012-05-04
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
-2012-05-05
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-00:00 weekend and (until 2012-05-07 00:00)
-00:00 weekend to (until 2012-05-07 00:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-04 01:00:00)
+01:00 1am, both
+2012-05-05 weekend and (to 2012-05-06), weekend to (to 2012-05-06)
+00:00 midnight, both, first hour (until 2012-05-05 01:00:00)
+01:00 1am, both
 2012-05-06
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-06 01:00:00)
+01:00 1am, both
 2012-05-07
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-07 01:00:00)
+01:00 1am, both
 2012-05-08
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-08 01:00:00)
+01:00 1am, both
 2012-05-09
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-09 01:00:00)
+01:00 1am, both
 2012-05-10
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-10 01:00:00)
+01:00 1am, both
 2012-05-11
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
-2012-05-12
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-00:00 weekend and (until 2012-05-14 00:00)
-00:00 weekend to (until 2012-05-14 00:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-11 01:00:00)
+01:00 1am, both
+2012-05-12 weekend and (to 2012-05-13), weekend to (to 2012-05-13)
+00:00 midnight, both, first hour (until 2012-05-12 01:00:00)
+01:00 1am, both
 2012-05-13
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-13 01:00:00)
+01:00 1am, both
 2012-05-14
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-14 01:00:00)
+01:00 1am, both
 2012-05-15
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-15 01:00:00)
+01:00 1am, both
 2012-05-16
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-16 01:00:00)
+01:00 1am, both
 2012-05-17
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-17 01:00:00)
+01:00 1am, both
 2012-05-18
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
-2012-05-19
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-00:00 weekend and (until 2012-05-21 00:00)
-00:00 weekend to (until 2012-05-21 00:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-18 01:00:00)
+01:00 1am, both
+2012-05-19 weekend and (to 2012-05-20), weekend to (to 2012-05-20)
+00:00 midnight, both, first hour (until 2012-05-19 01:00:00)
+01:00 1am, both
 2012-05-20
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-20 01:00:00)
+01:00 1am, both
 2012-05-21
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-21 01:00:00)
+01:00 1am, both
 2012-05-22
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-22 01:00:00)
+01:00 1am, both
 2012-05-23
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-23 01:00:00)
+01:00 1am, both
 2012-05-24
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-24 01:00:00)
+01:00 1am, both
 2012-05-25
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
-2012-05-26
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-00:00 weekend and (until 2012-05-28 00:00)
-00:00 weekend to (until 2012-05-28 00:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-25 01:00:00)
+01:00 1am, both
+2012-05-26 weekend and (to 2012-05-27), weekend to (to 2012-05-27)
+00:00 midnight, both, first hour (until 2012-05-26 01:00:00)
+01:00 1am, both
 2012-05-27
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-27 01:00:00)
+01:00 1am, both
 2012-05-28
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-28 01:00:00)
+01:00 1am, both
 2012-05-29
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-29 01:00:00)
+01:00 1am, both
 2012-05-30
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-30 01:00:00)
+01:00 1am, both
 2012-05-31
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-05-31 01:00:00)
+01:00 1am, both
 2012-06-01
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
-2012-06-02
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-00:00 weekend and (until 2012-06-04 00:00)
-00:00 weekend to (until 2012-06-04 00:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-01 01:00:00)
+01:00 1am, both
+2012-06-02 weekend and (to 2012-06-03), weekend to (to 2012-06-03)
+00:00 midnight, both, first hour (until 2012-06-02 01:00:00)
+01:00 1am, both
 2012-06-03
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-03 01:00:00)
+01:00 1am, both
 2012-06-04
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-04 01:00:00)
+01:00 1am, both
 2012-06-05
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-05 01:00:00)
+01:00 1am, both
 2012-06-06
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-06 01:00:00)
+01:00 1am, both
 2012-06-07
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-07 01:00:00)
+01:00 1am, both
 2012-06-08
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
-2012-06-09
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-00:00 weekend and (until 2012-06-11 00:00)
-00:00 weekend to (until 2012-06-11 00:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-08 01:00:00)
+01:00 1am, both
+2012-06-09 weekend and (to 2012-06-10), weekend to (to 2012-06-10)
+00:00 midnight, both, first hour (until 2012-06-09 01:00:00)
+01:00 1am, both
 2012-06-10
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-10 01:00:00)
+01:00 1am, both
 2012-06-11
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-11 01:00:00)
+01:00 1am, both
 2012-06-12
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-12 01:00:00)
+01:00 1am, both
 2012-06-13
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-13 01:00:00)
+01:00 1am, both
 2012-06-14
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
+00:00 midnight, both, first hour (until 2012-06-14 01:00:00)
+01:00 1am, both
 2012-06-15
-00:00 midnight
-00:00 both
-00:00 first hour (until 01:00)
-01:00 1am
-01:00 both
-2012-06-16
-00:00 midnight
-00:00 both
-00:00 weekend and (until whenever)
-00:00 weekend to (until whenever)
-00:00 first hour (until whenever)
+00:00 midnight, both, first hour (until 2012-06-15 01:00:00)
+01:00 1am, both
+2012-06-16 weekend and (to whenever), weekend to (to whenever), first hour (to whenever)
+00:00 midnight, both
