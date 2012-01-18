@@ -170,6 +170,26 @@ module Data.TimePhase.Value where
         fromValue _ = reportError "expected integer";
     };
     
+    instance ToValues Integer where
+    {
+        toValues = defaultToValues;
+    };
+    
+    instance FromValues Integer where
+    {
+        fromValues = defaultFromValues;
+    };
+    
+    instance ToValue Integer where
+    {
+        toValue x = toValue (fromIntegral x :: Int);
+    };
+    
+    instance FromValue Integer where
+    {
+        fromValue x = fmap fromIntegral (fromValue x :: M Int);
+    };
+    
     instance (ToValue a) => ToValues (M a) where
     {
         toValues = defaultToValues;

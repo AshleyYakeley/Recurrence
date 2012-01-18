@@ -51,12 +51,15 @@ module Data.TimePhase.SExpression.Read where
     readZeroOrMore :: forall b. ReadPrec b -> ReadPrec [b];
     readZeroOrMore reader = (readOneOrMore reader) <++ (return []);
     
+    readOneOrMore_ :: forall b. ReadPrec b -> ReadPrec ();
+    readOneOrMore_ reader = do
+    {
+        _ <- reader;
+        readZeroOrMore_ reader;
+    };
+    
     readZeroOrMore_ :: forall b. ReadPrec b -> ReadPrec ();
-    readZeroOrMore_ reader = (do
-        {
-            _ <- reader;
-            readZeroOrMore_ reader;
-        }) <++ (return ());
+    readZeroOrMore_ reader = (readOneOrMore_ reader) <++ (return ());
     
     getDigit :: Char -> Maybe Int;
     getDigit c = if isDigit c then Just ((fromEnum c) - (fromEnum '0')) else Nothing;

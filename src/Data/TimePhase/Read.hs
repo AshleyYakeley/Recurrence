@@ -1,6 +1,7 @@
 module Data.TimePhase.Read (readExpression) where
 {
     import Data.Char;
+    import Data.Fixed;
     import Data.Time;
     import Text.ParserCombinators.ReadPrec;
     import Data.SetSearch;
@@ -54,12 +55,32 @@ module Data.TimePhase.Read (readExpression) where
     readIdentifier :: ReadPrec String;
     readIdentifier = readQuoted <++ readUnquotedIdentifier;
     
-    toNumber :: Int -> [Int] -> Int;
+    toNumber :: Integer -> [Int] -> Integer;
     toNumber n [] = n;
-    toNumber n (d:ds) = toNumber (n * 10 + d) ds;
+    toNumber n (d:ds) = toNumber (n * 10 + (fromIntegral d)) ds;
     
-    readNumerals :: ReadPrec Int;
-    readNumerals = fmap (toNumber 0) (readOneOrMore readDigit);
+    readNatural :: ReadPrec Integer;
+    readNatural = fmap (toNumber 0) (readOneOrMore readDigit);
+    
+    toDecimalPart :: [Int] -> Pico;
+    toDecimalPart [] = 0;
+    toDecimalPart (d:ds) = ((realToFrac d) + (toDecimalPart ds)) / 10;
+    
+    readDecimal :: ReadPrec Pico;
+    readDecimal = do
+    {
+        nat  <- readNatural;
+        mdec <- readMaybe (do
+        {
+            readThis '.';
+            fmap toDecimalPart (readOneOrMore readDigit);
+        });
+        return (case mdec of
+        {
+            Just dec -> (realToFrac nat) + dec;
+            Nothing -> realToFrac nat;
+        });
+    };
 
     {-
     -d
@@ -68,8 +89,8 @@ module Data.TimePhase.Read (readExpression) where
     readD = do
     {
         readThis '-';
-        d <- readNumerals;
-        return (daysToTimeIntervals (dayOfMonth d));
+        d <- readNatural;
+        return (daysToTimeIntervals (dayOfMonth (fromIntegral d)));
     };
     
     {-
@@ -80,9 +101,9 @@ module Data.TimePhase.Read (readExpression) where
     readM = do
     {
         readThis '-';
-        month <- readNumerals;
+        month <- fmap fromIntegral readNatural;
         readThis '-';
-        mday <- readMaybe readNumerals;
+        mday <- readMaybe (fmap fromIntegral readNatural);
         return (case mday of
         {
             Nothing -> isMonth month;
@@ -98,13 +119,13 @@ module Data.TimePhase.Read (readExpression) where
     readY :: ReadPrec (Intervals T);
     readY = do
     {
-        (year :: Integer) <- fmap fromIntegral readNumerals;
+        year <- readNatural;
         readThis '-';
         mmonthmday <- readMaybe (do
         {
-            month <- readNumerals;
+            month <- fmap fromIntegral readNatural;
             readThis '-';
-            mday <- readMaybe readNumerals;
+            mday <- readMaybe (fmap fromIntegral readNatural);
             return (month,mday);
         });
         return (case mmonthmday of
@@ -119,15 +140,45 @@ module Data.TimePhase.Read (readExpression) where
         });
     };
     
+    readDayFormat :: ReadPrec TimePhase;
+    readDayFormat = fmap toPhaseSet (readY <++ readM <++ readD);
+    
+    readTimeOfDayFormat :: ReadPrec TimePhase;
+    readTimeOfDayFormat = fmap toPhaseSet (do
+    {
+        h <- fmap fromIntegral readNatural;
+        readThis ':';
+        m <- fmap fromIntegral readNatural;
+        s <- (do
+        {
+            readThis ':';
+            readDecimal;
+        }) <++ (return 0);
+        return (timeOfDay (TimeOfDay h m s));
+    });
+    
     readBracketed :: ReadPrec TimePhase;
     readBracketed = do
     {
         readThis '[';
         readZeroOrMore_ (readMatching isSpace);
-        dayIntervals <- readY <++ readM <++ readD;        
+        phase <- (do
+        {
+            df <- readDayFormat;
+            mtf <- readMaybe (do
+            {
+                (readOneOrMore_ (readMatching isSpace)) <++ (readThis 'T');
+                readTimeOfDayFormat;
+            });
+            return (case mtf of
+            {
+                Just tf -> intersect df tf;
+                Nothing -> df;
+            });
+        }) <++ readTimeOfDayFormat;
         readZeroOrMore_ (readMatching isSpace);
         readThis ']';
-        return (toPhaseSet dayIntervals);
+        return phase;
     };
     
     allowedName :: String -> Bool;
@@ -146,7 +197,7 @@ module Data.TimePhase.Read (readExpression) where
     readDurationPiece :: ReadPrec NominalDiffTime;
     readDurationPiece = do
     {
-        n <- readNumerals;
+        n <- readNatural;
         m <- readCollect durationType;
         return ((realToFrac n) * m);
     };
@@ -163,7 +214,7 @@ module Data.TimePhase.Read (readExpression) where
     };
 
     readLiteral :: ReadPrec Value;
-    readLiteral = (fmap toValue readDuration) <++ (fmap toValue readNumerals);
+    readLiteral = (fmap toValue readDuration) <++ (fmap toValue readNatural);
 
     readAtom :: ReadPrec Atom;
     readAtom = (fmap IdentifierAtom readIdentifier) <++ (fmap (LiteralAtom . toValue) readBracketed) <++ (fmap LiteralAtom readLiteral);

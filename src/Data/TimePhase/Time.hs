@@ -194,4 +194,7 @@ module Data.TimePhase.Time where
 
     maybeDayEachYear :: (Integer -> Maybe Day) -> PointSet Day;
     maybeDayEachYear = psSearch yearOfDay;
+    
+    timeOfDay :: TimeOfDay -> PointSet T;
+    timeOfDay tod = knownToPointSet (kpsEach (\t -> localDay t) (\day -> LocalTime day tod));
 }
