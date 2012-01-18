@@ -46,7 +46,7 @@ module Data.TimePhase.Dict (dict) where
     dict "November" = Just (toValue (isMonth 11));
     dict "December" = Just (toValue (isMonth 12));
 
-    dict "Easter" = Just (toValue (specialDays (dayEachYear gregorianEaster)));
+    dict "Easter" = Just (toValue (dayEachYear gregorianEaster));
 
     dict s = Nothing;
 }

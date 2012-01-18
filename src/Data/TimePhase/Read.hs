@@ -86,7 +86,7 @@ module Data.TimePhase.Read (readExpression) where
         return (case mday of
         {
             Nothing -> isMonth month;
-            Just day -> specialDays (maybeDayEachYear (\year -> fromGregorianValid year month day));
+            Just day -> daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year month day));
         });
     };
     
@@ -113,7 +113,7 @@ module Data.TimePhase.Read (readExpression) where
             Just (month,Nothing) -> fmap ((==) (year,month)) theYearAndMonth;
             Just (month,Just d) -> case fromGregorianValid year month d of
             {
-                Just day -> fmap ((==) day) theDay;
+                Just day -> daysToTimeIntervals (single day);
                 Nothing -> empty;
             };
         });

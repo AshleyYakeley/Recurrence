@@ -93,8 +93,8 @@ module Data.TimePhase.Time where
         sfPossibleChanges = knownToPointSet midnights
     };
 
-    specialDays :: PointSet Day -> Intervals T;
-    specialDays psday = MkStepFunction
+    daysToTimeIntervals :: PointSet Day -> Intervals T;
+    daysToTimeIntervals psday = MkStepFunction
     {
         sfValue = \t -> ssMember psday (localDay t),
         sfPossibleChanges = union

@@ -117,6 +117,16 @@ module Data.TimePhase.Value where
     {
         toValue = PhaseValue . toPhaseSet;
     };
+    
+    instance ToValues (PointSet Day) where
+    {
+        toValues = defaultToValues;
+    };
+    
+    instance ToValue (PointSet Day) where
+    {
+        toValue = toValue . daysToTimeIntervals;
+    };
    
     instance ToValues NominalDiffTime where
     {
