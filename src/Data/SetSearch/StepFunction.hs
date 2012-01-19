@@ -71,7 +71,9 @@ module Data.SetSearch.StepFunction where
     {
         sfValue = \a -> do
         {
-            lastdel <- ssLastBefore delimiter a;
+            lastdel <- if member delimiter a
+             then return a
+             else ssLastBefore delimiter a;
             let
             {
                 count t = case ssLastBeforeUntil subject t lastdel of
