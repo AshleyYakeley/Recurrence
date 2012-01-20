@@ -115,20 +115,22 @@ module Data.TimePhase.Item where
         (_,m,d) -> "-" ++ (show2 m) ++ "-" ++ (show2 d);
     };
 
-    showEnd :: T -> T -> String;
-    showEnd s e | localDay s == localDay e = show (localTimeOfDay e);
-    showEnd s e | yearOfDay (localDay s) == yearOfDay (localDay e) = (showMonthDay (localDay e)) ++ " " ++ (show (localTimeOfDay e));
-    showEnd _ e = show e;
+    showEnd e | localDay ?context == localDay e = show (localTimeOfDay e);
+    showEnd e | yearOfDay (localDay ?context) == yearOfDay (localDay e) = (showMonthDay (localDay e)) ++ " " ++ (show (localTimeOfDay e));
+    showEnd e = show e;
 
-    showEnding :: Interval T -> String;
+    newContext :: (?context :: a) => Start a -> a;
+    newContext (Starts (MkCut s _)) = s;
+    newContext Ongoing = ?context;
+
+    showEnding :: (?context :: T) => Interval T -> String;
     showEnding (MkInterval (Starts (MkCut s _)) (Ends (MkCut e _))) | s == e = "";
-    showEnding (MkInterval start end) = " (until " ++ (showBasedOn (case start of
+    showEnding (MkInterval start end) = let
     {
-        Starts (MkCut s _) -> showEnd s;
-        _ -> show;
-    }) end) ++ ")";
+        ?context = newContext start;
+    } in " (until " ++ (showBasedOn showEnd end) ++ ")";
 
-    showEvent :: Event T -> String;
+    showEvent :: (?context :: T) => Event T -> String;
     showEvent (MkEvent name interval) = name ++ (showEnding interval);
 
     isWholeDayStart :: Start T -> Maybe (Maybe Day);
@@ -163,24 +165,29 @@ module Data.TimePhase.Item where
         Nothing -> (rj,a:rn);
     };
 
-    showWDInterval :: (Maybe Day,Maybe Day) -> String;
-    showWDInterval (Just start,Just end) | end == addDays 1 start = "";
-    showWDInterval (Just start,Just end) | yearOfDay start == yearOfDay end = " (to "++(showMonthDay (addDays (-1) end))++")";
-    showWDInterval (_,Just end) = " (to "++(show (addDays (-1) end))++")";
-    showWDInterval (_,Nothing) = " (to whenever)";
+    showWDInterval :: Integer -> Maybe Day -> Maybe Day -> String;
+    showWDInterval year (Just start) (Just end) | end == addDays 1 start = "";
+    showWDInterval year _ (Just end) | year == yearOfDay end = " (to "++(showMonthDay (addDays (-1) end))++")";
+    showWDInterval _ _ (Just end) = " (to "++(show (addDays (-1) end))++")";
+    showWDInterval _ _ Nothing = " (to whenever)";
 
-    showWDEvent :: ((Maybe Day,Maybe Day),Event T) -> String;
-    showWDEvent (interval,MkEvent name _) = " " ++ name ++ (showWDInterval interval);
+    showWDEvent :: (?context :: T) => ((Maybe Day,Maybe Day),Event T) -> String;
+    showWDEvent ((mstart,mend),MkEvent name _) = " " ++ name ++ (showWDInterval (yearOfDay (case mstart of
+    {
+        Just start -> start;
+        _ -> localDay ?context;
+    })) mstart mend);
     
-    printYearHeader :: Maybe Integer -> IO ();
+    printYearHeader :: (?context :: T) => Maybe Integer -> IO ();
     printYearHeader Nothing = return ();
+    printYearHeader (Just year) | yearOfDay (localDay ?context) == year = return ();
     printYearHeader (Just year) = putStrLn ((show year) ++ "-");
     
     showDayHeader :: Maybe Day -> String;
     showDayHeader Nothing = "ongoing";
     showDayHeader (Just day) = showMonthDay day;
 
-    printEvents :: [Event T] -> IO ();
+    printEvents :: (?context :: T) => [Event T] -> IO ();
     printEvents events = mapM_ (\(myear,yearevents) -> do
     {
         printYearHeader myear;
@@ -205,7 +212,7 @@ module Data.TimePhase.Item where
     }) (groupByFunc ((fmap (yearOfDay . localDay)) . getStartTime) events);
    
     printItems :: T -> T -> [Item T] -> IO ();
-    printItems t limit items = printEvents events where
+    printItems t limit items = let {?context = t} in printEvents events where
     {
         events = mergeByListPresorted compareEvents (fmap (\phase -> allEvents phase (MkCut t False) limit) items);
     };
