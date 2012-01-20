@@ -152,8 +152,8 @@ module Data.SetSearch.PhaseSet where
     
         nextCut = let
         {
-            mrI = ssFirstAfterUntil (sfChanges (psIntervals phase)) a limit;
-            mrX = ssFirstAfterUntil (psExceptions phase) a limit;
+            mrI = pointsFirstAfterUntil (sfChanges (psIntervals phase)) a limit;
+            mrX = pointsFirstAfterUntil (psExceptions phase) a limit;
         } in case (mrI,mrX) of
         {
             (Just rI,Just rX) -> Just (case compare rI rX of
@@ -187,9 +187,9 @@ module Data.SetSearch.PhaseSet where
         };
     };
 
-    startOf :: (DeltaSmaller a) => PhaseSet a -> PointSet a;
-    startOf ps = union (psExceptions ps) (intervalsStartOf (psIntervals ps));
+    psStartOf :: (DeltaSmaller a) => PhaseSet a -> PointSet a;
+    psStartOf ps = union (psExceptions ps) (intervalsStartOf (psIntervals ps));
 
-    endOf :: (DeltaSmaller a) => PhaseSet a -> PointSet a;
-    endOf ps = union (psExceptions ps) (intervalsEndOf (psIntervals ps));
+    psEndOf :: (DeltaSmaller a) => PhaseSet a -> PointSet a;
+    psEndOf ps = union (psExceptions ps) (intervalsEndOf (psIntervals ps));
 }

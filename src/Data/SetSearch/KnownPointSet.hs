@@ -15,15 +15,15 @@ module Data.SetSearch.KnownPointSet where
     knownToPointSet :: (Ord a) => KnownPointSet a -> PointSet a;
     knownToPointSet kps = MkPointSet
     {
-        ssMember = kpsMember kps,
+        pointsMember = kpsMember kps,
         -- strictly after, up to including limit
-        ssFirstAfterUntil = \a limit -> do
+        pointsFirstAfterUntil = \a limit -> do
         {
             r <- kpsFirstAfter kps a;
             if r <= limit then Just r else Nothing;
         },
         -- strictly before, up to including limit
-        ssLastBeforeUntil = \a limit -> do
+        pointsLastBeforeUntil = \a limit -> do
         {
             r <- kpsLastBefore kps a;
             if r >= limit then Just r else Nothing;

@@ -52,7 +52,7 @@ module Data.SetSearch.StepFunction where
     sfChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> PointSet a;
     sfChanges sf = filterIntersect (\a -> case deltaSmaller a of
     {
-        Just a' -> case ssLastBeforeUntil (sfPossibleChanges sf) a a' of
+        Just a' -> case pointsLastBeforeUntil (sfPossibleChanges sf) a a' of
         {
             Just a'' -> sfValue sf a'' /= sfValue sf a;
             Nothing -> sfValue sf a' /= sfValue sf a;
@@ -73,10 +73,10 @@ module Data.SetSearch.StepFunction where
         {
             lastdel <- if member delimiter a
              then return a
-             else ssLastBefore delimiter a;
+             else pointsLastBefore delimiter a;
             let
             {
-                count t = case ssLastBeforeUntil subject t lastdel of
+                count t = case pointsLastBeforeUntil subject t lastdel of
                 {
                     Nothing -> 0;
                     Just t' -> 1 + (count t');

@@ -33,7 +33,7 @@ module Data.SetSearch.Intervals where
     intervalsFromTo :: (Ord a,?first :: a) => PointSet a -> PointSet a -> Intervals a;
     intervalsFromTo ps1 ps2 = MkStepFunction
     {
-        sfValue = pointSetOnAndOff ps1 ps2,
+        sfValue = pointsOnAndOff ps1 ps2,
         sfPossibleChanges = union ps1 ps2
     };
     
@@ -46,7 +46,7 @@ module Data.SetSearch.Intervals where
     intervalsOnAfter :: (Ord a,?first :: a) => PointSet a -> Intervals a;
     intervalsOnAfter ps = MkStepFunction
     {
-        sfValue = pointSetOnAfter ps,
+        sfValue = pointsOnAfter ps,
         sfPossibleChanges = ps
     };
 }

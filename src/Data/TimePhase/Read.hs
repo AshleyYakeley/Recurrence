@@ -140,10 +140,10 @@ module Data.TimePhase.Read (readExpression) where
         });
     };
     
-    readDayFormat :: ReadPrec TimePhase;
+    readDayFormat :: ReadPrec (PhaseSet T);
     readDayFormat = fmap toPhaseSet (readY <++ readM <++ readD);
     
-    readTimeOfDayFormat :: ReadPrec TimePhase;
+    readTimeOfDayFormat :: ReadPrec (PhaseSet T);
     readTimeOfDayFormat = fmap toPhaseSet (do
     {
         h <- fmap fromIntegral readNatural;
@@ -157,7 +157,7 @@ module Data.TimePhase.Read (readExpression) where
         return (timeOfDay (TimeOfDay h m s));
     });
     
-    readBracketed :: ReadPrec TimePhase;
+    readBracketed :: ReadPrec (PhaseSet T);
     readBracketed = do
     {
         readThis '[';

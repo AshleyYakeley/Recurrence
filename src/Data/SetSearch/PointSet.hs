@@ -7,44 +7,55 @@ module Data.SetSearch.PointSet where
     -}
     data PointSet a = MkPointSet
     {
-        ssMember :: a -> Bool,
+        pointsMember :: a -> Bool,
         -- strictly after, up to including limit
-        ssFirstAfterUntil :: a -> a -> Maybe a,
+        pointsFirstAfterUntil :: a -> a -> Maybe a,
         -- strictly before, up to including limit
-        ssLastBeforeUntil :: a -> a -> Maybe a
+        pointsLastBeforeUntil :: a -> a -> Maybe a
     };
 
-    ssLastBefore :: (Ord a,?first :: a) => PointSet a -> a -> Maybe a;
-    ssLastBefore ps a = ssLastBeforeUntil ps a ?first;
+    pointsLastBefore :: (Ord a,?first :: a) => PointSet a -> a -> Maybe a;
+    pointsLastBefore ps a = pointsLastBeforeUntil ps a ?first;
 
     -- | which one was before. ps2 takes priority over ps1
-    pointSetFirstBefore :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
-    pointSetFirstBefore ps1 ps2 a = 
+    pointsFirstBefore :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
+    pointsFirstBefore ps1 ps2 a = 
     if member ps2 a then Just (Right a)
     else if member ps1 a then Just (Left a)
-    else case ssLastBefore ps1 a of
+    else case pointsLastBefore ps1 a of
     {
-        Just r1 -> case ssFirstAfterUntil ps2 r1 a of -- to switch off, it must be strictly after the on 
+        Just r1 -> case pointsFirstAfterUntil ps2 r1 a of -- to switch off, it must be strictly after the on 
         {
             Just r2 -> Just (Right r2);
             Nothing -> Just (Left r1);
         };
         Nothing -> Nothing; -- never switched on
     };
+
+    pointsLastUpTo :: PointSet a -> PointSet a -> PointSet a;
+{-
+    pointsLastUpTo subject delimiter = MkPointSet
+    {
+        pointsMember = \a -> (pointsMember subject a) && ((pointsMember delimiter a) ||
+        
+        )
+    };
+-}
+    pointsLastUpTo subject delimiter = subject; -- WRONG
     
     -- | True if psOn switched on more recently than psOff
     ;
-    pointSetOnAndOff :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Bool;
-    pointSetOnAndOff psOn psOff a = case pointSetFirstBefore psOn psOff a of
+    pointsOnAndOff :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Bool;
+    pointsOnAndOff psOn psOff a = case pointsFirstBefore psOn psOff a of
     {
         Just (Left _) -> True;
         Just (Right _) -> False;
         Nothing -> False;
     };
     
-    pointSetOnAfter :: (Ord a,?first :: a) => PointSet a -> a -> Bool;
-    pointSetOnAfter psOn a = (member psOn a) ||
-    case ssLastBefore psOn a of
+    pointsOnAfter :: (Ord a,?first :: a) => PointSet a -> a -> Bool;
+    pointsOnAfter psOn a = (member psOn a) ||
+    case pointsLastBefore psOn a of
     {
         Just _ -> True;
         Nothing -> False;
@@ -59,9 +70,9 @@ module Data.SetSearch.PointSet where
     {
         remapBase ab ba psa = MkPointSet
         {
-            ssMember = \b -> ssMember psa (ba b),
-            ssFirstAfterUntil = \b blimit -> fmap ab (ssFirstAfterUntil psa (ba b) (ba blimit)),
-            ssLastBeforeUntil = \b blimit -> fmap ab (ssLastBeforeUntil psa (ba b) (ba blimit))
+            pointsMember = \b -> pointsMember psa (ba b),
+            pointsFirstAfterUntil = \b blimit -> fmap ab (pointsFirstAfterUntil psa (ba b) (ba blimit)),
+            pointsLastBeforeUntil = \b blimit -> fmap ab (pointsLastBeforeUntil psa (ba b) (ba blimit))
         };
     };
     
@@ -69,23 +80,23 @@ module Data.SetSearch.PointSet where
     {
         empty = MkPointSet
         {
-            ssMember = \_ -> False,
-            ssFirstAfterUntil = \_ _ -> Nothing,
-            ssLastBeforeUntil = \_ _ -> Nothing
+            pointsMember = \_ -> False,
+            pointsFirstAfterUntil = \_ _ -> Nothing,
+            pointsLastBeforeUntil = \_ _ -> Nothing
         };
         
-        member = ssMember;
+        member = pointsMember;
      
         union s1 s2 = MkPointSet
         {
-            ssMember = \a -> (ssMember s1 a) || (ssMember s2 a),
-            ssFirstAfterUntil = \a limit -> case (ssFirstAfterUntil s1 a limit,ssFirstAfterUntil s2 a limit) of
+            pointsMember = \a -> (pointsMember s1 a) || (pointsMember s2 a),
+            pointsFirstAfterUntil = \a limit -> case (pointsFirstAfterUntil s1 a limit,pointsFirstAfterUntil s2 a limit) of
             {
                 (mr,Nothing) -> mr;
                 (Nothing,mr) -> mr;
                 (Just r1,Just r2) -> Just (if r1 < r2 then r1 else r2);
             },
-            ssLastBeforeUntil = \a limit -> case (ssLastBeforeUntil s1 a limit,ssLastBeforeUntil s2 a limit) of
+            pointsLastBeforeUntil = \a limit -> case (pointsLastBeforeUntil s1 a limit,pointsLastBeforeUntil s2 a limit) of
             {
                 (mr,Nothing) -> mr;
                 (Nothing,mr) -> mr;
@@ -95,32 +106,32 @@ module Data.SetSearch.PointSet where
 
         intersect s1 s2 = MkPointSet
         {
-            ssMember = \a -> (ssMember s1 a) && (ssMember s2 a),
-            ssFirstAfterUntil = \a' limit -> let
+            pointsMember = \a -> (pointsMember s1 a) && (pointsMember s2 a),
+            pointsFirstAfterUntil = \a' limit -> let
             {
                 search a = do
                 {
-                    r1 <- ssFirstAfterUntil s1 a limit;
-                    r2 <- ssFirstAfterUntil s2 a limit;
+                    r1 <- pointsFirstAfterUntil s1 a limit;
+                    r2 <- pointsFirstAfterUntil s2 a limit;
                     case compare r1 r2 of
                     {
                         EQ -> Just r1;
-                        LT -> if ssMember s1 r2 then Just r2 else search r2;
-                        GT -> if ssMember s2 r1 then Just r1 else search r1;
+                        LT -> if pointsMember s1 r2 then Just r2 else search r2;
+                        GT -> if pointsMember s2 r1 then Just r1 else search r1;
                     };
                 };
             } in search a',
-            ssLastBeforeUntil = \a' limit -> let
+            pointsLastBeforeUntil = \a' limit -> let
             {
                 search a = do
                 {
-                    r1 <- ssLastBeforeUntil s1 a limit;
-                    r2 <- ssLastBeforeUntil s2 a limit;
+                    r1 <- pointsLastBeforeUntil s1 a limit;
+                    r2 <- pointsLastBeforeUntil s2 a limit;
                     case compare r1 r2 of
                     {
                         EQ -> Just r1;
-                        GT -> if ssMember s1 r2 then Just r2 else search r2;
-                        LT -> if ssMember s2 r1 then Just r1 else search r1;
+                        GT -> if pointsMember s1 r2 then Just r2 else search r2;
+                        LT -> if pointsMember s2 r1 then Just r1 else search r1;
                     };
                 };
             } in search a'
@@ -129,8 +140,8 @@ module Data.SetSearch.PointSet where
         diff s1 s2 = filterIntersect (not . (member s2)) s1;
         symdiff s1 s2 = MkPointSet
         {
-            ssMember = \a -> (ssMember s1 a) /= (ssMember s2 a),
-            ssFirstAfterUntil = \a limit -> case (ssFirstAfterUntil s1 a limit,ssFirstAfterUntil s2 a limit) of
+            pointsMember = \a -> (pointsMember s1 a) /= (pointsMember s2 a),
+            pointsFirstAfterUntil = \a limit -> case (pointsFirstAfterUntil s1 a limit,pointsFirstAfterUntil s2 a limit) of
             {
                 (mr,Nothing) -> mr;
                 (Nothing,mr) -> mr;
@@ -141,7 +152,7 @@ module Data.SetSearch.PointSet where
                     GT -> Just r2;
                 };
             },
-            ssLastBeforeUntil = \a limit -> case (ssLastBeforeUntil s1 a limit,ssLastBeforeUntil s2 a limit) of
+            pointsLastBeforeUntil = \a limit -> case (pointsLastBeforeUntil s1 a limit,pointsLastBeforeUntil s2 a limit) of
             {
                 (mr,Nothing) -> mr;
                 (Nothing,mr) -> mr;
@@ -159,38 +170,38 @@ module Data.SetSearch.PointSet where
     {
         single t = MkPointSet
         {
-            ssMember = \a -> a == t,
-            ssFirstAfterUntil = \a limit -> if a < t && limit >= t then Just t else Nothing,
-            ssLastBeforeUntil = \a limit -> if a > t && limit <= t then Just t else Nothing
+            pointsMember = \a -> a == t,
+            pointsFirstAfterUntil = \a limit -> if a < t && limit >= t then Just t else Nothing,
+            pointsLastBeforeUntil = \a limit -> if a > t && limit <= t then Just t else Nothing
         };
     };
 
     instance (Ord a) => SetSearch (PointSet a) where
     {
-        firstAfterUntil = ssFirstAfterUntil;
-        lastBeforeUntil = ssLastBeforeUntil;
+        firstAfterUntil = pointsFirstAfterUntil;
+        lastBeforeUntil = pointsLastBeforeUntil;
     };
     
     instance (Ord a) => SetFilter (PointSet a) where
     {
         filterIntersect f ss = MkPointSet
         {
-            ssMember = \a -> (ssMember ss a) && (f a),
-            ssFirstAfterUntil = \a' limit -> let
+            pointsMember = \a -> (pointsMember ss a) && (f a),
+            pointsFirstAfterUntil = \a' limit -> let
             {
                 search a = do
                 {
-                    r <- ssFirstAfterUntil ss a limit;
+                    r <- pointsFirstAfterUntil ss a limit;
                     if f r
                      then return r
                      else search r;
                 };   
             } in search a',
-            ssLastBeforeUntil = \a' limit -> let
+            pointsLastBeforeUntil = \a' limit -> let
             {
                 search a = do
                 {
-                    r <- ssLastBeforeUntil ss a limit;
+                    r <- pointsLastBeforeUntil ss a limit;
                     if f r
                      then return r
                      else search r;
@@ -199,11 +210,11 @@ module Data.SetSearch.PointSet where
         };
     };
 
-    psSearch :: (Ord a,Enum t,Ord t) => (a -> t) -> (t -> Maybe a) -> PointSet a;
-    psSearch back f = MkPointSet
+    pointsSearch :: (Ord a,Enum t,Ord t) => (a -> t) -> (t -> Maybe a) -> PointSet a;
+    pointsSearch back f = MkPointSet
     {
-        ssMember = \day -> (Just day) == f (back day),
-        ssFirstAfterUntil = \day limit -> let
+        pointsMember = \day -> (Just day) == f (back day),
+        pointsFirstAfterUntil = \day limit -> let
         {
             yday = back day;
             ylimit = back limit;
@@ -215,7 +226,7 @@ module Data.SetSearch.PointSet where
                 _ -> findN (succ yday);
             };
         } in findN yday,
-        ssLastBeforeUntil = \day limit -> let
+        pointsLastBeforeUntil = \day limit -> let
         {
             yday = back day;
             ylimit = back limit;

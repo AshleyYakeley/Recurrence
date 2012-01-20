@@ -36,14 +36,14 @@ module Main where
     searchTime = 365.25 * 86400;
 
     showPoints :: T -> PointSet T -> String;
-    showPoints now set = case ssFirstAfterUntil set now (addAffine searchTime now) of
+    showPoints now set = case pointsFirstAfterUntil set now (addAffine searchTime now) of
     {
         Just t -> show t;
         Nothing -> "not in the next year"
     };
     
-    showPhase :: T -> PhaseSet T -> String;
-    showPhase now ps = if member ps now then "happening" else "not happening";
+    showPhase :: T -> TimePhase -> String;
+    showPhase now phase = if phaseMember phase now then "happening" else "not happening";
 {-    
     (IntervalsPhase ints) = 
      if member ints now 

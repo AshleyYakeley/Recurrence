@@ -34,23 +34,15 @@ module Data.TimePhase.Value where
         fromValue :: Value -> M a;
     };
     
-    instance (ToValue a) => ToValues (Maybe a) where
+    instance (ToValues a) => ToValues (Maybe a) where
     {
-        toValues (Just a) = [toValue a];
+        toValues (Just a) = toValues a;
         toValues Nothing = [];
     };
     
-    instance (FromValue a) => FromValues (Maybe a) where
+    instance (FromValues a) => FromValues (Maybe a) where
     {
-        fromValues vals = case vals of
-        {
-            [] -> return (Nothing,[]);
-            v:vs -> do
-            {
-                a <- fromValue v;
-                return (Just a,vs);
-            };
-        };
+        fromValues vals = fmap (\(a,rest) -> (Just a,rest)) (fromValues vals);
     };
     
     instance (ToValue a) => ToValues [a] where
@@ -64,6 +56,16 @@ module Data.TimePhase.Value where
         {
             as <- mapM fromValue vals;
             return (as,[]);
+        };
+    };
+    
+    instance (FromValues a,FromValues b) => FromValues (a,b) where
+    {
+        fromValues list = do
+        {
+            (a,arest) <- fromValues list;
+            (b,brest) <- fromValues arest;
+            return ((a,b),brest);
         };
     };
     
@@ -97,6 +99,27 @@ module Data.TimePhase.Value where
         fromValue (PhaseValue x) = return x;
         fromValue _ = reportError "expected phase";
     };
+    
+    instance ToValues (PhaseSet T) where
+    {
+        toValues = defaultToValues;
+    };
+    
+    instance FromValues (PhaseSet T) where
+    {
+        fromValues = defaultFromValues;
+    };
+    
+    instance ToValue (PhaseSet T) where
+    {
+        toValue = toValue . toPhase;
+    };
+    
+    instance FromValue (PhaseSet T) where
+    {
+        fromValue (PhaseValue x) = return (phaseSet x);
+        fromValue _ = reportError "expected phase";
+    };
   
     instance ToValues (Intervals T) where
     {
@@ -105,7 +128,7 @@ module Data.TimePhase.Value where
     
     instance ToValue (Intervals T) where
     {
-        toValue = PhaseValue . toPhaseSet;
+        toValue = toValue . toPhaseSet;
     };
     
     instance ToValues (PointSet T) where
@@ -115,7 +138,7 @@ module Data.TimePhase.Value where
     
     instance ToValue (PointSet T) where
     {
-        toValue = PhaseValue . toPhaseSet;
+        toValue = toValue . toPhaseSet;
     };
     
     instance ToValues (PointSet Day) where

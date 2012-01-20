@@ -7,15 +7,31 @@ module Data.TimePhase.Dict (dict) where
     import Data.TimePhase.Time;
     import Data.TimePhase.Value;
 
+    phaseIntersectAll :: Maybe (TimePhase,[PhaseSet T]) -> TimePhase;
+    phaseIntersectAll Nothing = phaseFull;
+    phaseIntersectAll (Just (phase,sets)) = f sets where
+    {
+        f [] = phase;
+        f (s:ss) = phaseIntersect (f ss) s;
+    };
+
+    phaseUnionAll :: Maybe (TimePhase,[PhaseSet T]) -> TimePhase;
+    phaseUnionAll Nothing = phaseEmpty;
+    phaseUnionAll (Just (phase,sets)) = f sets where
+    {
+        f [] = phase;
+        f (s:ss) = phaseUnion (f ss) s;
+    };
+
     dict :: String -> Maybe Value;
 
-    dict "never" = Just (toValue (empty :: TimePhase));
-    dict "always" = Just (toValue (full :: TimePhase));
-    dict "not" = Just (toValue (invert :: TimePhase -> TimePhase));
-    dict "when" = Just (toValue (intersectAll :: [TimePhase] -> TimePhase));
-    dict "and" = Just (toValue (unionAll :: [TimePhase] -> TimePhase));
-    dict "start" = Just (toValue (startOf :: TimePhase -> PointSet T));
-    dict "end" = Just (toValue (endOf :: TimePhase -> PointSet T));
+    dict "never" = Just (toValue (phaseEmpty :: TimePhase));
+    dict "always" = Just (toValue (phaseFull :: TimePhase));
+    dict "not" = Just (toValue (phaseInvert :: TimePhase -> TimePhase));
+    dict "when" = Just (toValue phaseIntersectAll);
+    dict "and" = Just (toValue phaseUnionAll);
+    dict "start" = Just (toValue (phaseStartOf :: TimePhase -> PointSet T));
+    dict "end" = Just (toValue (phaseEndOf :: TimePhase -> PointSet T));
     dict "interval" = Just (toValue fromTo);
     dict "from" = Just (toValue onAfter);
     dict "until" = Just (toValue (invert . onAfter));

@@ -16,19 +16,19 @@ module Data.TimePhase.Time where
         localTimeOfDay = midnight
     };
 
-    type TimePhase = PhaseSet T;
+    type TimePhase = Phase T;
 
     fromTo :: TimePhase -> TimePhase -> Intervals T;
     fromTo pa pb = let {?first = firstTime} in
-        intervalsFromTo (startOf pa) (endOf pb);
+        intervalsFromTo (phaseStartOf pa) (phaseEndOf pb);
 
     onAfter :: TimePhase -> Intervals T;
     onAfter phase = let {?first = firstTime} in
-        intervalsOnAfter (startOf phase);
+        intervalsOnAfter (phaseStartOf phase);
 
     nthIn :: Int -> TimePhase -> TimePhase -> TimePhase;
-    nthIn n psubject pdelimiter = let {?first = firstTime} in intersect psubject
-        (toPhaseSet (fmap ((==) (Just n)) (sfCountSince (startOf pdelimiter) (startOf psubject))));
+    nthIn n psubject pdelimiter = let {?first = firstTime} in phaseIntersect psubject
+        (toPhaseSet (fmap ((==) (Just n)) (sfCountSince (phaseStartOf pdelimiter) (phaseStartOf psubject))));
 
     midnights :: KnownPointSet T;
     midnights = MkKnownPointSet
@@ -68,22 +68,22 @@ module Data.TimePhase.Time where
     midnightsBefore :: PointSet Day -> PointSet T;
     midnightsBefore psday = MkPointSet
     {
-        ssMember = \t -> (localTimeOfDay t == midnight) && (ssMember psday (localDay t)),
-        ssFirstAfterUntil = \t limit -> do
+        pointsMember = \t -> (localTimeOfDay t == midnight) && (pointsMember psday (localDay t)),
+        pointsFirstAfterUntil = \t limit -> do
         {
-            day <- ssFirstAfterUntil psday (localDay t) (localDay limit);
+            day <- pointsFirstAfterUntil psday (localDay t) (localDay limit);
             return (midnightOf day);
         },
-        ssLastBeforeUntil = \t limit -> do
+        pointsLastBeforeUntil = \t limit -> do
         {
             let 
             {
                 today = localDay t;
                 limitday = if localTimeOfDay limit == midnight then localDay limit else addDays 1 (localDay limit);
             };
-            day <- if (localTimeOfDay t > midnight) && (ssMember psday today)
+            day <- if (localTimeOfDay t > midnight) && (pointsMember psday today)
              then return today
-             else ssLastBeforeUntil psday today limitday;
+             else pointsLastBeforeUntil psday today limitday;
             return (midnightOf day);
         }
     };
@@ -98,7 +98,7 @@ module Data.TimePhase.Time where
     daysToTimeIntervals :: PointSet Day -> Intervals T;
     daysToTimeIntervals psday = MkStepFunction
     {
-        sfValue = \t -> ssMember psday (localDay t),
+        sfValue = \t -> pointsMember psday (localDay t),
         sfPossibleChanges = union
             (midnightsBefore psday)
             (midnightsBefore (delay 1 psday))
@@ -142,7 +142,7 @@ module Data.TimePhase.Time where
     isMonth i = fmap (\(_,m) -> i == m) theYearAndMonth;
     
     dayOfMonth :: Int -> PointSet Day;
-    dayOfMonth dd = psSearch (\day -> case toGregorian day of
+    dayOfMonth dd = pointsSearch (\day -> case toGregorian day of
     {
         (y,m,d) -> y * 12 + (fromIntegral (m - 1));
     }) (\i -> let
@@ -195,7 +195,7 @@ module Data.TimePhase.Time where
     dayEachYear f = knownToPointSet (kpsEach yearOfDay f);
 
     maybeDayEachYear :: (Integer -> Maybe Day) -> PointSet Day;
-    maybeDayEachYear = psSearch yearOfDay;
+    maybeDayEachYear = pointsSearch yearOfDay;
     
     timeOfDay :: TimeOfDay -> PointSet T;
     timeOfDay tod = knownToPointSet (kpsEach (\t -> localDay t) (\day -> LocalTime day tod));
