@@ -8,7 +8,8 @@ module Data.SetSearch
     module Data.SetSearch.Intervals,
     module Data.SetSearch.PointCoPointSet,
     module Data.SetSearch.Cut,
-    module Data.SetSearch.PhaseSet
+    module Data.SetSearch.PhaseSet,
+    module Data.SetSearch.Phase
 ) where
 {
     import Data.SetSearch.Set;
@@ -20,5 +21,6 @@ module Data.SetSearch
     import Data.SetSearch.PointCoPointSet;
     import Data.SetSearch.Cut;
     import Data.SetSearch.PhaseSet;
+    import Data.SetSearch.Phase;
 }
 
