@@ -1,5 +1,5 @@
 GHC = ghc
-GHCFLAGS = -package Phases
+GHCFLAGS = -package time-phase
 
 default: \
  TestSets.diff0 \

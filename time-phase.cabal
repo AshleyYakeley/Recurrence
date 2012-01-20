@@ -1,5 +1,5 @@
 cabal-version: >=1.10
-name: Phases
+name: time-phase
 version: 0.1
 author: Ashley Yakeley
 build-type: Simple
@@ -51,7 +51,7 @@ executable time-phase
         TypeSynonymInstances
         MultiParamTypeClasses
         FlexibleContexts
-    build-depends: base, time >= 1.4, Phases == 0.1
+    build-depends: base, time >= 1.4, time-phase == 0.1
     main-is: TimePhase.hs
 
 executable phase-calendar
@@ -66,6 +66,6 @@ executable phase-calendar
         TypeSynonymInstances
         MultiParamTypeClasses
         FlexibleContexts
-    build-depends: base, time >= 1.4, Phases == 0.1
+    build-depends: base, time >= 1.4, time-phase == 0.1
     main-is: PhaseCalendar.hs
 
