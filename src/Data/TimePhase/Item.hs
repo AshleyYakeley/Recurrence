@@ -60,15 +60,6 @@ module Data.TimePhase.Item where
         type Base (Event a) = a;
     };
     
-    instance (Eq a) => ShowBasedOn (Event a) where
-    {
-        showBasedOn show (MkEvent name (MkInterval start end)) = (showBasedOn show start) ++ " " ++ name ++ (case (start,end) of
-        {
-            (Starts (MkCut s _),Ends (MkCut e _)) | s == e -> "";
-            _ -> " (until " ++ (showBasedOn show end) ++ ")";
-        });
-    };
-    
     nextEvent :: forall a. (DeltaSmaller a) => Item a -> Cut a -> a -> Maybe (Event a);
     nextEvent (MkItem name phase) cut limit = do
     {
@@ -106,25 +97,39 @@ module Data.TimePhase.Item where
     getStartTime (MkEvent _ (MkInterval (Starts (MkCut t _)) _)) = Just t;
     getStartTime _ = Nothing;
     
-    showHeader :: Maybe Day -> String;
-    showHeader Nothing = "Ongoing";
-    showHeader (Just day) = show day;
-    
     pad2 :: String -> String;
     pad2 [] = "00";
     pad2 s@[_] = '0':s;
     pad2 s = s;
     
+    show2 :: Int -> String;
+    show2 = pad2 . show;
+    
     showTimeOfDay :: TimeOfDay -> String;
-    showTimeOfDay tod | todSec tod == 0 = (pad2 (show (todHour tod))) ++ ":" ++ (pad2 (show (todMin tod)));
+    showTimeOfDay tod | todSec tod == 0 = (show2 (todHour tod)) ++ ":" ++ (show2 (todMin tod));
     showTimeOfDay tod = show tod;
 
-    showEvent :: Event T -> String;
-    showEvent (MkEvent name (MkInterval start end)) = name ++ (case (start,end) of
+    showMonthDay :: Day -> String;
+    showMonthDay day = case toGregorian day of
     {
-        (Starts (MkCut s _),Ends (MkCut e _)) | s == e -> "";
-        _ -> " (until " ++ (showBasedOn show end) ++ ")";
-    });
+        (_,m,d) -> "-" ++ (show2 m) ++ "-" ++ (show2 d);
+    };
+
+    showEnd :: T -> T -> String;
+    showEnd s e | localDay s == localDay e = show (localTimeOfDay e);
+    showEnd s e | yearOfDay (localDay s) == yearOfDay (localDay e) = (showMonthDay (localDay e)) ++ " " ++ (show (localTimeOfDay e));
+    showEnd _ e = show e;
+
+    showEnding :: Interval T -> String;
+    showEnding (MkInterval (Starts (MkCut s _)) (Ends (MkCut e _))) | s == e = "";
+    showEnding (MkInterval start end) = " (until " ++ (showBasedOn (case start of
+    {
+        Starts (MkCut s _) -> showEnd s;
+        _ -> show;
+    }) end) ++ ")";
+
+    showEvent :: Event T -> String;
+    showEvent (MkEvent name interval) = name ++ (showEnding interval);
 
     isWholeDayStart :: Start T -> Maybe (Maybe Day);
     isWholeDayStart (Starts (MkCut t False)) | localTimeOfDay t == midnight = Just (Just (localDay t));
@@ -160,32 +165,44 @@ module Data.TimePhase.Item where
 
     showWDInterval :: (Maybe Day,Maybe Day) -> String;
     showWDInterval (Just start,Just end) | end == addDays 1 start = "";
+    showWDInterval (Just start,Just end) | yearOfDay start == yearOfDay end = " (to "++(showMonthDay (addDays (-1) end))++")";
     showWDInterval (_,Just end) = " (to "++(show (addDays (-1) end))++")";
     showWDInterval (_,Nothing) = " (to whenever)";
 
     showWDEvent :: ((Maybe Day,Maybe Day),Event T) -> String;
     showWDEvent (interval,MkEvent name _) = " " ++ name ++ (showWDInterval interval);
+    
+    printYearHeader :: Maybe Integer -> IO ();
+    printYearHeader Nothing = return ();
+    printYearHeader (Just year) = putStrLn ((show year) ++ "-");
+    
+    showDayHeader :: Maybe Day -> String;
+    showDayHeader Nothing = "ongoing";
+    showDayHeader (Just day) = showMonthDay day;
 
     printEvents :: [Event T] -> IO ();
-    printEvents events = mapM_ (\(mday,dayevents) -> do
+    printEvents events = mapM_ (\(myear,yearevents) -> do
     {
-        let
+        printYearHeader myear;
+        mapM_ (\(mday,dayevents) -> do
         {
-            (wdevents,otherevents) = filterMaybe isWholeDayEvent dayevents;           
-        };
-        putStr (showHeader mday);
-        putStrLn (intercalate "," (fmap showWDEvent wdevents));       
-        mapM_ (\(mtod,timeevents) -> do
-        {
-            case mtod of
+            let
             {
-                Just tod -> putStr ((showTimeOfDay tod) ++ " ");
-                Nothing -> return ();
+                (wdevents,otherevents) = filterMaybe isWholeDayEvent dayevents;           
             };
-            putStrLn (intercalate ", " (fmap showEvent timeevents));
-        }) (groupByFunc ((fmap localTimeOfDay) . getStartTime) otherevents);
-        
-    }) (groupByFunc ((fmap localDay) . getStartTime) events);
+            putStr (showDayHeader mday);
+            putStrLn (intercalate "," (fmap showWDEvent wdevents));       
+            mapM_ (\(mtod,timeevents) -> do
+            {
+                case mtod of
+                {
+                    Just tod -> putStr ((showTimeOfDay tod) ++ " ");
+                    Nothing -> return ();
+                };
+                putStrLn (intercalate ", " (fmap showEvent timeevents));
+            }) (groupByFunc ((fmap localTimeOfDay) . getStartTime) otherevents);        
+        }) (groupByFunc ((fmap localDay) . getStartTime) yearevents);
+    }) (groupByFunc ((fmap (yearOfDay . localDay)) . getStartTime) events);
    
     printItems :: T -> T -> [Item T] -> IO ();
     printItems t limit items = printEvents events where
