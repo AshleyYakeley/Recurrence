@@ -4,6 +4,8 @@ module Data.SetSearch.Phase where
     import Data.SetSearch.DeltaSmaller;
     import Data.SetSearch.PointSet;
     import Data.SetSearch.PhaseSet;
+    import Data.SetSearch.Intervals;
+    import Data.SetSearch.StepFunction;
     
     data Phase a = MkPhase
     {
@@ -30,6 +32,13 @@ module Data.SetSearch.Phase where
     {
         phaseSet = ps,
         phaseStartOf = psStartOf ps
+    };
+    
+    phaseDivideBy :: (Ord a) => PointSet a -> Phase a;
+    phaseDivideBy ps = MkPhase
+    {
+        phaseSet = full,
+        phaseStartOf = ps
     };
     
     phaseEmpty :: (DeltaSmaller a) => Phase a;
@@ -62,6 +71,24 @@ module Data.SetSearch.Phase where
     phaseIntersect phase ps = MkPhase
     {
         phaseSet = intersect (phaseSet phase) ps,
-        phaseStartOf = phaseStartOf phase
+        phaseStartOf = mixedIntersect ps (phaseStartOf phase)
     };
+
+    phaseOf :: (Ord a,?first :: a,?last :: a) => Phase a -> PointSet a -> Phase a;
+    phaseOf phase ps = let
+    {
+        betweenIntervals = intervalsOf ps (phaseStartOf phase);
+    } in MkPhase
+    {
+        phaseSet = intersect (phaseSet phase) (toPhaseSet betweenIntervals),
+        phaseStartOf = mixedIntersect betweenIntervals (phaseStartOf phase)
+    };
+
+    phaseNthFrom :: (Ord a,?first :: a) => Int -> Phase a -> PointSet a -> Phase a;
+    phaseNthFrom n psubject pdelimiter = phaseIntersect psubject
+        (toPhaseSet (fmap ((==) (Just n)) (sfCountSince pdelimiter (phaseStartOf psubject))));
+
+    phaseNthIn :: (Ord a,?first :: a) => Int -> Phase a -> Phase a -> Phase a;
+    phaseNthIn n psubject pdelimiter = phaseIntersect psubject
+        (toPhaseSet (fmap ((==) (Just n)) (sfCountSince (phaseStartOf pdelimiter) (phaseStartOf psubject))));
 }

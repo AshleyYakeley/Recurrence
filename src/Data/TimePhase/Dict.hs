@@ -36,13 +36,15 @@ module Data.TimePhase.Dict (dict) where
     dict "from" = Just (toValue onAfter);
     dict "until" = Just (toValue (invert . onAfter));
     dict "nth" = Just (toValue nthIn);
+    dict "of" = Just (toValue ofPhase);
     
     dict "delay" = Just (toValue (delay :: NominalDiffTime -> TimePhase -> TimePhase));
 
     dict "midnight" = Just (toValue newDay);
-    dict "new-day" = Just (toValue newDay);
-    dict "new-month" = Just (toValue newMonth);
-    dict "new-year" = Just (toValue newYear);
+    dict "midday" = Just (toValue (timeOfDay midday));
+    dict "day" = Just (toValue dayPhase);
+    dict "month" = Just (toValue monthPhase);
+    dict "year" = Just (toValue yearPhase);
 
     dict "Wednesday" = Just (toValue (weekDay 0));
     dict "Thursday" = Just (toValue (weekDay 1));

@@ -17,9 +17,12 @@ module Data.SetSearch.PointSet where
     pointsLastBefore :: (Ord a,?first :: a) => PointSet a -> a -> Maybe a;
     pointsLastBefore ps a = pointsLastBeforeUntil ps a ?first;
 
-    -- | which one was before. ps2 takes priority over ps1
-    pointsFirstBefore :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
-    pointsFirstBefore ps1 ps2 a = 
+    pointsFirstAfter :: (Ord a,?last :: a) => PointSet a -> a -> Maybe a;
+    pointsFirstAfter ps a = pointsFirstAfterUntil ps a ?last;
+
+    -- | which one was most recent. ps2 takes priority over ps1
+    pointsPrevious :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
+    pointsPrevious ps1 ps2 a = 
     if member ps2 a then Just (Right a)
     else if member ps1 a then Just (Left a)
     else case pointsLastBefore ps1 a of
@@ -30,6 +33,21 @@ module Data.SetSearch.PointSet where
             Nothing -> Just (Left r1);
         };
         Nothing -> Nothing; -- never switched on
+    };
+
+    -- | which one comes next. ps1 takes priority over ps2
+    pointsNext :: (Ord a,?last :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
+    pointsNext ps1 ps2 a = 
+    if member ps1 a then Just (Left a)
+    else if member ps2 a then Just (Right a)
+    else case pointsFirstAfter ps2 a of
+    {
+        Just r2 -> case pointsLastBeforeUntil ps1 r2 a of
+        {
+            Just r1 -> Just (Left r1);
+            Nothing -> Just (Right r2);
+        };
+        Nothing -> Nothing;
     };
 
     pointsLastUpTo :: PointSet a -> PointSet a -> PointSet a;
@@ -46,7 +64,7 @@ module Data.SetSearch.PointSet where
     -- | True if psOn switched on more recently than psOff
     ;
     pointsOnAndOff :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Bool;
-    pointsOnAndOff psOn psOff a = case pointsFirstBefore psOn psOff a of
+    pointsOnAndOff psOn psOff a = case pointsPrevious psOn psOff a of
     {
         Just (Left _) -> True;
         Just (Right _) -> False;

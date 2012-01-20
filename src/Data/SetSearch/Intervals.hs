@@ -25,7 +25,7 @@ module Data.SetSearch.Intervals where
     };
     
     intervalsIntersect :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
-    intervalsIntersect p i = filterIntersect (member i) p;
+    intervalsIntersect p i = mixedIntersect i p;
     
     intervalsDiff :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
     intervalsDiff p i = filterIntersect (not . (member i)) p;
@@ -48,5 +48,20 @@ module Data.SetSearch.Intervals where
     {
         sfValue = pointsOnAfter ps,
         sfPossibleChanges = ps
+    };
+
+    intervalsOf :: (Ord a,?first :: a,?last :: a) => PointSet a -> PointSet a -> Intervals a;
+    intervalsOf subject delimiter = MkStepFunction
+    {
+        sfValue = \a -> case pointsPrevious delimiter subject a of
+        {
+            Just (Right _) -> True;
+            _ -> case pointsNext delimiter subject a of
+            {
+                Just (Right _) -> True;
+                _ -> False;
+            };           
+        },
+        sfPossibleChanges = delimiter
     };
 }

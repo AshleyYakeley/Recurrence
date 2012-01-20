@@ -12,7 +12,14 @@ module Data.TimePhase.Time where
     firstTime :: T;
     firstTime = LocalTime
     {
-        localDay = ModifiedJulianDay 0,
+        localDay = ModifiedJulianDay (-10000000),
+        localTimeOfDay = midnight
+    };
+
+    lastTime :: T;
+    lastTime = LocalTime
+    {
+        localDay = ModifiedJulianDay 10000000,
         localTimeOfDay = midnight
     };
 
@@ -29,6 +36,13 @@ module Data.TimePhase.Time where
     nthIn :: Int -> TimePhase -> TimePhase -> TimePhase;
     nthIn n psubject pdelimiter = let {?first = firstTime} in phaseIntersect psubject
         (toPhaseSet (fmap ((==) (Just n)) (sfCountSince (phaseStartOf pdelimiter) (phaseStartOf psubject))));
+
+    ofPhase :: TimePhase -> TimePhase -> TimePhase;
+    ofPhase picker phase = let 
+    {
+        ?first = firstTime;
+        ?last = lastTime;
+    } in phaseOf phase (phaseStartOf picker);
 
     midnights :: KnownPointSet T;
     midnights = MkKnownPointSet
@@ -57,6 +71,9 @@ module Data.TimePhase.Time where
 
     newDay :: PointSet T;
     newDay = knownToPointSet midnights;
+
+    dayPhase :: TimePhase;
+    dayPhase = phaseDivideBy newDay;
     
     midnightOf :: Day -> LocalTime;
     midnightOf day = LocalTime
@@ -128,6 +145,9 @@ module Data.TimePhase.Time where
     newMonth :: PointSet T;
     newMonth = midnightsBefore monthFirsts;
 
+    monthPhase :: TimePhase;
+    monthPhase = phaseDivideBy newMonth;
+
     theYearAndMonth :: StepFunction T (Integer,Int);
     theYearAndMonth = MkStepFunction
     {
@@ -137,6 +157,19 @@ module Data.TimePhase.Time where
         }) . localDay,
         sfPossibleChanges = newMonth
     };
+
+    isPeriod :: T -> T -> Intervals T;
+    isPeriod start end = MkStepFunction
+    {
+        sfValue = \t -> (t >= start) && (t < end),
+        sfPossibleChanges = union (single start) (single end)
+    };
+
+    isYearAndMonth :: Integer -> Int -> Intervals T;
+    isYearAndMonth year month = let
+    {
+        first = fromGregorian year month 1;
+    } in isPeriod (midnightOf first) (midnightOf (addGregorianMonthsRollOver 1 first));
 
     isMonth :: Int -> Intervals T;
     isMonth i = fmap (\(_,m) -> i == m) theYearAndMonth;
@@ -151,6 +184,9 @@ module Data.TimePhase.Time where
         m = (fromIntegral (mod i 12)) + 1;
     } in fromGregorianValid y m dd);
 
+    firstDayOfYear :: Integer -> Day;
+    firstDayOfYear year = fromGregorian year 1 1;
+
     yearFirsts :: PointSet Day;
     yearFirsts = knownToPointSet MkKnownPointSet
     {
@@ -161,16 +197,19 @@ module Data.TimePhase.Time where
         },
         kpsFirstAfter = \day -> Just (case toGregorian (addGregorianYearsClip 1 day) of
         {
-            (y,_,_) -> fromGregorian y 1 1;
+            (y,_,_) -> firstDayOfYear y;
         }),
         kpsLastBefore = \day -> Just (case toGregorian (addDays (-1) day) of
         {
-            (y,_,_) -> fromGregorian y 1 1;
+            (y,_,_) -> firstDayOfYear y;
         })
     };
 
     newYear :: PointSet T;
     newYear = midnightsBefore yearFirsts;
+
+    yearPhase :: TimePhase;
+    yearPhase = phaseDivideBy newYear;
 
     theYear :: StepFunction T Integer;
     theYear = MkStepFunction
@@ -183,8 +222,8 @@ module Data.TimePhase.Time where
     };
 
     isYear :: Integer -> Intervals T;
-    isYear y = fmap ((==) y) theYear;
-
+    isYear year = isPeriod (midnightOf (firstDayOfYear year)) (midnightOf (firstDayOfYear (year + 1)));
+    
     yearOfDay :: Day -> Integer;
     yearOfDay day = case toGregorian day of
     {

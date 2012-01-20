@@ -85,6 +85,9 @@ module Data.SetSearch.Set where
         filterIntersect :: (Base s -> Bool) -> s -> s;
     };
     
+    mixedIntersect :: (Set s1,SetFilter s2,Base s1 ~ Base s2) => s1 -> s2 -> s2;
+    mixedIntersect s1 = filterIntersect (member s1);
+    
     class (Set s) => SetFull (s :: *) where
     {
         full :: s;
