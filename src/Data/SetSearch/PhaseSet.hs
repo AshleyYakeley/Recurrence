@@ -1,5 +1,6 @@
 module Data.SetSearch.PhaseSet where
 {
+{-
     import Control.Monad;
     import Data.SetSearch.Set;
     import Data.SetSearch.PointSet;
@@ -137,59 +138,10 @@ module Data.SetSearch.PhaseSet where
         };
     };
 
-    cutCurrent :: (DeltaSmaller a) => PhaseSet a -> Cut a -> Bool;
-    cutCurrent phase (MkCut a False) = (member (sfChanges (psIntervals phase)) a) /= (member (psExceptions phase) a);
-    cutCurrent phase (MkCut a True) = member (psExceptions phase) a;
-
-    cutAfterMember :: (DeltaSmaller a) => PhaseSet a -> Cut a -> Bool;
-    cutAfterMember phase (MkCut a False) = member phase a;
-    cutAfterMember phase (MkCut a True) = (member phase a) /= (member (psExceptions phase) a);
-
-    cutFirstAfterUntil :: (DeltaSmaller a) => PhaseSet a -> Cut a -> a -> Maybe (Cut a);
-    cutFirstAfterUntil phase (MkCut a ff) limit = if ff then nextCut else (mplus thisCut nextCut) where
-    {
-        thisCut = if member (psExceptions phase) a then Just (MkCut a True) else Nothing;
-    
-        nextCut = let
-        {
-            mrI = pointsFirstAfterUntil (sfChanges (psIntervals phase)) a limit;
-            mrX = pointsFirstAfterUntil (psExceptions phase) a limit;
-        } in case (mrI,mrX) of
-        {
-            (Just rI,Just rX) -> Just (case compare rI rX of
-            {
-                LT -> MkCut rI False;
-                EQ -> MkCut rI True;
-                GT -> MkCut rX False;
-            });
-            (Just rI,Nothing) -> Just (MkCut rI False);
-            (Nothing,Just rX) -> Just (MkCut rX False);
-            (Nothing,Nothing) -> Nothing;
-        }
-    };  
-    
-    cutNextInterval :: forall a. (DeltaSmaller a) => PhaseSet a -> Cut a -> a -> Maybe (Interval a);
-    cutNextInterval phase cut limit = if cutAfterMember phase cut
-     then Just (MkInterval
-        (if cutCurrent phase cut then Starts cut else Ongoing)
-        (getEnd cut)
-     )
-     else do
-    {
-        startcut <- cutFirstAfterUntil phase cut limit;
-        return (MkInterval (Starts startcut) (getEnd startcut));
-    } where
-    {
-        getEnd c = case cutFirstAfterUntil phase c limit of
-        {
-            Just end -> Ends end;
-            Nothing -> Whenever;
-        };
-    };
-
     psStartOf :: (DeltaSmaller a) => PhaseSet a -> PointSet a;
     psStartOf ps = union (psExceptions ps) (intervalsStartOf (psIntervals ps));
 
     psEndOf :: (DeltaSmaller a) => PhaseSet a -> PointSet a;
     psEndOf ps = union (psExceptions ps) (intervalsEndOf (psIntervals ps));
+-}
 }

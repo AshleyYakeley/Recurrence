@@ -7,7 +7,7 @@ module Data.TimePhase.Dict (dict) where
     import Data.TimePhase.Time;
     import Data.TimePhase.Value;
 
-    phaseIntersectAll :: Maybe (TimePhase,[PhaseSet T]) -> TimePhase;
+    phaseIntersectAll :: Maybe (TimePhase,[Intervals T]) -> TimePhase;
     phaseIntersectAll Nothing = phaseFull;
     phaseIntersectAll (Just (phase,sets)) = f sets where
     {
@@ -15,7 +15,7 @@ module Data.TimePhase.Dict (dict) where
         f (s:ss) = phaseIntersect (f ss) s;
     };
 
-    phaseUnionAll :: Maybe (TimePhase,[PhaseSet T]) -> TimePhase;
+    phaseUnionAll :: Maybe (TimePhase,[Intervals T]) -> TimePhase;
     phaseUnionAll Nothing = phaseEmpty;
     phaseUnionAll (Just (phase,sets)) = f sets where
     {
@@ -30,17 +30,19 @@ module Data.TimePhase.Dict (dict) where
     dict "not" = Just (toValue (phaseInvert :: TimePhase -> TimePhase));
     dict "when" = Just (toValue phaseIntersectAll);
     dict "and" = Just (toValue phaseUnionAll);
-    dict "start" = Just (toValue (phaseStartOf :: TimePhase -> PointSet T));
-    dict "end" = Just (toValue (phaseEndOf :: TimePhase -> PointSet T));
-    dict "interval" = Just (toValue fromTo);
+    dict "start" = Just (toValue startOf);
+    dict "end" = Just (toValue endOf);
+    dict "from-until" = Just (toValue fromUntil);
+    dict "through" = Just (toValue fromTo);
     dict "from" = Just (toValue onAfter);
     dict "until" = Just (toValue (invert . onAfter));
-    dict "nth" = Just (toValue nthIn);
+--    dict "nth" = Just (toValue nthIn);
     dict "of" = Just (toValue ofPhase);
+    dict "all" = Just (toValue (id :: Intervals T -> Intervals T));
     
     dict "delay" = Just (toValue (delay :: NominalDiffTime -> TimePhase -> TimePhase));
 
-    dict "midnight" = Just (toValue newDay);
+    dict "midnight" = Just (toValue (timeOfDay midnight));
     dict "midday" = Just (toValue (timeOfDay midday));
     dict "day" = Just (toValue dayPhase);
     dict "month" = Just (toValue monthPhase);

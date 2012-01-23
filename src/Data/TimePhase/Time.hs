@@ -9,43 +9,54 @@ module Data.TimePhase.Time where
     getNow :: IO T;
     getNow = fmap zonedTimeToLocalTime getZonedTime;
 
-    firstTime :: T;
-    firstTime = LocalTime
+    firstTime :: Cut T;
+    firstTime = justBefore (LocalTime
     {
         localDay = ModifiedJulianDay (-10000000),
         localTimeOfDay = midnight
-    };
+    });
 
-    lastTime :: T;
-    lastTime = LocalTime
+    lastTime :: Cut T;
+    lastTime = justBefore (LocalTime
     {
         localDay = ModifiedJulianDay 10000000,
         localTimeOfDay = midnight
-    };
+    });
 
     type TimePhase = Phase T;
 
     fromTo :: TimePhase -> TimePhase -> Intervals T;
-    fromTo pa pb = let {?first = firstTime} in
+    fromTo pa pb = let {?first=firstTime;?last=lastTime} in
         intervalsFromTo (phaseStartOf pa) (phaseEndOf pb);
+
+    fromUntil :: TimePhase -> TimePhase -> Intervals T;
+    fromUntil pa pb = let {?first=firstTime;?last=lastTime} in
+        intervalsFromTo (phaseStartOf pa) (phaseStartOf pb);
 
     onAfter :: TimePhase -> Intervals T;
     onAfter phase = let {?first = firstTime} in
-        intervalsOnAfter (phaseStartOf phase);
-
+        intervalsAfter (phaseStartOf phase);
+{-
     nthIn :: Int -> TimePhase -> TimePhase -> TimePhase;
     nthIn n psubject pdelimiter = let {?first = firstTime} in phaseIntersect psubject
-        (toPhaseSet (fmap ((==) (Just n)) (sfCountSince (phaseStartOf pdelimiter) (phaseStartOf psubject))));
-
+        (fmap ((==) (Just n)) (sfCountSince (phaseStartOf pdelimiter) (phaseStartOf psubject)));
+-}
     ofPhase :: TimePhase -> TimePhase -> TimePhase;
     ofPhase picker phase = let 
     {
         ?first = firstTime;
         ?last = lastTime;
-    } in phaseOf phase (phaseStartOf picker);
+    } in phaseOf phase (pointsFromCut (phaseStartOf picker));
 
-    midnights :: KnownPointSet T;
-    midnights = MkKnownPointSet
+    startOf :: TimePhase -> PointSet T;
+    startOf phase = pointsFromCut (phaseStartOf phase);
+
+    endOf :: TimePhase -> PointSet T;
+    endOf phase = let {?last=lastTime} in
+     pointsFromCut (phaseEndOf phase);
+
+    beforeDay :: PointSet (Cut T);
+    beforeDay = pointsCutBefore (knownToPointSet (MkKnownPointSet
     {
         kpsMember = \t -> (localTimeOfDay t == midnight),
         kpsFirstAfter = \t -> let
@@ -67,29 +78,43 @@ module Data.TimePhase.Time where
                 localTimeOfDay = midnight
             };
         } in Just t'
-    };
-
-    newDay :: PointSet T;
-    newDay = knownToPointSet midnights;
+    }));
 
     dayPhase :: TimePhase;
-    dayPhase = phaseDivideBy newDay;
+    dayPhase = phaseDivideBy beforeDay;
     
-    midnightOf :: Day -> LocalTime;
-    midnightOf day = LocalTime
+    dayMidnight :: Day -> T;
+    dayMidnight day = LocalTime
     {
         localDay = day,
         localTimeOfDay = midnight
     };
     
-    midnightsBefore :: PointSet Day -> PointSet T;
-    midnightsBefore psday = MkPointSet
+    cutBeforeDay :: Day -> Cut T;
+    cutBeforeDay day = justBefore (dayMidnight day);
+   
+    beforeDays :: PointSet Day -> PointSet (Cut T);
+    beforeDays (MkPointSet vf) = MkPointSet (\p q -> let
+    {
+        pday = case p of
+        {
+            MkCut pt Before | localTimeOfDay pt == midnight -> localDay pt;
+            MkCut pt _ -> addAffine 1 (localDay pt);
+        };
+        qday = case q of
+        {
+            MkCut qt _ -> localDay qt;
+        };
+    } in fmap cutBeforeDay (vf pday qday));
+    
+{-    
+    beforeDays psday = pointsCutBefore (MkPointSet
     {
         pointsMember = \t -> (localTimeOfDay t == midnight) && (pointsMember psday (localDay t)),
         pointsFirstAfterUntil = \t limit -> do
         {
             day <- pointsFirstAfterUntil psday (localDay t) (localDay limit);
-            return (midnightOf day);
+            return (dayMidnight day);
         },
         pointsLastBeforeUntil = \t limit -> do
         {
@@ -101,26 +126,29 @@ module Data.TimePhase.Time where
             day <- if (localTimeOfDay t > midnight) && (pointsMember psday today)
              then return today
              else pointsLastBeforeUntil psday today limitday;
-            return (midnightOf day);
+            return (dayMidnight day);
         }
-    };
-
+    });
+-}
     theDay :: StepFunction T Day;
     theDay = MkStepFunction
     {
-        sfValue = localDay,
-        sfPossibleChanges = knownToPointSet midnights
+        sfUpwardValue = \(MkCut day _) -> localDay day,
+        sfPossibleChanges = beforeDay
     };
 
     daysToTimeIntervals :: PointSet Day -> Intervals T;
-    daysToTimeIntervals psday = MkStepFunction
+    daysToTimeIntervals psday = let {?first=firstTime} in
+     intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday));
+{-    
+    MkStepFunction
     {
-        sfValue = \t -> pointsMember psday (localDay t),
+        sfUpwardValue = \(MkCut t _) -> pointsMember psday (localDay t),
         sfPossibleChanges = union
-            (midnightsBefore psday)
-            (midnightsBefore (delay 1 psday))
+            (beforeDays psday)
+            (beforeDays (delay 1 psday))
     };
-    
+-}    
     weekDay :: Integer -> Intervals T;
     weekDay i = fmap (\day -> mod' (toModifiedJulianDay day) 7 == i) theDay;
     
@@ -142,34 +170,27 @@ module Data.TimePhase.Time where
         })
     };
 
-    newMonth :: PointSet T;
-    newMonth = midnightsBefore monthFirsts;
+    beforeMonth :: PointSet (Cut T);
+    beforeMonth = beforeDays monthFirsts;
 
     monthPhase :: TimePhase;
-    monthPhase = phaseDivideBy newMonth;
+    monthPhase = phaseDivideBy beforeMonth;
 
     theYearAndMonth :: StepFunction T (Integer,Int);
     theYearAndMonth = MkStepFunction
     {
-        sfValue = (\day -> case toGregorian day of
+        sfUpwardValue = \(MkCut t _) -> case toGregorian (localDay t) of
         {
             (y,m,_) -> (y,m);
-        }) . localDay,
-        sfPossibleChanges = newMonth
-    };
-
-    isPeriod :: T -> T -> Intervals T;
-    isPeriod start end = MkStepFunction
-    {
-        sfValue = \t -> (t >= start) && (t < end),
-        sfPossibleChanges = union (single start) (single end)
+        },
+        sfPossibleChanges = beforeMonth
     };
 
     isYearAndMonth :: Integer -> Int -> Intervals T;
     isYearAndMonth year month = let
     {
         first = fromGregorian year month 1;
-    } in isPeriod (midnightOf first) (midnightOf (addGregorianMonthsRollOver 1 first));
+    } in intervalsOne (cutBeforeDay first) (cutBeforeDay (addGregorianMonthsRollOver 1 first));
 
     isMonth :: Int -> Intervals T;
     isMonth i = fmap (\(_,m) -> i == m) theYearAndMonth;
@@ -205,24 +226,24 @@ module Data.TimePhase.Time where
         })
     };
 
-    newYear :: PointSet T;
-    newYear = midnightsBefore yearFirsts;
+    beforeYear :: PointSet (Cut T);
+    beforeYear = beforeDays yearFirsts;
 
     yearPhase :: TimePhase;
-    yearPhase = phaseDivideBy newYear;
+    yearPhase = phaseDivideBy beforeYear;
 
     theYear :: StepFunction T Integer;
     theYear = MkStepFunction
     {
-        sfValue = (\day -> case toGregorian day of
+        sfUpwardValue = \(MkCut t _) -> case toGregorian (localDay t) of
         {
             (y,_,_) -> y;
-        }) . localDay,
-        sfPossibleChanges = newYear
+        },
+        sfPossibleChanges = beforeYear
     };
 
     isYear :: Integer -> Intervals T;
-    isYear year = isPeriod (midnightOf (firstDayOfYear year)) (midnightOf (firstDayOfYear (year + 1)));
+    isYear year = intervalsOne (cutBeforeDay (firstDayOfYear year)) (cutBeforeDay (firstDayOfYear (year + 1)));
     
     yearOfDay :: Day -> Integer;
     yearOfDay day = case toGregorian day of

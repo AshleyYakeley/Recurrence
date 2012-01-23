@@ -1,6 +1,7 @@
 module Data.SetSearch.KnownPointSet where
 {
     import Data.SetSearch.Set;
+    import Data.SetSearch.ValueSet;
     import Data.SetSearch.PointSet;
 
     data KnownPointSet a = MkKnownPointSet
@@ -13,22 +14,28 @@ module Data.SetSearch.KnownPointSet where
     };
 
     knownToPointSet :: (Ord a) => KnownPointSet a -> PointSet a;
-    knownToPointSet kps = MkPointSet
+    knownToPointSet kps = MkPointSet (\p q -> let
     {
-        pointsMember = kpsMember kps,
-        -- strictly after, up to including limit
-        pointsFirstAfterUntil = \a limit -> do
+        forwardsRest a = case kpsFirstAfter kps a of
         {
-            r <- kpsFirstAfter kps a;
-            if r <= limit then Just r else Nothing;
-        },
-        -- strictly before, up to including limit
-        pointsLastBeforeUntil = \a limit -> do
+            Just x | x <= q -> x:(forwardsRest x);
+            _ -> [];
+        };
+
+        forwards a | a > q = [];
+        forwards a | kpsMember kps a = a:(forwardsRest a);
+        forwards a = forwardsRest a;
+
+        backwardsRest a = case kpsLastBefore kps a of
         {
-            r <- kpsLastBefore kps a;
-            if r >= limit then Just r else Nothing;
-        }
-    };
+            Just x | x >= p -> x:(backwardsRest x);
+            _ -> [];
+        };
+
+        backwards a | a < p = [];
+        backwards a | kpsMember kps a = a:(backwardsRest a);
+        backwards a = backwardsRest a;
+    } in MkValueSet (forwards p) (backwards q));
     
     instance BasedOn (KnownPointSet a) where
     {

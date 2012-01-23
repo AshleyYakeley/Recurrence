@@ -30,7 +30,7 @@ module Data.TimePhase.Item where
     mergeByListPresorted cmp (list:lists) = mergeByPairPresorted cmp list (mergeByListPresorted cmp lists);
     
 
-    data Item a = MkItem String (PhaseSet a);
+    data Item a = MkItem String (Phase a);
     
     readPhasesFile :: ReadPrec [SExpression Atom];
     readPhasesFile = do
@@ -53,14 +53,19 @@ module Data.TimePhase.Item where
     readItems = fmap (mapM interpretItem) readPhasesFile;
     
 
-    data Event a = MkEvent String (Interval a);
+    data Event a = MkEvent String (Interval a) deriving Eq;
+
+    instance (Show a) => Show (Event a) where
+    {
+        show (MkEvent name int) = name ++ ": " ++ (show int);
+    };
 
     instance BasedOn (Event a) where
     {
         type Base (Event a) = a;
     };
     
-    nextEvent :: forall a. (DeltaSmaller a) => Item a -> Cut a -> a -> Maybe (Event a);
+    nextEvent :: forall a. (DeltaSmaller a) => Item a -> Cut a -> Cut a -> Maybe (Event a);
     nextEvent (MkItem name phase) cut limit = do
     {
         interval <- cutNextInterval phase cut limit;
@@ -71,7 +76,7 @@ module Data.TimePhase.Item where
     eventEndCut (MkEvent _ (MkInterval _ (Ends cut))) = Just cut;
     eventEndCut _ = Nothing;
 
-    allEvents :: forall a. (DeltaSmaller a) => Item a -> Cut a -> a -> [Event a];
+    allEvents :: forall a. (DeltaSmaller a) => Item a -> Cut a -> Cut a -> [Event a];
     allEvents item cut limit = case nextEvent item cut limit of
     {
         Nothing -> [];
@@ -134,12 +139,12 @@ module Data.TimePhase.Item where
     showEvent (MkEvent name interval) = name ++ (showEnding interval);
 
     isWholeDayStart :: Start T -> Maybe (Maybe Day);
-    isWholeDayStart (Starts (MkCut t False)) | localTimeOfDay t == midnight = Just (Just (localDay t));
+    isWholeDayStart (Starts (MkCut t Before)) | localTimeOfDay t == midnight = Just (Just (localDay t));
     isWholeDayStart Ongoing = Just Nothing;
     isWholeDayStart _ = Nothing;
 
     isWholeDayEnd :: End T -> Maybe (Maybe Day);
-    isWholeDayEnd (Ends (MkCut t False)) | localTimeOfDay t == midnight = Just (Just (localDay t));
+    isWholeDayEnd (Ends (MkCut t Before)) | localTimeOfDay t == midnight = Just (Just (localDay t));
     isWholeDayEnd Whenever = Just Nothing;
     isWholeDayEnd _ = Nothing;
 
@@ -214,6 +219,6 @@ module Data.TimePhase.Item where
     printItems :: T -> T -> [Item T] -> IO ();
     printItems t limit items = let {?context = t} in printEvents events where
     {
-        events = mergeByListPresorted compareEvents (fmap (\phase -> allEvents phase (MkCut t False) limit) items);
+        events = mergeByListPresorted compareEvents (fmap (\phase -> allEvents phase (justBefore t) (justBefore limit)) items);
     };
 }

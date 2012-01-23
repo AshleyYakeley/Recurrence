@@ -1,7 +1,72 @@
 module Data.SetSearch.PointSet where
 {
+    import Control.Monad;
     import Data.SetSearch.Set;
+    import Data.SetSearch.Cut;
+    import Data.SetSearch.ValueSet;
 
+
+    newtype PointSet a = MkPointSet
+    {
+        psValues :: a -> a -> ValueSet a
+    };
+    
+    instance BasedOn (PointSet a) where
+    {
+        type Base (PointSet a) = a;
+    };
+    
+    instance RemapBase (PointSet a) (PointSet b) where
+    {
+        remapBase ab ba (MkPointSet vf) = MkPointSet (\p q -> remapBase ab ba (vf (ba p) (ba q)));
+    };
+
+    instance (Ord a) => Set (PointSet a) where
+    {
+        empty = MkPointSet (\_ _ -> empty);
+        member (MkPointSet vf) a = vsNonEmpty (vf a a);
+        union (MkPointSet vf1) (MkPointSet vf2) = MkPointSet (\a b -> union (vf1 a b) (vf2 a b));
+        intersect (MkPointSet vf1) (MkPointSet vf2) = MkPointSet (\a b -> intersect (vf1 a b) (vf2 a b));
+        diff (MkPointSet vf1) (MkPointSet vf2) = MkPointSet (\a b -> diff (vf1 a b) (vf2 a b));
+        symdiff (MkPointSet vf1) (MkPointSet vf2) = MkPointSet (\a b -> symdiff (vf1 a b) (vf2 a b));
+    };
+
+    instance (Ord a) => SetSingle (PointSet a) where
+    {
+        single a = MkPointSet (\p q -> if (a >= p) && (a <= q) then single a else empty);
+    };
+
+    instance (Ord a) => SetFilter (PointSet a) where
+    {
+        filterIntersect filt (MkPointSet vf) = MkPointSet (\a b -> filterIntersect filt (vf a b));
+    };
+
+    psValuesCut :: (Ord a) => PointSet a -> Cut a -> Cut a -> ValueSet a;
+    psValuesCut ps (MkCut a ax) (MkCut b bx) = let
+    {
+        v = psValues ps a b;
+        filt1 = case ax of
+        {
+            Before -> id;
+            After -> filterIntersect ((/=) a);
+        };
+        filt2 = case bx of
+        {
+            Before -> filterIntersect ((/=) b);
+            After -> id;
+        };
+    } in filt2 (filt1 v);
+
+    psNonEmpty :: (Ord a) => PointSet a -> Cut a -> Cut a -> Bool;
+    psNonEmpty ps p q = vsNonEmpty (psValuesCut ps p q);
+
+    instance (Ord a) => SetSearch (PointSet a) where
+    {
+        firstAfterUntil ps exnear incfar = vsFirst (psValuesCut ps (justAfter exnear) (justAfter incfar));
+        lastBeforeUntil ps exnear incfar = vsLast (psValuesCut ps (justBefore incfar) (justBefore exnear));
+    };
+
+{-
     {-
     To be correct, this must have only a finite number of members in any interval.
     -}
@@ -13,19 +78,32 @@ module Data.SetSearch.PointSet where
         -- strictly before, up to including limit
         pointsLastBeforeUntil :: a -> a -> Maybe a
     };
+-}
+
+{-
+    pointsLastRangeAfterBefore :: PointSet a -> a -> a -> Maybe a;
+    pointsLastRangeAfterBefore ps a limit = if pointsMember ps a then Just a else pointsLastBeforeUntil ps a limit;
+    
+    pointsLastRangeAfterAfter :: (Eq a) => PointSet a -> a -> a -> Maybe a;
+    pointsLastRangeAfterAfter ps a limit = if pointsMember ps a then Just a else do
+    {
+        r <- pointsLastBeforeUntil ps a limit;
+        if r == limit then Nothing else Just r;
+    };
 
     pointsLastBefore :: (Ord a,?first :: a) => PointSet a -> a -> Maybe a;
     pointsLastBefore ps a = pointsLastBeforeUntil ps a ?first;
 
     pointsFirstAfter :: (Ord a,?last :: a) => PointSet a -> a -> Maybe a;
     pointsFirstAfter ps a = pointsFirstAfterUntil ps a ?last;
-
+-}
+{-
     -- | which one was most recent. ps2 takes priority over ps1
-    pointsPrevious :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
-    pointsPrevious ps1 ps2 a = 
-    if member ps2 a then Just (Right a)
-    else if member ps1 a then Just (Left a)
-    else case pointsLastBefore ps1 a of
+    pointsPreviousBefore :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
+    pointsPreviousBefore ps1 ps2 a = 
+    
+    
+    case pointsLastBefore ps1 a of
     {
         Just r1 -> case pointsFirstAfterUntil ps2 r1 a of -- to switch off, it must be strictly after the on 
         {
@@ -35,12 +113,16 @@ module Data.SetSearch.PointSet where
         Nothing -> Nothing; -- never switched on
     };
 
+    -- | which one was most recent. ps2 takes priority over ps1
+    pointsPreviousFrom :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
+    pointsPreviousFrom ps1 ps2 a = 
+    if member ps2 a then Just (Right a)
+    else if member ps1 a then Just (Left a)
+    else pointsPreviousBefore ps1 ps2 a;
+
     -- | which one comes next. ps1 takes priority over ps2
-    pointsNext :: (Ord a,?last :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
-    pointsNext ps1 ps2 a = 
-    if member ps1 a then Just (Left a)
-    else if member ps2 a then Just (Right a)
-    else case pointsFirstAfter ps2 a of
+    pointsNextAfter :: (Ord a,?last :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
+    pointsNextAfter ps1 ps2 a = case pointsFirstAfter ps2 a of
     {
         Just r2 -> case pointsLastBeforeUntil ps1 r2 a of
         {
@@ -49,28 +131,110 @@ module Data.SetSearch.PointSet where
         };
         Nothing -> Nothing;
     };
-
-    pointsLastUpTo :: PointSet a -> PointSet a -> PointSet a;
-{-
-    pointsLastUpTo subject delimiter = MkPointSet
-    {
-        pointsMember = \a -> (pointsMember subject a) && ((pointsMember delimiter a) ||
-        
-        )
-    };
 -}
-    pointsLastUpTo subject delimiter = subject; -- WRONG
-    
+
+{-
+    pointsFirstInCuts :: (Ord a) => PointSet a -> Cut a -> Cut a -> Maybe a;
+    pointsFirstInCuts ps near far = vsFirst (psValuesCut ps near far);
+
+    pointsLastInCuts :: (Ord a) => PointSet a -> Cut a -> Cut a -> Maybe a;
+    pointsLastInCuts ps near far = vsLast (psValuesCut ps near far);
+
+    -- | which one comes next
+    pointsWhichFirstInCuts :: (Ord a) => PointSet (Cut a) -> PointSet a -> Cut a -> Cut a -> Maybe (Either (Cut a) a);
+    pointsWhichFirstInCuts ps1 ps2 near far = do
+    {
+        r2 <- pointsFirstInCuts ps2 near far;
+        case pointsFirstInCuts ps1 (doubleCut r2) (justBefore near) of
+        {
+            Just r1 -> Just (Left r1);
+            Nothing -> Just (Right r2);
+        };
+    };
+
+    -- | which one comes last
+    pointsWhichLastInCuts :: (Ord a) => PointSet (Cut a) -> PointSet a -> Cut a -> Cut a -> Maybe (Either (Cut a) a);
+    pointsWhichLastInCuts ps1 ps2 near far = do
+    {
+        r2 <- pointsLastInCuts ps2 near far;
+        case pointsLastInCuts ps1 (doubleCut r2) (justAfter near) of
+        {
+            Just r1 -> Just (Left r1);
+            Nothing -> Just (Right r2);
+        };
+    };
+
+    -- | which one comes next. ps1 takes priority over ps2
+    pointsNextFrom :: (Ord a,?last :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
+    pointsNextFrom ps1 ps2 a = 
+    if member ps1 a then Just (Left a)
+    else if member ps2 a then Just (Right a)
+    else pointsNextAfter ps1 ps2 a;
+-}
+    psPrevious :: (Ord a,?first :: Cut a) => PointSet a -> Cut a -> Maybe a;
+    psPrevious ps x = vsLast (psValuesCut ps ?first x);
+
+    psFirstCut :: (Ord a) => PointSet a -> Cut a -> Cut a -> Maybe a;
+    psFirstCut ps p q = vsFirst (psValuesCut ps p q);
+
+    psNext :: (Ord a,?last :: Cut a) => PointSet a -> Cut a -> Maybe a;
+    psNext ps x = psFirstCut ps x ?last;
+
+    -- | the first subject point on or after delimiter
+    pointsFirstFrom :: (Ord a,?first :: Cut a) => PointSet a -> PointSet a -> PointSet a;
+    pointsFirstFrom subject delimiter = filterIntersect (\x -> case psPrevious delimiter (justBefore x) of
+    {
+        -- the previous delimiter
+        Just d -> not (psNonEmpty subject (justBefore d) (justBefore x)); -- if no subject
+        Nothing -> False;
+    }) subject;
+
+    -- | the first subject point after delimiter
+    pointsCutFirstAfterPoints :: (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet a -> PointSet (Cut a);
+    pointsCutFirstAfterPoints subject delimiter = filterIntersect (\x -> case psPrevious delimiter x of
+    {
+        -- the previous delimiter
+        Just d -> not (psNonEmpty subject (doubleCut d) (justBefore x)); -- if no subject
+        Nothing -> False;
+    }) subject;
+
+
+    -- | the last subject point before delimiter
+    pointsLastOnOrBeforePoints :: (Ord a,?last :: a) => PointSet a -> PointSet a -> PointSet a;
+    pointsLastOnOrBeforePoints subject delimiter = filterIntersect (\x -> case psFirstCut delimiter (justBefore x) (justAfter ?last) of
+    {
+        -- the next delimiter
+        Just d -> not (psNonEmpty subject (justAfter x) (justAfter d)); -- if no subject
+        Nothing -> False;
+    }) subject;
+
+    -- | the last subject point before delimiter
+    pointsCutLastBeforePoints :: (Ord a,?last :: Cut a) => PointSet (Cut a) -> PointSet a -> PointSet (Cut a);
+    pointsCutLastBeforePoints subject delimiter = filterIntersect (\x -> case psNext delimiter x of
+    {
+        -- the next delimiter
+        Just d -> not (psNonEmpty subject (justAfter x) (doubleCut d)); -- if no subject
+        Nothing -> False;
+    }) subject;
+{-    
+    pointsLastAndIncluding :: (Ord a,?last :: Cut a) => PointSet a -> PointSet a -> PointSet a;
+    pointsLastAndIncluding last including = 
+     union including (filterIntersect (\x -> case psNext including (justBefore x) of
+    {
+        Just d -> not (psNonEmpty last (justAfter x) (justAfter d));
+        Nothing -> False;
+    }) last);
+-}    
     -- | True if psOn switched on more recently than psOff
     ;
-    pointsOnAndOff :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Bool;
-    pointsOnAndOff psOn psOff a = case pointsPrevious psOn psOff a of
+    psOnAndOff :: (Ord a,?first :: Cut a) => PointSet a -> PointSet a -> a -> Bool;
+    psOnAndOff psOn psOff a = case psPrevious psOn (justAfter a) of
     {
-        Just (Left _) -> True;
-        Just (Right _) -> False;
         Nothing -> False;
+        Just ontime -> not (psNonEmpty psOff (justBefore ontime) (justAfter a));
     };
-    
+
+{- 
     pointsOnAfter :: (Ord a,?first :: a) => PointSet a -> a -> Bool;
     pointsOnAfter psOn a = (member psOn a) ||
     case pointsLastBefore psOn a of
@@ -78,158 +242,59 @@ module Data.SetSearch.PointSet where
         Just _ -> True;
         Nothing -> False;
     };
-    
-    instance BasedOn (PointSet a) where
+-}
+    pointsCutBefore :: (Ord a) => PointSet a -> PointSet (Cut a);
+    pointsCutBefore (MkPointSet vf) = MkPointSet (\(MkCut p xp) (MkCut q _) -> fmap justBefore ((case xp of
     {
-        type Base (PointSet a) = a;
-    };
-    
-    instance RemapBase (PointSet a) (PointSet b) where
+        Before -> id;
+        After -> filterIntersect ((/=) p);
+    }) (vf p q)));
+
+    pointsCutAfter :: (Ord a) => PointSet a -> PointSet (Cut a);
+    pointsCutAfter (MkPointSet vf) = MkPointSet (\(MkCut p _) (MkCut q xq) -> fmap justAfter ((case xq of
     {
-        remapBase ab ba psa = MkPointSet
+        Before -> filterIntersect ((/=) q);
+        After -> id;
+    }) (vf p q)));
+
+    pointsCutBoth :: (Ord a) => PointSet a -> PointSet (Cut a);
+    pointsCutBoth points = union (pointsCutBefore points) (pointsCutAfter points);
+
+    pointsFromCut :: (Ord a) => PointSet (Cut a) -> PointSet a;
+    pointsFromCut (MkPointSet vf) = MkPointSet (\p q -> fmap (\(MkCut x _) -> x) (vf (justBefore p) (justAfter q)));
+
+{-    pointsFromCut pointscut = MkPointSet
+    {
+        pointsMember = \a -> pointsMember pointscut (MkCut a False) || pointsMember pointscut (MkCut a True),
+        pointsFirstAfterUntil = \a limit -> do
         {
-            pointsMember = \b -> pointsMember psa (ba b),
-            pointsFirstAfterUntil = \b blimit -> fmap ab (pointsFirstAfterUntil psa (ba b) (ba blimit)),
-            pointsLastBeforeUntil = \b blimit -> fmap ab (pointsLastBeforeUntil psa (ba b) (ba blimit))
-        };
-    };
-    
-    instance (Ord a) => Set (PointSet a) where
-    {
-        empty = MkPointSet
+            MkCut r _ <- pointsFirstAfterUntil pointscut (MkCut a True) (MkCut limit True);
+            return r;
+        },
+        pointsLastBeforeUntil = \a limit -> do
         {
-            pointsMember = \_ -> False,
-            pointsFirstAfterUntil = \_ _ -> Nothing,
-            pointsLastBeforeUntil = \_ _ -> Nothing
-        };
+            MkCut r _ <- pointsLastBeforeUntil pointscut (MkCut a False) (MkCut limit False);
+            return r;
+        }
+    };
+-}
+
+    pointsSearch :: (Enum t,Ord t) => (a -> t) -> (t -> Maybe a) -> PointSet a;
+    pointsSearch back f = MkPointSet (\p q -> let
+    {
+        tp = back p;
+        tq = back q;
+    
+        forwards t | t > tq = [];
+        forwards t | Just a <- f t = a:(forwards (succ t));
+        forwards t = forwards (succ t);
         
-        member = pointsMember;
-     
-        union s1 s2 = MkPointSet
-        {
-            pointsMember = \a -> (pointsMember s1 a) || (pointsMember s2 a),
-            pointsFirstAfterUntil = \a limit -> case (pointsFirstAfterUntil s1 a limit,pointsFirstAfterUntil s2 a limit) of
-            {
-                (mr,Nothing) -> mr;
-                (Nothing,mr) -> mr;
-                (Just r1,Just r2) -> Just (if r1 < r2 then r1 else r2);
-            },
-            pointsLastBeforeUntil = \a limit -> case (pointsLastBeforeUntil s1 a limit,pointsLastBeforeUntil s2 a limit) of
-            {
-                (mr,Nothing) -> mr;
-                (Nothing,mr) -> mr;
-                (Just r1,Just r2) -> Just (if r1 > r2 then r1 else r2);
-            }
-        };
+        backwards t | t < tp = [];
+        backwards t | Just a <- f t = a:(backwards (pred t));
+        backwards t = backwards (pred t);
+     } in MkValueSet (forwards tp) (backwards tq));
 
-        intersect s1 s2 = MkPointSet
-        {
-            pointsMember = \a -> (pointsMember s1 a) && (pointsMember s2 a),
-            pointsFirstAfterUntil = \a' limit -> let
-            {
-                search a = do
-                {
-                    r1 <- pointsFirstAfterUntil s1 a limit;
-                    r2 <- pointsFirstAfterUntil s2 a limit;
-                    case compare r1 r2 of
-                    {
-                        EQ -> Just r1;
-                        LT -> if pointsMember s1 r2 then Just r2 else search r2;
-                        GT -> if pointsMember s2 r1 then Just r1 else search r1;
-                    };
-                };
-            } in search a',
-            pointsLastBeforeUntil = \a' limit -> let
-            {
-                search a = do
-                {
-                    r1 <- pointsLastBeforeUntil s1 a limit;
-                    r2 <- pointsLastBeforeUntil s2 a limit;
-                    case compare r1 r2 of
-                    {
-                        EQ -> Just r1;
-                        GT -> if pointsMember s1 r2 then Just r2 else search r2;
-                        LT -> if pointsMember s2 r1 then Just r1 else search r1;
-                    };
-                };
-            } in search a'
-        };
-        
-        diff s1 s2 = filterIntersect (not . (member s2)) s1;
-        symdiff s1 s2 = MkPointSet
-        {
-            pointsMember = \a -> (pointsMember s1 a) /= (pointsMember s2 a),
-            pointsFirstAfterUntil = \a limit -> case (pointsFirstAfterUntil s1 a limit,pointsFirstAfterUntil s2 a limit) of
-            {
-                (mr,Nothing) -> mr;
-                (Nothing,mr) -> mr;
-                (Just r1,Just r2) -> case compare r1 r2 of
-                {
-                    EQ -> Nothing;
-                    LT -> Just r1;
-                    GT -> Just r2;
-                };
-            },
-            pointsLastBeforeUntil = \a limit -> case (pointsLastBeforeUntil s1 a limit,pointsLastBeforeUntil s2 a limit) of
-            {
-                (mr,Nothing) -> mr;
-                (Nothing,mr) -> mr;
-                (Just r1,Just r2) -> case compare r1 r2 of
-                {
-                    EQ -> Nothing;
-                    GT -> Just r1;
-                    LT -> Just r2;
-                };
-            }
-        };
-    };
-    
-    instance (Ord a) => SetSingle (PointSet a) where
-    {
-        single t = MkPointSet
-        {
-            pointsMember = \a -> a == t,
-            pointsFirstAfterUntil = \a limit -> if a < t && limit >= t then Just t else Nothing,
-            pointsLastBeforeUntil = \a limit -> if a > t && limit <= t then Just t else Nothing
-        };
-    };
-
-    instance (Ord a) => SetSearch (PointSet a) where
-    {
-        firstAfterUntil = pointsFirstAfterUntil;
-        lastBeforeUntil = pointsLastBeforeUntil;
-    };
-    
-    instance (Ord a) => SetFilter (PointSet a) where
-    {
-        filterIntersect f ss = MkPointSet
-        {
-            pointsMember = \a -> (pointsMember ss a) && (f a),
-            pointsFirstAfterUntil = \a' limit -> let
-            {
-                search a = do
-                {
-                    r <- pointsFirstAfterUntil ss a limit;
-                    if f r
-                     then return r
-                     else search r;
-                };   
-            } in search a',
-            pointsLastBeforeUntil = \a' limit -> let
-            {
-                search a = do
-                {
-                    r <- pointsLastBeforeUntil ss a limit;
-                    if f r
-                     then return r
-                     else search r;
-                };   
-            } in search a'
-        };
-    };
-
-    pointsSearch :: (Ord a,Enum t,Ord t) => (a -> t) -> (t -> Maybe a) -> PointSet a;
-    pointsSearch back f = MkPointSet
+{-    pointsSearch back f = MkPointSet
     {
         pointsMember = \day -> (Just day) == f (back day),
         pointsFirstAfterUntil = \day limit -> let
@@ -257,4 +322,5 @@ module Data.SetSearch.PointSet where
             };
         } in findN yday
     };
+-}
 }

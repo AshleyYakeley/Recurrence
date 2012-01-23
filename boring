@@ -3,6 +3,7 @@
 test/.*\.out$
 test/.*\.o$
 test/.*\.hi$
-test/TestPhaseSet$
 test/TestSets$
+test/PointSetTest$
+test/PhaseTest$
 

@@ -1,19 +1,32 @@
 module Data.SetSearch.Cut where
 {
     import Data.SetSearch.Set;
+    import Data.SetSearch.DeltaSmaller;
 
     class (BasedOn s) => ShowBasedOn s where
     {
         showBasedOn :: (Base s -> String) -> s -> String;
     };
 
-    -- False means "just before", True means "just after".
-    data Cut a = MkCut a Bool;
-    
-    instance (Eq a) => Eq (Cut a) where
+    data Side = Before | After deriving Eq;
+
+    instance Show Side where
     {
-        (MkCut a1 x1) == (MkCut a2 x2) = (a1 == a2) && (x1 == x2);
+        show Before = "before"; 
+        show After = "after"; 
     };
+    
+    -- False means "just before", True means "just after".
+    data Cut a = MkCut a Side deriving Eq;
+    
+    justBefore :: a -> Cut a;
+    justBefore a = MkCut a Before;
+    
+    justAfter :: a -> Cut a;
+    justAfter a = MkCut a After;
+    
+    doubleCut :: a -> Cut (Cut a);
+    doubleCut a = MkCut (MkCut a After) Before;
     
     instance (Ord a) => Ord (Cut a) where
     {
@@ -22,16 +35,50 @@ module Data.SetSearch.Cut where
             ac = compare a1 a2;
         } in if ac == EQ then (case (x1, x2) of
         {
-            (False,True) -> LT;
-            (True,False) -> GT;
+            (Before,After) -> LT;
+            (After,Before) -> GT;
             _ -> EQ;
         }) else ac;
+    };
+
+    instance (DeltaSmaller a) => DeltaSmaller (Cut a) where
+    {
+        deltaSmaller (MkCut a After) = Just (MkCut a Before);
+        deltaSmaller (MkCut a Before) = fmap (\a' -> MkCut a' After) (deltaSmaller a);
     };
 
     instance BasedOn (Cut a) where
     {
         type Base (Cut a) = a;
     };
+    
+    instance RemapBase (Cut a) (Cut b) where
+    {
+        remapBase ab _ (MkCut a x) = MkCut (ab a) x;
+    };
+
+    instance (Show a) => Show (Cut a) where
+    {
+        show (MkCut a x) = (show x) ++ " " ++ (show a); 
+    };
+
+    class (Ord a,Ord b) => Interleaved a b where
+    {
+        greaterThan :: a -> b -> Bool;
+    };
+
+    instance (Ord a) => Interleaved a (Cut a) where
+    {
+        greaterThan a (MkCut a' Before) = a >= a';
+        greaterThan a (MkCut a' After) = a > a';
+    };
+
+    instance (Ord a) => Interleaved (Cut a) a where
+    {
+        greaterThan (MkCut a Before) a' = a > a';
+        greaterThan (MkCut a After) a' = a >= a';
+    };
+
 
     data Start a = Ongoing | Starts (Cut a);
 
@@ -58,8 +105,13 @@ module Data.SetSearch.Cut where
     instance ShowBasedOn (Start a) where
     {
         showBasedOn _ Ongoing = "ongoing";
-        showBasedOn show (Starts (MkCut a False)) = show a;
-        showBasedOn show (Starts (MkCut a True)) = "just after " ++ (show a); 
+        showBasedOn show (Starts (MkCut a Before)) = show a;
+        showBasedOn show (Starts (MkCut a After)) = "just after " ++ (show a); 
+    };
+
+    instance (Show a) => Show (Start a) where
+    {
+        show = showBasedOn show;
     };
     
     data End a = Whenever | Ends (Cut a);
@@ -87,8 +139,13 @@ module Data.SetSearch.Cut where
     instance ShowBasedOn (End a) where
     {
         showBasedOn _ Whenever = "whenever";
-        showBasedOn show (Ends (MkCut a False)) = show a;
-        showBasedOn show (Ends (MkCut a True)) = "including " ++ (show a);
+        showBasedOn show (Ends (MkCut a Before)) = show a;
+        showBasedOn show (Ends (MkCut a After)) = "including " ++ (show a);
+    };
+
+    instance (Show a) => Show (End a) where
+    {
+        show = showBasedOn show;
     };
 
     data Interval a = MkInterval (Start a) (End a);
@@ -104,5 +161,10 @@ module Data.SetSearch.Cut where
         {
             sc = compare s1 s2;
         } in if sc == EQ then compare e1 e2 else sc;
+    };
+
+    instance (Show a) => Show (Interval a) where
+    {
+        show (MkInterval start end) = (show start) ++ " until " ++ (show end);
     };
 }

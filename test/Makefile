@@ -3,7 +3,9 @@ GHCFLAGS = -package time-phase
 
 default: \
  TestSets.diff0 \
- TestPhaseSet.diff0 \
+ PointSetTest.diff0 \
+ PhaseTest.diff0 \
+ ItemTest.diff0 \
  test.phases.diff \
  duration.phases.diff \
  dateformats.phases.10y.diff \
@@ -13,18 +15,25 @@ default: \
  from-until.phases.diff \
  to.phases.diff \
  nth.phases.diff \
- easter.phases.diff
+ easter.phases.diff \
+ of.phases.diff
 	@echo "Success!"
 
 
 TestSets: TestSets.hs
 	$(GHC) $(GHCFLAGS) $^ -o $@
 
-TestPhaseSet: TestPhaseSet.hs
+PointSetTest: PointSetTest.hs
+	$(GHC) $(GHCFLAGS) $^ -o $@
+
+PhaseTest: PhaseTest.hs
+	$(GHC) $(GHCFLAGS) $^ -o $@
+
+ItemTest: ItemTest.hs
 	$(GHC) $(GHCFLAGS) $^ -o $@
 
 clean:
-	rm -rf *.out *.run *.o *.hi Makefile.bak TestPhaseSet TestSets
+	rm -rf *.out *.run *.o *.hi Makefile.bak TestSets PointSetTest PhaseTest ItemTest
 
 %.phases.out: %.phases
 	../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" $< > $@

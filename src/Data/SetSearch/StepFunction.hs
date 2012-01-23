@@ -4,18 +4,22 @@ module Data.SetSearch.StepFunction where
     import Data.SetSearch.Set;
     import Data.SetSearch.PointSet;
     import Data.SetSearch.DeltaSmaller;
+    import Data.SetSearch.Cut;
     
     data StepFunction a b = MkStepFunction
     {
-        sfValue :: a -> b,
-        sfPossibleChanges :: PointSet a
+        sfUpwardValue :: Cut a -> b,
+        sfPossibleChanges :: PointSet (Cut a)
     };
+    
+    sfValue :: StepFunction a b -> a -> b;
+    sfValue sf a = sfUpwardValue sf (justBefore a);
     
     instance Functor (StepFunction a) where
     {
         fmap bc sf = MkStepFunction
         {
-            sfValue = bc . (sfValue sf),
+            sfUpwardValue = bc . (sfUpwardValue sf),
             sfPossibleChanges = sfPossibleChanges sf
         };
     };
@@ -24,13 +28,13 @@ module Data.SetSearch.StepFunction where
     {
         pure b = MkStepFunction
         {
-            sfValue = pure b,
+            sfUpwardValue = pure b,
             sfPossibleChanges = empty
         };
         
         sfbc <*> sfb = MkStepFunction
         {
-            sfValue = (sfValue sfbc) <*> (sfValue sfb),
+            sfUpwardValue = (sfUpwardValue sfbc) <*> (sfUpwardValue sfb),
             sfPossibleChanges = union (sfPossibleChanges sfbc) (sfPossibleChanges sfb)
         };
     };
@@ -44,28 +48,31 @@ module Data.SetSearch.StepFunction where
     {
         remapBase ab ba sfa = MkStepFunction
         {
-            sfValue = remapBase ab ba (sfValue sfa),
-            sfPossibleChanges = remapBase ab ba (sfPossibleChanges sfa)
+            sfUpwardValue = remapBase (remapBase ab ba) (remapBase ba ab) (sfUpwardValue sfa),
+            sfPossibleChanges = remapBase (remapBase ab ba) (remapBase ba ab) (sfPossibleChanges sfa)
         };
     };
     
-    sfChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> PointSet a;
-    sfChanges sf = filterIntersect (\a -> case deltaSmaller a of
+    sfChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> PointSet (Cut a);
+    sfChanges sf = filterIntersect (\cuta -> case deltaSmaller cuta of
     {
-        Just a' -> case pointsLastBeforeUntil (sfPossibleChanges sf) a a' of
+        Just cuta' -> case lastBeforeUntil (sfPossibleChanges sf) cuta cuta' of
         {
-            Just a'' -> sfValue sf a'' /= sfValue sf a;
-            Nothing -> sfValue sf a' /= sfValue sf a;
+            Just cuta'' -> sfUpwardValue sf cuta'' /= sfUpwardValue sf cuta;
+            Nothing -> sfUpwardValue sf cuta' /= sfUpwardValue sf cuta;
         };
         Nothing -> False;
     }) (sfPossibleChanges sf);
-    
+{-    
     sfMatchPossibleChanges :: (Ord a) => StepFunction a b -> (b -> Bool) -> PointSet a;
     sfMatchPossibleChanges sf match = filterIntersect (match . (sfValue sf)) (sfPossibleChanges sf);
-    
-    sfMatchChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> (b -> Bool) -> PointSet a;
-    sfMatchChanges sf match = filterIntersect (match . (sfValue sf)) (sfChanges sf);
+-}    
+    sfMatchUpwardChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> (b -> Bool) -> PointSet (Cut a);
+    sfMatchUpwardChanges sf match = filterIntersect (match . (sfUpwardValue sf)) (sfChanges sf);
 
+
+{-
+    -- | The number of subject since delimiter
     sfCountSince :: (Ord a,?first :: a) => PointSet a -> PointSet a -> StepFunction a (Maybe Int);
     sfCountSince delimiter subject = MkStepFunction
     {
@@ -86,4 +93,5 @@ module Data.SetSearch.StepFunction where
         },
         sfPossibleChanges = union delimiter subject
     };
+-}
 }

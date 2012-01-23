@@ -99,23 +99,13 @@ module Data.TimePhase.Value where
         fromValue (PhaseValue x) = return x;
         fromValue _ = reportError "expected phase";
     };
-    
-    instance ToValues (PhaseSet T) where
-    {
-        toValues = defaultToValues;
-    };
-    
-    instance FromValues (PhaseSet T) where
+  
+    instance FromValues (Intervals T) where
     {
         fromValues = defaultFromValues;
     };
     
-    instance ToValue (PhaseSet T) where
-    {
-        toValue = toValue . toPhase;
-    };
-    
-    instance FromValue (PhaseSet T) where
+    instance FromValue (Intervals T) where
     {
         fromValue (PhaseValue x) = return (phaseSet x);
         fromValue _ = reportError "expected phase";
@@ -128,7 +118,7 @@ module Data.TimePhase.Value where
     
     instance ToValue (Intervals T) where
     {
-        toValue = toValue . toPhaseSet;
+        toValue = toValue . toPhase;
     };
     
     instance ToValues (PointSet T) where
@@ -138,7 +128,7 @@ module Data.TimePhase.Value where
     
     instance ToValue (PointSet T) where
     {
-        toValue = toValue . toPhaseSet;
+        toValue = toValue . toPhase;
     };
     
     instance ToValues (PointSet Day) where
