@@ -356,6 +356,5 @@ module Main where
                 (phaseStartOf (toPhase (daysToTimeIntervals (dayOfMonth 31))))
                 (justAfter td1st) (justAfter td300)
             ));
---        check "31st next" (Just (jbInterval td31st td1st)) (cutNextInterval (toPhase (daysToTimeIntervals (dayOfMonth 31))) (justAfter td1st) (justAfter td300));
     };
 }
