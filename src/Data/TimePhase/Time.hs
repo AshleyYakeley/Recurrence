@@ -36,11 +36,11 @@ module Data.TimePhase.Time where
     onAfter :: TimePhase -> Intervals T;
     onAfter phase = let {?first = firstTime} in
         intervalsAfter (phaseStartOf phase);
-{-
+
     nthIn :: Int -> TimePhase -> TimePhase -> TimePhase;
     nthIn n psubject pdelimiter = let {?first = firstTime} in phaseIntersect psubject
         (fmap ((==) (Just n)) (sfCountSince (phaseStartOf pdelimiter) (phaseStartOf psubject)));
--}
+
     ofPhase :: TimePhase -> TimePhase -> TimePhase;
     ofPhase picker phase = let 
     {

@@ -5,6 +5,7 @@ module Data.SetSearch.StepFunction where
     import Data.SetSearch.PointSet;
     import Data.SetSearch.DeltaSmaller;
     import Data.SetSearch.Cut;
+    import Data.SetSearch.ValueSet;
     
     data StepFunction a b = MkStepFunction
     {
@@ -71,6 +72,17 @@ module Data.SetSearch.StepFunction where
     sfMatchUpwardChanges sf match = filterIntersect (match . (sfUpwardValue sf)) (sfChanges sf);
 
 
+    -- | The number of subjects since (just before) delimiter
+    sfCountSince :: (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet (Cut a) -> StepFunction a (Maybe Int);
+    sfCountSince delimiter subject = MkStepFunction
+    {
+        sfUpwardValue = \cut -> do
+        {
+            dcut <- let {?first = justBefore ?first} in psPrevious delimiter (justAfter cut);
+            return (length (vsForwards (psValues subject dcut cut)));
+        },
+        sfPossibleChanges = union delimiter subject
+    };
 {-
     -- | The number of subject since delimiter
     sfCountSince :: (Ord a,?first :: a) => PointSet a -> PointSet a -> StepFunction a (Maybe Int);
