@@ -28,7 +28,7 @@ module Main where
     t2 :: T;
     t2 = dayMidnight (ModifiedJulianDay 2);
 
-    pointInterval p = MkInterval (Starts (MkCut p False)) (Ends (MkCut p True));
+    pointInterval p = MkInterval (Starts (justBefore p)) (Ends (justAfter p));
 
     expected :: T -> Event T;
     expected t = MkEvent "midnight" (pointInterval t);
@@ -36,6 +36,6 @@ module Main where
     main :: IO ();
     main = do
     {
-        check "events" [expected t0,expected t1,expected t2] (allEvents midnights (MkCut t0 False) (MkCut t2 True));
+        check "events" [expected t0,expected t1,expected t2] (allEvents midnights (justBefore t0) (justAfter t2));
     };
 }

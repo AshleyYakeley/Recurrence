@@ -60,6 +60,7 @@ module Data.SetSearch.Set where
         intersect :: s -> s -> s;
         diff :: s -> s -> s;
         symdiff :: s -> s -> s;
+        symdiff s1 s2 = diff (union s1 s2) (intersect s1 s2);
     };
     
     unionAll :: (Set s) => [s] -> s;

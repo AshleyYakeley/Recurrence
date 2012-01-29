@@ -1,29 +1,69 @@
 module Data.SetSearch.ValueSet where
 {
+    import Data.Maybe;
     import Data.List;
     import Data.SetSearch.Set;
     
+    data Marked a = MkMarked Bool a;
+    
+    retMarked :: a -> Marked a;
+    retMarked = MkMarked True;
+    
+    getMarked :: Marked a -> Maybe a;
+    getMarked (MkMarked True a) = Just a;
+    getMarked _ = Nothing;
+    
+    mapMarked :: (Bool -> Bool) -> Marked a -> Marked a;
+    mapMarked calc (MkMarked t a) = MkMarked (calc t) a;
+    
+    filtMarked :: (a -> Bool) -> Marked a -> Marked a;
+    filtMarked f (MkMarked t a) = MkMarked (t && f a) a;
+    
+    instance Functor Marked where
+    {
+        fmap ab (MkMarked t a) = MkMarked t (ab a);
+    };
+    
+    -- Only the ones marked True count. The others are to keep pace in long lists.
     data ValueSet a = MkValueSet
     {
-        vsForwards :: [a],
-        vsBackwards :: [a]
+        vsPossibleForwards :: [Marked a],
+        vsPossibleBackwards :: [Marked a]
     };
 
+    mkValueSet :: [a] -> [a] -> ValueSet a;
+    mkValueSet ff bb = MkValueSet (fmap retMarked ff) (fmap retMarked bb);
+
+    vsForwards :: ValueSet a -> [a];
+    vsForwards vs = mapMaybe getMarked (vsPossibleForwards vs);
+
+    vsBackwards :: ValueSet a -> [a];
+    vsBackwards vs = mapMaybe getMarked (vsPossibleBackwards vs);
+
     vsNonEmpty :: ValueSet a -> Bool;
-    vsNonEmpty (MkValueSet (_:_) _) = True;
-    vsNonEmpty _ = False;
+    vsNonEmpty vs = case vsForwards vs of
+    {
+        _:_ -> True;
+        _ -> False;
+    };
 
     vsFirst :: ValueSet a -> Maybe a;
-    vsFirst (MkValueSet (a:_) _) = Just a;
-    vsFirst _ = Nothing;
-
+    vsFirst vs = case vsForwards vs of
+    {
+        a:_ -> Just a;
+        _ -> Nothing;
+    };
+    
     vsLast :: ValueSet a -> Maybe a;
-    vsLast (MkValueSet _ (a:_)) = Just a;
-    vsLast _ = Nothing;
+    vsLast vs = case vsBackwards vs of
+    {
+        a:_ -> Just a;
+        _ -> Nothing;
+    };
 
     instance Functor ValueSet where
     {
-        fmap ab (MkValueSet l1 l2) = MkValueSet (fmap ab l1) (fmap ab l2);
+        fmap ab (MkValueSet l1 l2) = MkValueSet (fmap (fmap ab) l1) (fmap (fmap ab) l2);
     };
     
     instance BasedOn (ValueSet a) where
@@ -36,95 +76,47 @@ module Data.SetSearch.ValueSet where
         remapBase ab _ x = fmap ab x;
     };
     
+    vsCombine :: (Ord a) => (Bool -> Bool -> Bool) -> ValueSet a -> ValueSet a -> ValueSet a;
+    vsCombine calc (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
+    {
+        cf [] l = fmap (mapMarked (\t -> calc False t)) l;
+        cf l [] = fmap (mapMarked (\t -> calc t False)) l;
+        cf aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
+        {
+            LT -> (MkMarked (calc ta False) a):(cf as bb);
+            GT -> (MkMarked (calc False tb) b):(cf aa bs);
+            EQ -> (MkMarked (calc ta tb) a):(cf as bs);
+        };
+        cb [] l = l;
+        cb l [] = l;
+        cb aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
+        {
+            GT -> (MkMarked (calc ta False) a):(cb as bb);
+            LT -> (MkMarked (calc False tb) b):(cb aa bs);
+            EQ -> (MkMarked (calc ta tb) a):(cb as bs);
+        };
+    }; 
+    
     instance (Ord a) => Set (ValueSet a) where
     {
         empty = MkValueSet [] [];
-        member (MkValueSet list _) a = elem a list;
-        union (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
-        {
-            cf [] l = l;
-            cf l [] = l;
-            cf aa@(a:as) bb@(b:bs) = case compare a b of
-            {
-                LT -> a:(cf as bb);
-                GT -> b:(cf aa bs);
-                EQ -> a:(cf as bs);
-            };
-            cb [] l = l;
-            cb l [] = l;
-            cb aa@(a:as) bb@(b:bs) = case compare a b of
-            {
-                GT -> a:(cb as bb);
-                LT -> b:(cb aa bs);
-                EQ -> a:(cb as bs);
-            };
-        };
-        intersect (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
-        {
-            cf [] _ = [];
-            cf _ [] = [];
-            cf aa@(a:as) bb@(b:bs) = case compare a b of
-            {
-                LT -> cf as bb;
-                GT -> cf aa bs;
-                EQ -> a:(cf as bs);
-            };
-            cb [] _ = [];
-            cb _ [] = [];
-            cb aa@(a:as) bb@(b:bs) = case compare a b of
-            {
-                GT -> cb as bb;
-                LT -> cb aa bs;
-                EQ -> a:(cb as bs);
-            };
-        };
-        diff (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
-        {
-            cf [] _ = [];
-            cf l [] = l;
-            cf aa@(a:as) bb@(b:bs) = case compare a b of
-            {
-                LT -> a:(cf as bb);
-                GT -> cf aa bs;
-                EQ -> cf as bs;
-            };
-            cb [] _ = [];
-            cb l [] = l;
-            cb aa@(a:as) bb@(b:bs) = case compare a b of
-            {
-                GT -> a:(cb as bb);
-                LT -> cb aa bs;
-                EQ -> cb as bs;
-            };
-        };
-        symdiff (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
-        {
-            cf [] l = l;
-            cf l [] = l;
-            cf aa@(a:as) bb@(b:bs) = case compare a b of
-            {
-                LT -> a:(cf as bb);
-                GT -> b:(cf aa bs);
-                EQ -> cf as bs;
-            };
-            cb [] l = l;
-            cb l [] = l;
-            cb aa@(a:as) bb@(b:bs) = case compare a b of
-            {
-                GT -> a:(cb as bb);
-                LT -> b:(cb aa bs);
-                EQ -> cb as bs;
-            };
-        };
+        member vs a = elem a (vsForwards vs);
+        union = vsCombine (||);
+        intersect = vsCombine (&&);
+        diff = vsCombine (\a b -> a && not b);
+        symdiff = vsCombine (/=);
     };
     
     instance (Ord a) => SetSingle (ValueSet a) where
     {
-        single a = MkValueSet [a] [a];
+        single a = MkValueSet [retMarked a] [retMarked a];
     };
     
     instance (Ord a) => SetFilter (ValueSet a) where
     {
-        filterIntersect filt (MkValueSet f b) = MkValueSet (filter filt f) (filter filt b);
+        filterIntersect filt (MkValueSet f b) = let
+        {
+            filtList = fmap (filtMarked filt);
+        } in MkValueSet (filtList f) (filtList b);
     };
 }

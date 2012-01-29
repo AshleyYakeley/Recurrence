@@ -219,6 +219,6 @@ module Data.TimePhase.Item where
     printItems :: T -> T -> [Item T] -> IO ();
     printItems t limit items = let {?context = t} in printEvents events where
     {
-        events = mergeByListPresorted compareEvents (fmap (\phase -> allEvents phase (justBefore t) (justBefore limit)) items);
+        events = mergeByListPresorted compareEvents (fmap (\phase -> allEvents phase (justBefore t) (justAfter limit)) items);
     };
 }

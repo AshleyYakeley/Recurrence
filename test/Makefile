@@ -1,4 +1,5 @@
 GHC = ghc
+#GHCFLAGS = -package time-phase -prof -auto-all -rtsopts
 GHCFLAGS = -package time-phase
 
 default: \
@@ -33,7 +34,7 @@ ItemTest: ItemTest.hs
 	$(GHC) $(GHCFLAGS) $^ -o $@
 
 clean:
-	rm -rf *.out *.run *.o *.hi Makefile.bak TestSets PointSetTest PhaseTest ItemTest
+	rm -rf *.out *.run *.o *.hi *.p_o *.p_hi *.prof Makefile.bak TestSets PointSetTest PhaseTest ItemTest
 
 %.phases.out: %.phases
 	../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" $< > $@

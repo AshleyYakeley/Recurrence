@@ -279,20 +279,20 @@ module Data.SetSearch.PointSet where
     };
 -}
 
-    pointsSearch :: (Enum t,Ord t) => (a -> t) -> (t -> Maybe a) -> PointSet a;
+    pointsSearch :: (Enum t,Ord t,Ord a) => (a -> t) -> (t -> Maybe a) -> PointSet a;
     pointsSearch back f = MkPointSet (\p q -> let
     {
         tp = back p;
         tq = back q;
     
         forwards t | t > tq = [];
-        forwards t | Just a <- f t = a:(forwards (succ t));
+        forwards t | Just a <- f t = if a > q then [] else if a < p then (forwards (succ t)) else a:(forwards (succ t));
         forwards t = forwards (succ t);
         
         backwards t | t < tp = [];
-        backwards t | Just a <- f t = a:(backwards (pred t));
+        backwards t | Just a <- f t = if a < p then [] else if a > q then (backwards (pred t)) else a:(backwards (pred t));
         backwards t = backwards (pred t);
-     } in MkValueSet (forwards tp) (backwards tq));
+     } in mkValueSet (forwards tp) (backwards tq));
 
 {-    pointsSearch back f = MkPointSet
     {

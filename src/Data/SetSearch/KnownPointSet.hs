@@ -35,7 +35,7 @@ module Data.SetSearch.KnownPointSet where
         backwards a | a < p = [];
         backwards a | kpsMember kps a = a:(backwardsRest a);
         backwards a = backwardsRest a;
-    } in MkValueSet (forwards p) (backwards q));
+    } in mkValueSet (forwards p) (backwards q));
     
     instance BasedOn (KnownPointSet a) where
     {
