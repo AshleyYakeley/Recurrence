@@ -55,27 +55,32 @@ module Main where
     cb2 :: Cut T;
     cb2 = justBefore t2;
 
+    tdmid :: Integer -> T;
+    tdmid i = LocalTime (ModifiedJulianDay i) midnight;
+
     td30th :: T;
-    td30th = LocalTime (ModifiedJulianDay 43) (TimeOfDay 0 0 0);
+    td30th = tdmid 43;
 
     td31st :: T;
-    td31st = LocalTime (ModifiedJulianDay 44) (TimeOfDay 0 0 0);
+    td31st = tdmid 44;
 
     td1st :: T;
-    td1st = LocalTime (ModifiedJulianDay 45) (TimeOfDay 0 0 0);
+    td1st = tdmid 45;
 
     td2nd :: T;
-    td2nd = LocalTime (ModifiedJulianDay 46) (TimeOfDay 0 0 0);
+    td2nd = tdmid 46;
 
     td31stNext :: T;
-    td31stNext = LocalTime (ModifiedJulianDay 75) (TimeOfDay 0 0 0);
+    td31stNext = tdmid 75;
 
     td300 :: T;
-    td300 = LocalTime (ModifiedJulianDay 300) (TimeOfDay 0 0 0);
+    td300 = tdmid 300;
 
     pointInterval p = MkInterval (Starts (justBefore p)) (Ends (justAfter p));
 
     jbInterval t0 t1 = MkInterval (Starts (justBefore t0)) (Ends (justBefore t1));
+
+    oneDayInterval i = jbInterval (tdmid i) (tdmid (i + 1));
 
     twoDays :: Intervals T;
     twoDays = let {?first = firstTime} in intervalsFromTo (single cb0) (single cb2);
@@ -356,5 +361,229 @@ module Main where
                 (phaseStartOf (toPhase (daysToTimeIntervals (dayOfMonth 31))))
                 (justAfter td1st) (justAfter td300)
             ));
+            
+
+        check "of 9" (Just (justBefore td2nd))
+            (vsFirst (psValues 
+                (pointsCutFirstAfterPoints beforeDay psMidnight)
+                (justAfter td1st) (justAfter td300)
+            ));
+        check "of 8" (Just (justBefore td1st))
+            (vsFirst (psValues 
+                (pointsCutLastBeforePoints beforeDay psMidnight)
+                (justBefore td1st) (justAfter td300)
+            ));
+{-
+        check "of 7" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (toPhase 
+                    (intervalsFromToInclusive (pointsCutLastBeforePoints beforeDay psMidnight) (pointsCutFirstAfterPoints beforeDay psMidnight)  )
+                )
+                (justBefore td1st) (justAfter td300)
+            );
+        check "of 6" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (toPhase (intervalsOf psMidnight beforeDay))
+                (justBefore td1st) (justAfter td300)
+            );
+-}
+        check "of 5" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                dayPhase
+                (justBefore td1st) (justAfter td300)
+            );
+        check "of 4" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (phaseIntersect dayPhase (intervalsOf psMidnight beforeDay))
+                (justBefore td1st) (justAfter td300)
+            );
+        check "of 3" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (phaseIntersect dayPhase (intervalsOf psMidnight (phaseStartOf dayPhase)))
+                (justBefore td1st) (justAfter td300)
+            );
+        check "of 2" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (phaseOf dayPhase psMidnight)
+                (justBefore td1st) (justAfter td300)
+            );
+        check "of 1" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (phaseOf dayPhase (pointsFromCut (phaseStartOf midnights)))
+                (justBefore td1st) (justAfter td300)
+            );
+        check "of" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (ofPhase midnights dayPhase)
+                (justBefore td1st) (justAfter td300)
+            );
+
+        check "of t 16" (Just (justBefore (tdmid 160)))
+            (let
+            {
+                psday = maybeDayEachYear (\year -> fromGregorianValid year 4 26);
+                ints = intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday));
+                ps = pointsFromCut (intervalsStartOf ints);
+                ints2 = intervalsOf ps beforeDay;
+                pso = filterIntersect (\cut -> case cut of
+                {
+                    MkCut a _ -> member ints2 a;
+                }) (phaseStartOf dayPhase)
+            } in vsFirst (psValues pso (justBefore td1st) (justAfter td300))
+            );
+{-
+        check "of t 15" (Just (justBefore (tdmid 160)))
+            (let
+            {
+                psday = maybeDayEachYear (\year -> fromGregorianValid year 4 26);
+                ints = intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday));
+                ps = pointsFromCut (intervalsStartOf ints);
+                ints2 = intervalsOf ps beforeDay;
+                phi = phaseIntersect dayPhase ints2;
+                pso = phaseStartOf phi;
+            } in vsFirst (psValues pso (justBefore td1st) (justAfter td300))
+            );
+-}
+{-
+        check "of t 14" (Just (justBefore (tdmid 160)))
+            (let
+            {
+                psday = maybeDayEachYear (\year -> fromGregorianValid year 4 26);
+                ints = intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday));
+                ps = pointsFromCut (intervalsStartOf ints);
+            } in vsFirst (psValues (phaseStartOf (phaseIntersect dayPhase (intervalsOf ps beforeDay)))
+                (justBefore td1st) (justAfter td300))
+            );
+-}
+{-
+        check "of t 13" (Just (justBefore (tdmid 160)))
+            (let
+            {
+                psday = maybeDayEachYear (\year -> fromGregorianValid year 4 26);
+                ints = intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday));
+                ps = pointsFromCut (intervalsStartOf ints);
+            } in vsFirst (psValues (phaseChanges (phaseIntersect dayPhase (intervalsOf ps beforeDay)))
+                (justBefore td1st) (justAfter td300))
+            );
+-}
+{-
+        check "of t 12" (Just (justBefore (tdmid 160)))
+            (let
+            {
+                psday = maybeDayEachYear (\year -> fromGregorianValid year 4 26);
+                ints = intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday));
+                ps = pointsFromCut (intervalsStartOf ints);
+            } in firstAfterUntil (phaseChanges (phaseIntersect dayPhase (intervalsOf ps beforeDay)))
+                (justBefore td1st) (justAfter td300)
+            );
+-}
+{-
+        check "of t 11" (Just (oneDayInterval 160))
+            (let
+            {
+                psday = maybeDayEachYear (\year -> fromGregorianValid year 4 26);
+                ints = intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday));
+                ps = pointsFromCut (intervalsStartOf ints);
+            } in cutNextInterval
+                (phaseIntersect dayPhase (intervalsOf ps beforeDay))
+                (justBefore td1st) (justAfter td300)
+            );
+-}
+        check "of t 10" (Just (oneDayInterval 160))
+            (let
+            {
+                psday = maybeDayEachYear (\year -> fromGregorianValid year 4 26);
+                ints = intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday));
+                ps = pointsFromCut (intervalsStartOf ints);
+            } in cutNextInterval
+                (toPhase (intervalsOf ps (phaseStartOf dayPhase)))
+                (justBefore td1st) (justAfter td300)
+            );
+{-
+        check "of t 9" (Just (oneDayInterval 160))
+            (let
+            {
+                psday = maybeDayEachYear (\year -> fromGregorianValid year 4 26);
+                ints = intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday));
+                ps = pointsFromCut (intervalsStartOf ints);
+            } in cutNextInterval
+                (phaseIntersect dayPhase (intervalsOf ps (phaseStartOf dayPhase)))
+                (justBefore td1st) (justAfter td300)
+            );
+-}
+        check "of t 8" (Just (oneDayInterval 160))
+            (let
+            {
+                psday = maybeDayEachYear (\year -> fromGregorianValid year 4 26);
+            } in cutNextInterval
+                (phaseOf dayPhase (pointsFromCut (beforeDays psday)))
+                (justBefore td1st) (justAfter td300)
+            );
+{-
+        check "of t 7" (Just (jbInterval td1st td2nd))
+            (let
+            {
+                psday = maybeDayEachYear (\year -> fromGregorianValid year 4 26);
+            } in cutNextInterval
+                (phaseOf dayPhase (pointsFromCut (intervalsStartOf 
+                    (intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday)))
+                )))
+                (justBefore td1st) (justAfter td300)
+            );
+-}
+        check "of t 6" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (phaseOf dayPhase (pointsFromCut (phaseStartOf dayPhase)))
+                (justBefore td1st) (justAfter td300)
+            );
+{-
+        check "of t 5" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (phaseOf dayPhase (pointsFromCut (phaseStartOf (toPhase 
+                    (daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year 4 26)))
+                )))  )
+                (justBefore td1st) (justAfter td300)
+            );
+-}
+        check "of t 4" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                dayPhase
+                (justBefore td1st) (justAfter td300)
+            );
+        check "of t 3" (Just (oneDayInterval 160))
+            (cutNextInterval
+                (toPhase 
+                    (daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year 4 26)))
+                )
+                (justBefore td1st) (justAfter td300)
+            );
+{-
+        check "of t 2" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (ofPhase (toPhase 
+                    (daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year 4 26)))
+                ) dayPhase)
+                (justBefore td1st) (justAfter td300)
+            );
+-}
+        check "of t 1" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (ofPhase (toPhase 
+                    (pointsToIntervals (timeOfDay (TimeOfDay 7 0 0)))
+                ) dayPhase)
+                (justBefore td1st) (justAfter td300)
+            );
+{-
+        check "of t" (Just (jbInterval td1st td2nd))
+            (cutNextInterval
+                (ofPhase (toPhase 
+                    (intersect 
+                        (daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year 4 26))) 
+                        (pointsToIntervals (timeOfDay (TimeOfDay 7 0 0)))
+                    )
+                ) dayPhase)
+                (justBefore td1st) (justAfter td300)
+            );
+-}
     };
 }

@@ -26,10 +26,35 @@ module Data.SetSearch.Intervals where
     };
     
     intervalsIntersect :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
-    intervalsIntersect p i = mixedIntersect i p;
+    intervalsIntersect ps ints = 
+    {-
+    MkPointSet (\p q -> let
+    {
+        forwards x | x > q = []
+        forwards x = let
+        {
+            t1 = vsFirst (psValuesCut (justAfter x) q);
+        } in if member ints t1 then t1:(forwards t1) else
+            psValuesCut (sfPossibleChanges ints) (doubleCut t1) (doubleCut q)
+        
+        
+    } in MkValueSet (forwards p) (backwards q));
+    -}
+    mixedIntersect ints ps;
+    
+    
+{-
+    union a (filterIntersect never daily)
+    intersect never daily
+-}    
+    intervalsIntersectCut :: (Ord a) => Intervals a -> PointSet (Cut a) -> PointSet (Cut a);
+    intervalsIntersectCut ints ps = filterIntersect (\cut -> case cut of
+    {
+        MkCut a _ -> member ints a;
+    }) ps;
     
     intervalsDiff :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
-    intervalsDiff p i = filterIntersect (not . (member i)) p;
+    intervalsDiff p i = intervalsIntersect p (invert i);
     
     intervalsFromTo :: (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet (Cut a) -> Intervals a;
     intervalsFromTo ps1 ps2 = MkStepFunction
@@ -37,6 +62,9 @@ module Data.SetSearch.Intervals where
         sfUpwardValue = let {?first = justBefore ?first} in psOnAndOff ps1 ps2,
         sfPossibleChanges = union ps1 ps2
     };
+    
+    intervalsFromToInclusive :: (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet (Cut a) -> Intervals a;
+    intervalsFromToInclusive ps1 ps2 = invert (intervalsFromTo ps2 ps1);
     
     intervalsStartOf :: (DeltaSmaller a) => Intervals a -> PointSet (Cut a);
     intervalsStartOf i = sfMatchUpwardChanges i id;
@@ -53,7 +81,7 @@ module Data.SetSearch.Intervals where
 
     intervalsOf :: (Ord a,?first :: Cut a,?last :: Cut a) => PointSet a -> PointSet (Cut a) -> Intervals a;
     intervalsOf subject delimiter =
-     intervalsFromTo (pointsCutLastBeforePoints delimiter subject) (pointsCutFirstAfterPoints delimiter subject);
+     intervalsFromToInclusive (pointsCutLastBeforePoints delimiter subject) (pointsCutFirstAfterPoints delimiter subject);
 {-    
     MkStepFunction
     {

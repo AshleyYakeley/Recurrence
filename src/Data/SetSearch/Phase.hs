@@ -86,10 +86,7 @@ module Data.SetSearch.Phase where
     phaseIntersect phase ints = MkPhase
     {
         phaseSet = intersect (phaseSet phase) ints,
-        phaseStartOf = filterIntersect (\cut -> case cut of
-        {
-            MkCut a _ -> member ints a;
-        }) (phaseStartOf phase)
+        phaseStartOf = intervalsIntersectCut ints (phaseStartOf phase)
     };
 
     phaseOf :: (Ord a,?first :: Cut a,?last :: Cut a) => Phase a -> PointSet a -> Phase a;
