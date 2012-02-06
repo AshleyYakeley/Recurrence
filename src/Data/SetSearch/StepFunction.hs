@@ -54,6 +54,13 @@ module Data.SetSearch.StepFunction where
         };
     };
     
+    sfCutBefore :: (Ord a) => StepFunction a b -> StepFunction (Cut a) b;
+    sfCutBefore sf = MkStepFunction
+    {
+        sfUpwardValue = \(MkCut ca _) -> sfUpwardValue sf ca,
+        sfPossibleChanges = pointsCutBefore (sfPossibleChanges sf)
+    };
+    
     sfChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> PointSet (Cut a);
     sfChanges sf = filterIntersect (\cuta -> case deltaSmaller cuta of
     {

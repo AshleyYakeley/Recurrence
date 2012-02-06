@@ -76,35 +76,30 @@ module Data.SetSearch.ValueSet where
         remapBase ab _ x = fmap ab x;
     };
     
-    vsCombine :: (Ord a) => (Bool -> Bool -> Bool) -> ValueSet a -> ValueSet a -> ValueSet a;
-    vsCombine calc (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
-    {
-        cf [] l = fmap (mapMarked (\t -> calc False t)) l;
-        cf l [] = fmap (mapMarked (\t -> calc t False)) l;
-        cf aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
-        {
-            LT -> (MkMarked (calc ta False) a):(cf as bb);
-            GT -> (MkMarked (calc False tb) b):(cf aa bs);
-            EQ -> (MkMarked (calc ta tb) a):(cf as bs);
-        };
-        cb [] l = fmap (mapMarked (\t -> calc False t)) l;
-        cb l [] = fmap (mapMarked (\t -> calc t False)) l;
-        cb aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
-        {
-            GT -> (MkMarked (calc ta False) a):(cb as bb);
-            LT -> (MkMarked (calc False tb) b):(cb aa bs);
-            EQ -> (MkMarked (calc ta tb) a):(cb as bs);
-        };
-    };
-    
     instance (Ord a) => Set (ValueSet a) where
     {
         empty = MkValueSet [] [];
         member vs a = elem a (vsForwards vs);
-        union = vsCombine (||);
-        intersect = vsCombine (&&);
-        {-
-        intersect = (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
+        union (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
+        {
+            cf [] l = l;
+            cf l [] = l;
+            cf aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
+            {
+                LT -> (MkMarked ta a):(cf as bb);
+                GT -> (MkMarked tb b):(cf aa bs);
+                EQ -> (MkMarked (ta || tb) a):(cf as bs);
+            };
+            cb [] l = l;
+            cb l [] = l;
+            cb aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
+            {
+                GT -> (MkMarked ta a):(cb as bb);
+                LT -> (MkMarked tb b):(cb aa bs);
+                EQ -> (MkMarked (ta || tb) a):(cb as bs);
+            };
+        };
+        intersect (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
         {
             cf [] l = [];
             cf l [] = [];
@@ -114,18 +109,53 @@ module Data.SetSearch.ValueSet where
                 GT -> cf aa bs;
                 EQ -> (MkMarked (ta && tb) a):(cf as bs);
             };
+            cb [] l = [];
+            cb l [] = [];
+            cb aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
+            {
+                GT -> cb as bb;
+                LT -> cb aa bs;
+                EQ -> (MkMarked (ta && tb) a):(cb as bs);
+            };
+        };
+        diff (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
+        {
+            cf [] l = [];
+            cf l [] = l;
+            cf aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
+            {
+                LT -> (MkMarked ta a):(cf as bb);
+                GT -> cf aa bs;
+                EQ -> (MkMarked (ta && not tb) a):(cf as bs);
+            };
+            cb [] l = [];
+            cb l [] = l;
+            cb aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
+            {
+                GT -> (MkMarked ta a):(cb as bb);
+                LT -> cb aa bs;
+                EQ -> (MkMarked (ta && not tb) a):(cb as bs);
+            };
+        };
+        symdiff (MkValueSet f1 b1) (MkValueSet f2 b2) = MkValueSet (cf f1 f2) (cb b1 b2) where
+        {
+            cf [] l = l;
+            cf l [] = l;
+            cf aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
+            {
+                LT -> (MkMarked ta a):(cf as bb);
+                GT -> (MkMarked tb b):(cf aa bs);
+                EQ -> (MkMarked (ta /= tb) a):(cf as bs);
+            };
             cb [] l = l;
             cb l [] = l;
             cb aa@((MkMarked ta a):as) bb@((MkMarked tb b):bs) = case compare a b of
             {
-                GT -> (MkMarked (calc ta False) a):(cb as bb);
-                LT -> (MkMarked (calc False tb) b):(cb aa bs);
-                EQ -> (MkMarked (calc ta tb) a):(cb as bs);
+                GT -> (MkMarked ta a):(cb as bb);
+                LT -> (MkMarked tb b):(cb aa bs);
+                EQ -> (MkMarked (ta /= tb) a):(cb as bs);
             };
         };
-        -}
-        diff = vsCombine (\a b -> a && not b);
-        symdiff = vsCombine (/=);
     };
     
     instance (Ord a) => SetSingle (ValueSet a) where

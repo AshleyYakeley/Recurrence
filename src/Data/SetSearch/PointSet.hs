@@ -60,10 +60,16 @@ module Data.SetSearch.PointSet where
     psNonEmpty :: (Ord a) => PointSet a -> Cut a -> Cut a -> Bool;
     psNonEmpty ps p q = vsNonEmpty (psValuesCut ps p q);
 
+    psFirstCut :: (Ord a) => PointSet a -> Cut a -> Cut a -> Maybe a;
+    psFirstCut ps pc qc = vsFirst (psValuesCut ps pc qc);
+
+    psLastCut :: (Ord a) => PointSet a -> Cut a -> Cut a -> Maybe a;
+    psLastCut ps pc qc = vsLast (psValuesCut ps pc qc);
+
     instance (Ord a) => SetSearch (PointSet a) where
     {
-        firstAfterUntil ps exnear incfar = vsFirst (psValuesCut ps (justAfter exnear) (justAfter incfar));
-        lastBeforeUntil ps exnear incfar = vsLast (psValuesCut ps (justBefore incfar) (justBefore exnear));
+        firstAfterUntil ps exnear incfar = psFirstCut ps (justAfter exnear) (justAfter incfar);
+        lastBeforeUntil ps exnear incfar = psLastCut ps (justBefore incfar) (justBefore exnear);
     };
 
 {-
@@ -172,10 +178,7 @@ module Data.SetSearch.PointSet where
     else pointsNextAfter ps1 ps2 a;
 -}
     psPrevious :: (Ord a,?first :: Cut a) => PointSet a -> Cut a -> Maybe a;
-    psPrevious ps x = vsLast (psValuesCut ps ?first x);
-
-    psFirstCut :: (Ord a) => PointSet a -> Cut a -> Cut a -> Maybe a;
-    psFirstCut ps p q = vsFirst (psValuesCut ps p q);
+    psPrevious ps x = psLastCut ps ?first x;
 
     psNext :: (Ord a,?last :: Cut a) => PointSet a -> Cut a -> Maybe a;
     psNext ps x = psFirstCut ps x ?last;

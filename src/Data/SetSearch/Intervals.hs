@@ -2,6 +2,7 @@ module Data.SetSearch.Intervals where
 {
     import Control.Applicative hiding (empty);
     import Data.SetSearch.Set;
+    import Data.SetSearch.ValueSet;
     import Data.SetSearch.PointSet;
     import Data.SetSearch.DeltaSmaller;
     import Data.SetSearch.StepFunction;
@@ -26,33 +27,42 @@ module Data.SetSearch.Intervals where
     };
     
     intervalsIntersect :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
-    intervalsIntersect ps ints = 
-    {-
-    MkPointSet (\p q -> let
+    intervalsIntersect ps ints = MkPointSet (\p q -> let
     {
-        forwards x | x > q = []
-        forwards x = let
+        pc = justBefore p;
+        qc = justAfter q;    
+
+        forwards xc | xc >= qc = [];
+        forwards xc = case psFirstCut ps xc qc of
         {
-            t1 = vsFirst (psValuesCut (justAfter x) q);
-        } in if member ints t1 then t1:(forwards t1) else
-            psValuesCut (sfPossibleChanges ints) (doubleCut t1) (doubleCut q)
+            Just t1 | member ints t1 -> (retMarked t1):(forwards (justAfter t1));
+            Just t1 | Just n <- psFirstCut (sfPossibleChanges ints) (doubleCut t1) (doubleCut q) -> forwards n;
+            _ -> [];
+        };
         
-        
-    } in MkValueSet (forwards p) (backwards q));
-    -}
-    mixedIntersect ints ps;
+        backwards xc | xc <= qc = [];
+        backwards xc = case psLastCut ps pc xc of
+        {
+            Just t1 | member ints t1 -> (retMarked t1):(backwards (justBefore t1));
+            Just t1 | Just n <- psLastCut (sfPossibleChanges ints) (doubleCut p) (doubleCut t1) -> backwards n;
+            _ -> [];
+        };
+    } in MkValueSet (forwards pc) (backwards qc));
+
+--    mixedIntersect ints ps;
     
     
 {-
     union a (filterIntersect never daily)
     intersect never daily
 -}    
+{-
     intervalsIntersectCut :: (Ord a) => Intervals a -> PointSet (Cut a) -> PointSet (Cut a);
     intervalsIntersectCut ints ps = filterIntersect (\cut -> case cut of
     {
         MkCut a _ -> member ints a;
     }) ps;
-    
+-}    
     intervalsDiff :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
     intervalsDiff p i = intervalsIntersect p (invert i);
     

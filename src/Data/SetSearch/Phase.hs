@@ -86,7 +86,7 @@ module Data.SetSearch.Phase where
     phaseIntersect phase ints = MkPhase
     {
         phaseSet = intersect (phaseSet phase) ints,
-        phaseStartOf = intervalsIntersectCut ints (phaseStartOf phase)
+        phaseStartOf = intervalsIntersect (phaseStartOf phase) (sfCutBefore ints)
     };
 
     phaseOf :: (Ord a,?first :: Cut a,?last :: Cut a) => Phase a -> PointSet a -> Phase a;
