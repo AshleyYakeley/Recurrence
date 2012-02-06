@@ -48,21 +48,7 @@ module Data.SetSearch.Intervals where
             _ -> [];
         };
     } in MkValueSet (forwards pc) (backwards qc));
-
---    mixedIntersect ints ps;
-    
-    
-{-
-    union a (filterIntersect never daily)
-    intersect never daily
--}    
-{-
-    intervalsIntersectCut :: (Ord a) => Intervals a -> PointSet (Cut a) -> PointSet (Cut a);
-    intervalsIntersectCut ints ps = filterIntersect (\cut -> case cut of
-    {
-        MkCut a _ -> member ints a;
-    }) ps;
--}    
+  
     intervalsDiff :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
     intervalsDiff p i = intervalsIntersect p (invert i);
     
@@ -92,21 +78,7 @@ module Data.SetSearch.Intervals where
     intervalsOf :: (Ord a,?first :: Cut a,?last :: Cut a) => PointSet a -> PointSet (Cut a) -> Intervals a;
     intervalsOf subject delimiter =
      intervalsFromToInclusive (pointsCutLastBeforePoints delimiter subject) (pointsCutFirstAfterPoints delimiter subject);
-{-    
-    MkStepFunction
-    {
-        sfUpwardValue = \a -> case pointsPrevious delimiter subject a of
-        {
-            Just (Right _) -> True;
-            _ -> case pointsNext delimiter subject a of
-            {
-                Just (Right _) -> True;
-                _ -> False;
-            };           
-        },
-        sfPossibleChanges = delimiter
-    };
--}
+
     intervalsOneAfter :: (Ord a) => Cut a -> Intervals a;
     intervalsOneAfter start = MkStepFunction
     {

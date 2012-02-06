@@ -6,7 +6,6 @@ module Data.SetSearch.PointSet where
     import Data.SetSearch.Cut;
     import Data.SetSearch.ValueSet;
 
-
     newtype PointSet a = MkPointSet
     {
         psValues :: a -> a -> ValueSet a
@@ -73,111 +72,6 @@ module Data.SetSearch.PointSet where
         lastBeforeUntil ps exnear incfar = psLastCut ps (justBefore incfar) (justBefore exnear);
     };
 
-{-
-    {-
-    To be correct, this must have only a finite number of members in any interval.
-    -}
-    data PointSet a = MkPointSet
-    {
-        pointsMember :: a -> Bool,
-        -- strictly after, up to including limit
-        pointsFirstAfterUntil :: a -> a -> Maybe a,
-        -- strictly before, up to including limit
-        pointsLastBeforeUntil :: a -> a -> Maybe a
-    };
--}
-
-{-
-    pointsLastRangeAfterBefore :: PointSet a -> a -> a -> Maybe a;
-    pointsLastRangeAfterBefore ps a limit = if pointsMember ps a then Just a else pointsLastBeforeUntil ps a limit;
-    
-    pointsLastRangeAfterAfter :: (Eq a) => PointSet a -> a -> a -> Maybe a;
-    pointsLastRangeAfterAfter ps a limit = if pointsMember ps a then Just a else do
-    {
-        r <- pointsLastBeforeUntil ps a limit;
-        if r == limit then Nothing else Just r;
-    };
-
-    pointsLastBefore :: (Ord a,?first :: a) => PointSet a -> a -> Maybe a;
-    pointsLastBefore ps a = pointsLastBeforeUntil ps a ?first;
-
-    pointsFirstAfter :: (Ord a,?last :: a) => PointSet a -> a -> Maybe a;
-    pointsFirstAfter ps a = pointsFirstAfterUntil ps a ?last;
--}
-{-
-    -- | which one was most recent. ps2 takes priority over ps1
-    pointsPreviousBefore :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
-    pointsPreviousBefore ps1 ps2 a = 
-    
-    
-    case pointsLastBefore ps1 a of
-    {
-        Just r1 -> case pointsFirstAfterUntil ps2 r1 a of -- to switch off, it must be strictly after the on 
-        {
-            Just r2 -> Just (Right r2);
-            Nothing -> Just (Left r1);
-        };
-        Nothing -> Nothing; -- never switched on
-    };
-
-    -- | which one was most recent. ps2 takes priority over ps1
-    pointsPreviousFrom :: (Ord a,?first :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
-    pointsPreviousFrom ps1 ps2 a = 
-    if member ps2 a then Just (Right a)
-    else if member ps1 a then Just (Left a)
-    else pointsPreviousBefore ps1 ps2 a;
-
-    -- | which one comes next. ps1 takes priority over ps2
-    pointsNextAfter :: (Ord a,?last :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
-    pointsNextAfter ps1 ps2 a = case pointsFirstAfter ps2 a of
-    {
-        Just r2 -> case pointsLastBeforeUntil ps1 r2 a of
-        {
-            Just r1 -> Just (Left r1);
-            Nothing -> Just (Right r2);
-        };
-        Nothing -> Nothing;
-    };
--}
-
-{-
-    pointsFirstInCuts :: (Ord a) => PointSet a -> Cut a -> Cut a -> Maybe a;
-    pointsFirstInCuts ps near far = vsFirst (psValuesCut ps near far);
-
-    pointsLastInCuts :: (Ord a) => PointSet a -> Cut a -> Cut a -> Maybe a;
-    pointsLastInCuts ps near far = vsLast (psValuesCut ps near far);
-
-    -- | which one comes next
-    pointsWhichFirstInCuts :: (Ord a) => PointSet (Cut a) -> PointSet a -> Cut a -> Cut a -> Maybe (Either (Cut a) a);
-    pointsWhichFirstInCuts ps1 ps2 near far = do
-    {
-        r2 <- pointsFirstInCuts ps2 near far;
-        case pointsFirstInCuts ps1 (doubleCut r2) (justBefore near) of
-        {
-            Just r1 -> Just (Left r1);
-            Nothing -> Just (Right r2);
-        };
-    };
-
-    -- | which one comes last
-    pointsWhichLastInCuts :: (Ord a) => PointSet (Cut a) -> PointSet a -> Cut a -> Cut a -> Maybe (Either (Cut a) a);
-    pointsWhichLastInCuts ps1 ps2 near far = do
-    {
-        r2 <- pointsLastInCuts ps2 near far;
-        case pointsLastInCuts ps1 (doubleCut r2) (justAfter near) of
-        {
-            Just r1 -> Just (Left r1);
-            Nothing -> Just (Right r2);
-        };
-    };
-
-    -- | which one comes next. ps1 takes priority over ps2
-    pointsNextFrom :: (Ord a,?last :: a) => PointSet a -> PointSet a -> a -> Maybe (Either a a);
-    pointsNextFrom ps1 ps2 a = 
-    if member ps1 a then Just (Left a)
-    else if member ps2 a then Just (Right a)
-    else pointsNextAfter ps1 ps2 a;
--}
     psPrevious :: (Ord a,?first :: Cut a) => PointSet a -> Cut a -> Maybe a;
     psPrevious ps x = psLastCut ps ?first x;
 
@@ -223,8 +117,6 @@ module Data.SetSearch.PointSet where
         Nothing -> False;
     }) subject;
 
-
-
     -- | the last subject point before delimiter
     pointsCutLastBeforePoints :: forall a. (Ord a,?last :: Cut a) => PointSet (Cut a) -> PointSet a -> PointSet (Cut a);
     pointsCutLastBeforePoints subject delimiter = MkPointSet (\p q ->
@@ -245,15 +137,7 @@ module Data.SetSearch.PointSet where
             Just lastone -> mappend most (single lastone);
         }
     );
-{-    
-    pointsLastAndIncluding :: (Ord a,?last :: Cut a) => PointSet a -> PointSet a -> PointSet a;
-    pointsLastAndIncluding last including = 
-     union including (filterIntersect (\x -> case psNext including (justBefore x) of
-    {
-        Just d -> not (psNonEmpty last (justAfter x) (justAfter d));
-        Nothing -> False;
-    }) last);
--}    
+  
     -- | True if psOn switched on more recently than psOff
     ;
     psOnAndOff :: (Ord a,?first :: Cut a) => PointSet a -> PointSet a -> a -> Bool;
@@ -263,15 +147,6 @@ module Data.SetSearch.PointSet where
         Just ontime -> not (psNonEmpty psOff (justBefore ontime) (justAfter a));
     };
 
-{- 
-    pointsOnAfter :: (Ord a,?first :: a) => PointSet a -> a -> Bool;
-    pointsOnAfter psOn a = (member psOn a) ||
-    case pointsLastBefore psOn a of
-    {
-        Just _ -> True;
-        Nothing -> False;
-    };
--}
     pointsCutBefore :: (Ord a) => PointSet a -> PointSet (Cut a);
     pointsCutBefore (MkPointSet vf) = MkPointSet (\(MkCut p xp) (MkCut q _) -> fmap justBefore ((case xp of
     {
@@ -292,22 +167,6 @@ module Data.SetSearch.PointSet where
     pointsFromCut :: (Ord a) => PointSet (Cut a) -> PointSet a;
     pointsFromCut (MkPointSet vf) = MkPointSet (\p q -> fmap (\(MkCut x _) -> x) (vf (justBefore p) (justAfter q)));
 
-{-    pointsFromCut pointscut = MkPointSet
-    {
-        pointsMember = \a -> pointsMember pointscut (MkCut a False) || pointsMember pointscut (MkCut a True),
-        pointsFirstAfterUntil = \a limit -> do
-        {
-            MkCut r _ <- pointsFirstAfterUntil pointscut (MkCut a True) (MkCut limit True);
-            return r;
-        },
-        pointsLastBeforeUntil = \a limit -> do
-        {
-            MkCut r _ <- pointsLastBeforeUntil pointscut (MkCut a False) (MkCut limit False);
-            return r;
-        }
-    };
--}
-
     pointsSearch :: (Enum t,Ord t,Ord a) => (a -> t) -> (t -> Maybe a) -> PointSet a;
     pointsSearch back f = MkPointSet (\p q -> let
     {
@@ -322,34 +181,4 @@ module Data.SetSearch.PointSet where
         backwards t | Just a <- f t = if a < p then [] else if a > q then (backwards (pred t)) else a:(backwards (pred t));
         backwards t = backwards (pred t);
      } in mkValueSet (forwards tp) (backwards tq));
-
-{-    pointsSearch back f = MkPointSet
-    {
-        pointsMember = \day -> (Just day) == f (back day),
-        pointsFirstAfterUntil = \day limit -> let
-        {
-            yday = back day;
-            ylimit = back limit;
-            findN yday | yday > ylimit = Nothing;
-            findN yday = case f yday of
-            {
-                Just found | found > limit -> Nothing;
-                Just found | found > day -> Just found;
-                _ -> findN (succ yday);
-            };
-        } in findN yday,
-        pointsLastBeforeUntil = \day limit -> let
-        {
-            yday = back day;
-            ylimit = back limit;
-            findN yday | yday < ylimit = Nothing;
-            findN yday = case f yday of
-            {
-                Just found | found < limit -> Nothing;
-                Just found | found < day -> Just found;
-                _ -> findN (pred yday);
-            };
-        } in findN yday
-    };
--}
 }

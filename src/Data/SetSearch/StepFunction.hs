@@ -71,13 +71,9 @@ module Data.SetSearch.StepFunction where
         };
         Nothing -> False;
     }) (sfPossibleChanges sf);
-{-    
-    sfMatchPossibleChanges :: (Ord a) => StepFunction a b -> (b -> Bool) -> PointSet a;
-    sfMatchPossibleChanges sf match = filterIntersect (match . (sfValue sf)) (sfPossibleChanges sf);
--}    
+   
     sfMatchUpwardChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> (b -> Bool) -> PointSet (Cut a);
     sfMatchUpwardChanges sf match = filterIntersect (match . (sfUpwardValue sf)) (sfChanges sf);
-
 
     -- | The number of subjects since (just before) delimiter
     sfCountSince :: (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet (Cut a) -> StepFunction a (Maybe Int);
@@ -90,27 +86,4 @@ module Data.SetSearch.StepFunction where
         },
         sfPossibleChanges = union delimiter subject
     };
-{-
-    -- | The number of subject since delimiter
-    sfCountSince :: (Ord a,?first :: a) => PointSet a -> PointSet a -> StepFunction a (Maybe Int);
-    sfCountSince delimiter subject = MkStepFunction
-    {
-        sfValue = \a -> do
-        {
-            lastdel <- if member delimiter a
-             then return a
-             else pointsLastBefore delimiter a;
-            let
-            {
-                count t = case pointsLastBeforeUntil subject t lastdel of
-                {
-                    Nothing -> 0;
-                    Just t' -> 1 + (count t');
-                };
-            };
-            return ((count a) + (if member subject a then 1 else 0));
-        },
-        sfPossibleChanges = union delimiter subject
-    };
--}
 }
