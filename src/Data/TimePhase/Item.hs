@@ -40,7 +40,7 @@ module Data.TimePhase.Item where
         return exps;
     };
     
-    interpretItem :: SExpression Atom -> M (Item T);
+    interpretItem :: (?now :: T) => SExpression Atom -> M (Item T);
     interpretItem (ListSExpression [AtomSExpression (IdentifierAtom name),defn]) = do
     {
         value <- evalWithDict defn;
@@ -49,7 +49,7 @@ module Data.TimePhase.Item where
     };
     interpretItem _ = reportError "S-expression not in correct format";
 
-    readItems :: ReadPrec (M [Item T]);
+    readItems :: (?now :: T) => ReadPrec (M [Item T]);
     readItems = fmap (mapM interpretItem) readPhasesFile;
     
 

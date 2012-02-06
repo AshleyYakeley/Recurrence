@@ -8,6 +8,6 @@ module Data.TimePhase(M,T,Value,runRead,readValue,evalWithDict,readExpression,It
     import Data.TimePhase.Eval;
     import Data.TimePhase.Item;
     
-    readValue :: ReadPrec (M Value);
+    readValue :: (?now :: T) => ReadPrec (M Value);
     readValue = fmap evalWithDict readExpression;
 }

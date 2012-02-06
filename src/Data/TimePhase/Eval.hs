@@ -54,7 +54,7 @@ module Data.TimePhase.Eval(evalWithDict) where
         };
     };
     
-    evalWithDict :: SExpression Atom -> M Value;
+    evalWithDict :: (?now :: T) => SExpression Atom -> M Value;
     evalWithDict = let {?dict = dict} in eval;
 }
 

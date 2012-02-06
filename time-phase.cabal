@@ -40,21 +40,6 @@ library
         Data.TimePhase.Eval
         Data.TimePhase.Item
 
-executable time-phase
-    hs-source-dirs: src
-    default-language: Haskell2010
-    default-extensions:
-        KindSignatures
-        TypeFamilies
-        ScopedTypeVariables
-        FlexibleInstances
-        ImplicitParams
-        TypeSynonymInstances
-        MultiParamTypeClasses
-        FlexibleContexts
-    build-depends: base, time >= 1.4, time-phase == 0.1
-    main-is: TimePhase.hs
-
 executable phase-calendar
     hs-source-dirs: src
     default-language: Haskell2010

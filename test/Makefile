@@ -17,7 +17,8 @@ default: \
  to.phases.diff \
  nth.phases.diff \
  easter.phases.diff \
- of.phases.diff
+ of.phases.diff \
+ now.phases.cur.out
 	@echo "Success!"
 
 
@@ -35,6 +36,9 @@ ItemTest: ItemTest.hs
 
 clean:
 	rm -rf *.out *.run *.o *.hi *.p_o *.p_hi *.prof Makefile.bak TestSets PointSetTest PhaseTest ItemTest
+
+%.phases.cur.out: %.phases
+	time ../dist/build/phase-calendar/phase-calendar $< > $@
 
 %.phases.out: %.phases
 	time ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" $< > $@

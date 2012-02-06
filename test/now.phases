@@ -1,0 +1,2 @@
+("now" now)
+("today" (of now day))

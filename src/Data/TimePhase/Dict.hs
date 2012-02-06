@@ -1,4 +1,4 @@
-module Data.TimePhase.Dict (dict) where
+module Data.TimePhase.Dict (dict,T) where
 {
     import Data.Fixed;
     import Data.Time;
@@ -23,7 +23,7 @@ module Data.TimePhase.Dict (dict) where
         f (s:ss) = phaseUnion (f ss) s;
     };
 
-    dict :: String -> Maybe Value;
+    dict :: (?now :: T) => String -> Maybe Value;
 
     dict "never" = Just (toValue (phaseEmpty :: TimePhase));
     dict "always" = Just (toValue (phaseFull :: TimePhase));
@@ -41,6 +41,8 @@ module Data.TimePhase.Dict (dict) where
     dict "all" = Just (toValue (id :: Intervals T -> Intervals T));
     
     dict "delay" = Just (toValue (delay :: NominalDiffTime -> TimePhase -> TimePhase));
+
+    dict "now" = Just (toValue (single ?now :: PointSet T));
 
     dict "midnight" = Just (toValue (timeOfDay midnight));
     dict "midday" = Just (toValue (timeOfDay midday));

@@ -11,7 +11,7 @@ module Main where
     import Data.TimePhase.Value;
     import Data.SetSearch;
     
-    doHandle :: Handle -> IO [Item T];
+    doHandle :: (?now :: T) => Handle -> IO [Item T];
     doHandle h = do
     {
         text <- hGetContents h;
@@ -56,6 +56,7 @@ module Main where
     main :: IO ();
     main = do
     {
+        now <- getNow;
         args <- getArgs;
         ((mtime,mdays),filepaths) <- matchArgs args;
         start <- case mtime of
@@ -68,7 +69,7 @@ module Main where
             Just days -> addAffine ((fromIntegral days) * nominalDayLength) start;
             Nothing -> addAffine ((fromIntegral 60) * nominalDayLength) start;
         });
-        itemlists <- mapM (\filepath -> withFile filepath ReadMode (doHandle)) filepaths;
+        itemlists <- let {?now = now} in mapM (\filepath -> withFile filepath ReadMode (doHandle)) filepaths;
         printItems start end (concat itemlists);
     };
 }
