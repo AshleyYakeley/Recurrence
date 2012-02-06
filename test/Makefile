@@ -52,7 +52,7 @@ clean:
 	diff -u /dev/null $^
 
 %.out: %
-	./$< > $@
+	time ./$< > $@
 
 %.run: %
 	./$<

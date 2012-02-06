@@ -1,5 +1,6 @@
 module Data.SetSearch.PointSet where
 {
+    import Data.Monoid;
     import Control.Monad;
     import Data.SetSearch.Set;
     import Data.SetSearch.Cut;
@@ -193,14 +194,25 @@ module Data.SetSearch.PointSet where
     }) subject;
 
     -- | the first subject point after delimiter
-    pointsCutFirstAfterPoints :: (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet a -> PointSet (Cut a);
-    pointsCutFirstAfterPoints subject delimiter = filterIntersect (\x -> case psPrevious delimiter x of
-    {
-        -- the previous delimiter
-        Just d -> not (psNonEmpty subject (doubleCut d) (justBefore x)); -- if no subject
-        Nothing -> False;
-    }) subject;
-
+    pointsCutFirstAfterPoints :: forall a. (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet a -> PointSet (Cut a);
+    pointsCutFirstAfterPoints subject delimiter = MkPointSet (\p q ->
+        let
+        {
+            delims = psValuesCut delimiter p q :: ValueSet a;
+            most = vsMapMaybe (\t -> psFirstCut subject (doubleCut t) (justAfter q)) delims :: ValueSet (Cut a);
+            mfirstone = do
+            {
+                firstsubj <- psFirstCut subject (justBefore p) (justAfter q);
+                d <- psPrevious delimiter firstsubj;
+                if psNonEmpty subject (doubleCut d) (justBefore firstsubj)
+                then Nothing else Just firstsubj;
+            } :: Maybe (Cut a);
+        } in case mfirstone of
+        {
+            Nothing -> most;
+            Just firstone -> mappend (single firstone) most;
+        }
+    );
 
     -- | the last subject point before delimiter
     pointsLastOnOrBeforePoints :: (Ord a,?last :: a) => PointSet a -> PointSet a -> PointSet a;
@@ -211,14 +223,28 @@ module Data.SetSearch.PointSet where
         Nothing -> False;
     }) subject;
 
+
+
     -- | the last subject point before delimiter
-    pointsCutLastBeforePoints :: (Ord a,?last :: Cut a) => PointSet (Cut a) -> PointSet a -> PointSet (Cut a);
-    pointsCutLastBeforePoints subject delimiter = filterIntersect (\x -> case psNext delimiter x of
-    {
-        -- the next delimiter
-        Just d -> not (psNonEmpty subject (justAfter x) (doubleCut d)); -- if no subject
-        Nothing -> False;
-    }) subject;
+    pointsCutLastBeforePoints :: forall a. (Ord a,?last :: Cut a) => PointSet (Cut a) -> PointSet a -> PointSet (Cut a);
+    pointsCutLastBeforePoints subject delimiter = MkPointSet (\p q ->
+        let
+        {
+            delims = psValuesCut delimiter p q :: ValueSet a;
+            most = vsMapMaybe (\t -> psLastCut subject (justBefore p) (doubleCut t)) delims :: ValueSet (Cut a);
+            mlastone = do
+            {
+                lastsubj <- psLastCut subject (justBefore p) (justAfter q);
+                d <- psNext delimiter lastsubj;
+                if psNonEmpty subject (justAfter lastsubj) (doubleCut d)
+                then Nothing else Just lastsubj;
+            } :: Maybe (Cut a);
+        } in case mlastone of
+        {
+            Nothing -> most;
+            Just lastone -> mappend most (single lastone);
+        }
+    );
 {-    
     pointsLastAndIncluding :: (Ord a,?last :: Cut a) => PointSet a -> PointSet a -> PointSet a;
     pointsLastAndIncluding last including = 

@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances, ScopedTypeVariables, ImplicitParams #-}
 module Main where
 {
+    import Data.Monoid;
     import Data.SetSearch;
     import Data.Time;
     import Data.TimePhase;
@@ -75,6 +76,9 @@ module Main where
 
     td300 :: T;
     td300 = tdmid 300;
+
+    td30000 :: T;
+    td30000 = tdmid 30000;
 
     pointInterval p = MkInterval (Starts (justBefore p)) (Ends (justAfter p));
 
@@ -418,25 +422,7 @@ module Main where
                 (justBefore td1st) (justAfter td300)
             );
 
-
-        check "of t 2" (Just (oneDayInterval 160))
-            (cutNextInterval
-                (ofPhase (toPhase 
-                    (daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year 4 26)))
-                ) dayPhase)
-                (justBefore td1st) (justAfter td300)
-            );
-
-        check "of t 1" (Just (jbInterval td1st td2nd))
-            (cutNextInterval
-                (ofPhase (toPhase 
-                    (pointsToIntervals (timeOfDay (TimeOfDay 7 0 0)))
-                ) dayPhase)
-                (justBefore td1st) (justAfter td300)
-            );
-
-
-        check "of t" (Just (jbInterval td1st td2nd))
+        check "of t" (Just (oneDayInterval 160))
             (cutNextInterval
                 (ofPhase (toPhase 
                     (intersect 

@@ -2,6 +2,7 @@ module Data.SetSearch.ValueSet where
 {
     import Data.Maybe;
     import Data.List;
+    import Data.Monoid;
     import Data.SetSearch.Set;
     
     data Marked a = MkMarked Bool a;
@@ -64,6 +65,22 @@ module Data.SetSearch.ValueSet where
     instance Functor ValueSet where
     {
         fmap ab (MkValueSet l1 l2) = MkValueSet (fmap (fmap ab) l1) (fmap (fmap ab) l2);
+    };
+    
+    vsMapMaybe :: (a -> Maybe b) -> ValueSet a -> ValueSet b;
+    vsMapMaybe f (MkValueSet l1 l2) = MkValueSet (mapMaybe f' l1) (mapMaybe f' l2) where
+    {
+        f' (MkMarked x a) = do
+        {
+            b <- f a;
+            return (MkMarked x b);
+        };
+    };
+    
+    instance Monoid (ValueSet a) where
+    {
+        mempty = MkValueSet [] [];
+        mappend (MkValueSet a1 b1) (MkValueSet a2 b2) = MkValueSet (mappend a1 a2) (mappend b2 b1);
     };
     
     instance BasedOn (ValueSet a) where
