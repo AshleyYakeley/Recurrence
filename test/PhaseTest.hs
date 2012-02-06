@@ -156,7 +156,6 @@ module Main where
                 (justAfter td1st) (justAfter td300)
             ));
             
-
         check "of" (Just (jbInterval td1st td2nd))
             (cutNextInterval
                 (ofPhase midnights dayPhase)
@@ -174,6 +173,16 @@ module Main where
                 (justBefore td1st) (justAfter td300)
             );
 
+        check "of this year" (Just (oneDayInterval 160))
+            (cutNextInterval
+                (ofPhase (toPhase 
+                    (intersect
+                        (daysToTimeIntervals (single (fromGregorian 1859 4 26)))
+                        (pointsToIntervals (timeOfDay (TimeOfDay 7 0 0)))
+                    )
+                ) dayPhase)
+                (justBefore td1st) (justAfter td300)
+            );
 
         check "of single" (Just (oneDayInterval 160))
             (cutNextInterval
