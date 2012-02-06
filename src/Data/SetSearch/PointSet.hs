@@ -140,11 +140,16 @@ module Data.SetSearch.PointSet where
   
     -- | True if psOn switched on more recently than psOff
     ;
-    psOnAndOff :: (Ord a,?first :: Cut a) => PointSet a -> PointSet a -> a -> Bool;
-    psOnAndOff psOn psOff a = case psPrevious psOn (justAfter a) of
+    psOnAndOff :: (Ord a,?first :: Cut a) => Bool -> PointSet a -> PointSet a -> Cut a -> Bool;
+    psOnAndOff False psOn psOff cut = case psPrevious psOn cut of
     {
-        Nothing -> False;
-        Just ontime -> not (psNonEmpty psOff (justBefore ontime) (justAfter a));
+        Nothing -> False; -- never switched on
+        Just ontime -> not (psNonEmpty psOff (justBefore ontime) cut);
+    };
+    psOnAndOff True psOn psOff cut = case psPrevious psOff cut of
+    {
+        Nothing -> True; -- never switched off
+        Just offtime -> psNonEmpty psOn (justAfter offtime) cut; -- an on after the off
     };
 
     pointsCutBefore :: (Ord a) => PointSet a -> PointSet (Cut a);

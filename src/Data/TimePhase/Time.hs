@@ -27,11 +27,11 @@ module Data.TimePhase.Time where
 
     fromTo :: TimePhase -> TimePhase -> Intervals T;
     fromTo pa pb = let {?first=firstTime;?last=lastTime} in
-        intervalsFromTo (phaseStartOf pa) (phaseEndOf pb);
+        intervalsFromTo False (phaseStartOf pa) (phaseEndOf pb);
 
     fromUntil :: TimePhase -> TimePhase -> Intervals T;
     fromUntil pa pb = let {?first=firstTime;?last=lastTime} in
-        intervalsFromTo (phaseStartOf pa) (phaseStartOf pb);
+        intervalsFromTo False (phaseStartOf pa) (phaseStartOf pb);
 
     onAfter :: TimePhase -> Intervals T;
     onAfter phase = let {?first = firstTime} in
@@ -139,7 +139,7 @@ module Data.TimePhase.Time where
 
     daysToTimeIntervals :: PointSet Day -> Intervals T;
     daysToTimeIntervals psday = let {?first=firstTime} in
-     intervalsFromTo (beforeDays psday) (beforeDays (delay 1 psday));
+     intervalsFromTo False (beforeDays psday) (beforeDays (delay 1 psday));
 {-    
     MkStepFunction
     {

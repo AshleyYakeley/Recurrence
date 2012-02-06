@@ -62,7 +62,7 @@ module Main where
         start <- case mtime of
         {
             Just time -> return time;
-            Nothing -> getNow;
+            Nothing -> return now;
         };
         end <- return (case mdays of
         {

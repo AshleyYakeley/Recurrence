@@ -29,9 +29,9 @@ module Main where
         check "forward" (Just t1) (firstAfterUntil midnights t0 t1);
         check "backward" (Just t1) (lastBeforeUntil midnights t2 t1);
         
-        check "onAndOff1" False (psOnAndOff (single t0) (single t0) t0);
-        check "onAndOff2" True (psOnAndOff (single t0) (single t2) t0);
-        check "onAndOff3" True (psOnAndOff (single t0) (single t2) t1);
-        check "onAndOff4" False (psOnAndOff (single t0) (single t2) t2);
+        check "onAndOff1" False (psOnAndOff False (single t0) (single t0) (justAfter t0));
+        check "onAndOff2" True (psOnAndOff False (single t0) (single t2) (justAfter t0));
+        check "onAndOff3" True (psOnAndOff False (single t0) (single t2) (justAfter t1));
+        check "onAndOff4" False (psOnAndOff False (single t0) (single t2) (justAfter t2));
     };
 }

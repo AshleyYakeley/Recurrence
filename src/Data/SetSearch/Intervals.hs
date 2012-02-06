@@ -52,15 +52,15 @@ module Data.SetSearch.Intervals where
     intervalsDiff :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
     intervalsDiff p i = intervalsIntersect p (invert i);
     
-    intervalsFromTo :: (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet (Cut a) -> Intervals a;
-    intervalsFromTo ps1 ps2 = MkStepFunction
+    intervalsFromTo :: (Ord a,?first :: Cut a) => Bool -> PointSet (Cut a) -> PointSet (Cut a) -> Intervals a;
+    intervalsFromTo ambient ps1 ps2 = MkStepFunction
     {
-        sfUpwardValue = let {?first = justBefore ?first} in psOnAndOff ps1 ps2,
+        sfUpwardValue = let {?first = justBefore ?first} in \a -> psOnAndOff ambient ps1 ps2 (justAfter a),
         sfPossibleChanges = union ps1 ps2
     };
     
-    intervalsFromToInclusive :: (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet (Cut a) -> Intervals a;
-    intervalsFromToInclusive ps1 ps2 = invert (intervalsFromTo ps2 ps1);
+    intervalsFromToInclusive :: (Ord a,?first :: Cut a) => Bool -> PointSet (Cut a) -> PointSet (Cut a) -> Intervals a;
+    intervalsFromToInclusive ambient ps1 ps2 = invert (intervalsFromTo (not ambient) ps2 ps1);
     
     intervalsStartOf :: (DeltaSmaller a) => Intervals a -> PointSet (Cut a);
     intervalsStartOf i = sfMatchUpwardChanges i id;
@@ -77,7 +77,7 @@ module Data.SetSearch.Intervals where
 
     intervalsOf :: (Ord a,?first :: Cut a,?last :: Cut a) => PointSet a -> PointSet (Cut a) -> Intervals a;
     intervalsOf subject delimiter =
-     intervalsFromToInclusive (pointsCutLastBeforePoints delimiter subject) (pointsCutFirstAfterPoints delimiter subject);
+     intervalsFromToInclusive False (pointsCutLastBeforePoints delimiter subject) (pointsCutFirstAfterPoints delimiter subject);
 
     intervalsOneAfter :: (Ord a) => Cut a -> Intervals a;
     intervalsOneAfter start = MkStepFunction

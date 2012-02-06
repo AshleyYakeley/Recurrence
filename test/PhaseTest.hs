@@ -87,7 +87,7 @@ module Main where
     oneDayInterval i = jbInterval (tdmid i) (tdmid (i + 1));
 
     twoDays :: Intervals T;
-    twoDays = let {?first = firstTime} in intervalsFromTo (single cb0) (single cb2);
+    twoDays = let {?first = firstTime} in intervalsFromTo False (single cb0) (single cb2);
 
     psAM1 = timeOfDay (TimeOfDay 1 0 0);
 
@@ -110,25 +110,8 @@ module Main where
         check "is startof" True (member (startOf midnights) t0);
         check "is phaseStartOf" True (member (phaseStartOf midnights) cb0);
 
-        check "firstHour 00:00 13" False (vsNonEmpty (psValues psAM1 t0 t0));
-        check "firstHour 00:00 12" False (vsNonEmpty (psValuesCut psAM1 (justBefore t0) (justAfter t0)));
-        check "firstHour 00:00 11" False (psNonEmpty psAM1 (justBefore t0) (justAfter t0));
-        check "firstHour 00:00 10" True (not (psNonEmpty psAM1 (justBefore t0) (justAfter t0)));
-
-        check "firstHour 00:00 9" (Just t0) (vsLast (psValues (timeOfDay midnight) ((\(MkCut x _) -> x) ?first) t0));
-        check "firstHour 00:00 8" (Just t0) (vsLast (psValues psMidnight ((\(MkCut x _) -> x) ?first) t0));
-        check "firstHour 00:00 7" (Just t0) (vsLast (psValuesCut psMidnight ?first ca0));
-        check "firstHour 00:00 6" (Just t0) (psPrevious psMidnight ca0);
-        
-        check "firstHour 00:00 5" True (psOnAndOff psMidnight psAM1 t0);
-        check "firstHour 00:00 4" True (let {?first = justBefore ?first} in psOnAndOff (phaseStartOf midnights) (phaseEndOf am1) cb0);
-        check "firstHour 00:00 3" True (sfUpwardValue (intervalsFromTo (phaseStartOf midnights) (phaseEndOf am1)) cb0);
-        check "firstHour 00:00 2" True (sfValue (intervalsFromTo (phaseStartOf midnights) (phaseEndOf am1)) t0);
-        check "firstHour 00:00 1" True (member (intervalsFromTo (phaseStartOf midnights) (phaseEndOf am1)) t0);
         check "firstHour 00:00" True (member firstHour t0);
         
-        check "firstHour 00:00 change before 2" True (member (sfPossibleChanges (intervalsFromTo (phaseStartOf midnights) (phaseEndOf am1))) cb0);
-        check "firstHour 00:00 change before 1" True (member (sfChanges (intervalsFromTo (phaseStartOf midnights) (phaseEndOf am1))) cb0);
         check "firstHour 00:00 change before" True (member (sfChanges firstHour) cb0);
         check "firstHour 00:00 change after" False (member (sfChanges firstHour) ca0);
         check "firstHour 00:30" True (member firstHour t005);
@@ -166,200 +149,7 @@ module Main where
         check "firstHour" (Just (MkInterval (Starts cb0) (Ends cb01))) (cutNextInterval (toPhase firstHour) cb0 cb2);
         
         check "31st" (Just (justBefore td31st)) (vsFirst (psValues (beforeDays (dayOfMonth 31)) (justBefore t0) (justAfter td300)));
-
-        check "31st int 9" False
-            (let {?first = justBefore ?first} in
-            let
-            {
-                psOn = beforeDays (dayOfMonth 31);
-                psOff = beforeDays (delay 1 (dayOfMonth 31));
-                a = justBefore td30th;
-            } in case psPrevious psOn (justAfter a) of
-            {
-                Nothing -> False;
-                Just ontime -> not (psNonEmpty psOff (justBefore ontime) (justAfter a));
-            }
-            );
-        check "31st int 8" False
-            (let {?first = justBefore ?first} in
-                psOnAndOff
-                (beforeDays (dayOfMonth 31)) 
-                (beforeDays (delay 1 (dayOfMonth 31)))
-                (justBefore td30th)
-            );
-        check "31st int 7" False
-            (sfUpwardValue
-                (intervalsFromTo (beforeDays (dayOfMonth 31)) (beforeDays (delay 1 (dayOfMonth 31))))
-                (justBefore td30th)
-            );
-        check "31st int 6" True
-            (sfUpwardValue
-                (intervalsFromTo (beforeDays (dayOfMonth 31)) (beforeDays (delay 1 (dayOfMonth 31))))
-                (justBefore td31st)
-            );
-        check "31st int 5" (Just (justBefore td31st)) 
-            (vsFirst 
-                (psValues 
-                    (sfPossibleChanges
-                        (intervalsFromTo (beforeDays (dayOfMonth 31)) (beforeDays (delay 1 (dayOfMonth 31))) )
-                    ) 
-                (justBefore t0) (justAfter td300)
-            ));
-        check "31st int 4" (Just (justBefore td31st)) 
-            (vsFirst 
-                (psValues 
-                    (sfChanges
-                        (intervalsFromTo (beforeDays (dayOfMonth 31)) (beforeDays (delay 1 (dayOfMonth 31))) )
-                    ) 
-                (justBefore t0) (justAfter td300)
-            ));
-        check "31st int 3" (Just (justBefore td31st)) 
-            (vsFirst 
-                (psValues 
-                    (sfMatchUpwardChanges
-                        (intervalsFromTo (beforeDays (dayOfMonth 31)) (beforeDays (delay 1 (dayOfMonth 31))) )
-                        id
-                    ) 
-                (justBefore t0) (justAfter td300)
-            ));
-        check "31st int 2" (Just (justBefore td31st)) 
-            (vsFirst 
-                (psValues 
-                    (intervalsStartOf 
-                        (intervalsFromTo (beforeDays (dayOfMonth 31)) (beforeDays (delay 1 (dayOfMonth 31))) )) 
-                        (justBefore t0) (justAfter td300)
-            ));
-        check "31st int 1" (Just (justBefore td31st)) (vsFirst (psValues (intervalsStartOf (daysToTimeIntervals (dayOfMonth 31))) (justBefore t0) (justAfter td300)));
         check "31st int" (Just (jbInterval td31st td1st)) (cutNextInterval (toPhase (daysToTimeIntervals (dayOfMonth 31))) (justBefore t0) (justAfter td300));
-
-
-
-
-        check "31st next 20" []
-            (vsForwards (psValues (pointsSearch (\day -> case toGregorian day of
-                {
-                    (y,m,d) -> y * 12 + (fromIntegral (m - 1));
-                }) (\i -> let
-                {
-                    y = div i 12;
-                    m = (fromIntegral (mod i 12)) + 1;
-                } in fromGregorianValid y m 31)) (ModifiedJulianDay 74) (ModifiedJulianDay 74)));
-        check "31st next 19" []
-            (vsForwards (psValues (dayOfMonth 31) (ModifiedJulianDay 74) (ModifiedJulianDay 74)));
-        check "31st next 18" []
-            (vsForwards (psValues (delay 1 (single (ModifiedJulianDay 75))) (ModifiedJulianDay 75) (ModifiedJulianDay 75)));
-        check "31st next 17" []
-            (vsForwards (psValues (delay 1 (dayOfMonth 31)) (ModifiedJulianDay 75) (ModifiedJulianDay 75)));
-        check "31st next 16" []
-            (
-                let
-                {
-                    psOff = pointsFromCut (beforeDays (delay 1 (dayOfMonth 31)));
-                } in
-                vsForwards (psValues psOff td31stNext td31stNext)
-            );
-        check "31st next 15" []
-            (
-                let
-                {
-                    psOff = pointsFromCut (beforeDays (delay 1 (dayOfMonth 31)));
-                } in
-                vsForwards (psValuesCut psOff (justBefore td31stNext) (justAfter td31stNext))
-            );
-        check "31st next 14" False
-            (
-                let
-                {
-                    psOff = pointsFromCut (beforeDays (delay 1 (dayOfMonth 31)));
-                } in
-                psNonEmpty psOff (justBefore td31stNext) (justAfter td31stNext)
-            );
-        check "31st next 13" True
-            (
-                let
-                {
-                    psOff = pointsFromCut (beforeDays (delay 1 (dayOfMonth 31)));
-                } in
-                not (psNonEmpty psOff (justBefore td31stNext) (justAfter td31stNext))
-            );
-        check "31st next 12" True
-            (
-                let
-                {
-                    psOff = pointsFromCut (beforeDays (delay 1 (dayOfMonth 31)));
-                } in
-                case Just td31stNext of
-                    {
-                        Nothing -> False;
-                        Just ontime -> not (psNonEmpty psOff (justBefore ontime) (justAfter td31stNext));
-                    }
-            );
-        check "31st next 11" (Just td31stNext)
-            (
-                let
-                {
-                    psOn = pointsFromCut (beforeDays (dayOfMonth 31));
-                    psOff = pointsFromCut (beforeDays (delay 1 (dayOfMonth 31)));
-                } in
-                psPrevious psOn (justAfter td31stNext)
-            );
-        check "31st next 10" True
-            (
-                let
-                {
-                    psOn = pointsFromCut (beforeDays (dayOfMonth 31));
-                    psOff = pointsFromCut (beforeDays (delay 1 (dayOfMonth 31)));
-                } in
-                case psPrevious psOn (justAfter td31stNext) of
-                    {
-                        Nothing -> False;
-                        Just ontime -> not (psNonEmpty psOff (justBefore ontime) (justAfter td31stNext));
-                    }
-            );
-        check "31st next 9" True
-            (
-                (psOnAndOff
-                    (pointsFromCut (beforeDays (dayOfMonth 31))) (pointsFromCut (beforeDays (delay 1 (dayOfMonth 31))))
-                )
-                td31stNext
-            );
-        check "31st next 8" True
-            (
-                (let {?first = justBefore ?first} in psOnAndOff
-                    (beforeDays (dayOfMonth 31)) (beforeDays (delay 1 (dayOfMonth 31)))
-                )
-                (justBefore td31stNext)
-            );
-        check "31st next 7" True
-            (
-                (sfUpwardValue (intervalsFromTo (beforeDays (dayOfMonth 31)) (beforeDays (delay 1 (dayOfMonth 31))) ))
-                (justBefore td31stNext)
-            );
-        check "31st next 6" True
-            (
-                (sfUpwardValue (daysToTimeIntervals (dayOfMonth 31)))
-                (justBefore td31stNext)
-            );
-        check "31st next 5" (Just (justBefore td31stNext)) 
-            (vsFirst (psValues 
-                (sfPossibleChanges (daysToTimeIntervals (dayOfMonth 31)))
-                (justBefore td2nd) (justAfter td300)
-            ));
-        check "31st next 4" (Just (justBefore td31stNext)) 
-            (vsFirst (psValues 
-                (sfChanges (daysToTimeIntervals (dayOfMonth 31)))
-                (justBefore td2nd) (justAfter td300)
-            ));
-        check "31st next 3" (Just (justBefore td31stNext)) 
-            (vsFirst (psValues 
-                (intervalsStartOf (daysToTimeIntervals (dayOfMonth 31)))
-                (justBefore td2nd) (justAfter td300)
-            ));
-        check "31st next 2" (Just (justBefore td31stNext)) 
-            (vsFirst (psValues 
-                (intervalsStartOf (daysToTimeIntervals (dayOfMonth 31)))
-                (justAfter td1st) (justAfter td300)
-            ));
         check "31st next 1" (Just (justBefore td31stNext)) 
             (vsFirst (psValues 
                 (phaseStartOf (toPhase (daysToTimeIntervals (dayOfMonth 31))))
@@ -367,68 +157,32 @@ module Main where
             ));
             
 
-        check "of 9" (Just (justBefore td2nd))
-            (vsFirst (psValues 
-                (pointsCutFirstAfterPoints beforeDay psMidnight)
-                (justAfter td1st) (justAfter td300)
-            ));
-        check "of 8" (Just (justBefore td1st))
-            (vsFirst (psValues 
-                (pointsCutLastBeforePoints beforeDay psMidnight)
-                (justBefore td1st) (justAfter td300)
-            ));
-{-
-        check "of 7" (Just (jbInterval td1st td2nd))
-            (cutNextInterval
-                (toPhase 
-                    (intervalsFromToInclusive (pointsCutLastBeforePoints beforeDay psMidnight) (pointsCutFirstAfterPoints beforeDay psMidnight)  )
-                )
-                (justBefore td1st) (justAfter td300)
-            );
-        check "of 6" (Just (jbInterval td1st td2nd))
-            (cutNextInterval
-                (toPhase (intervalsOf psMidnight beforeDay))
-                (justBefore td1st) (justAfter td300)
-            );
--}
-        check "of 5" (Just (jbInterval td1st td2nd))
-            (cutNextInterval
-                dayPhase
-                (justBefore td1st) (justAfter td300)
-            );
-        check "of 4" (Just (jbInterval td1st td2nd))
-            (cutNextInterval
-                (phaseIntersect dayPhase (intervalsOf psMidnight beforeDay))
-                (justBefore td1st) (justAfter td300)
-            );
-        check "of 3" (Just (jbInterval td1st td2nd))
-            (cutNextInterval
-                (phaseIntersect dayPhase (intervalsOf psMidnight (phaseStartOf dayPhase)))
-                (justBefore td1st) (justAfter td300)
-            );
-        check "of 2" (Just (jbInterval td1st td2nd))
-            (cutNextInterval
-                (phaseOf dayPhase psMidnight)
-                (justBefore td1st) (justAfter td300)
-            );
-        check "of 1" (Just (jbInterval td1st td2nd))
-            (cutNextInterval
-                (phaseOf dayPhase (pointsFromCut (phaseStartOf midnights)))
-                (justBefore td1st) (justAfter td300)
-            );
         check "of" (Just (jbInterval td1st td2nd))
             (cutNextInterval
                 (ofPhase midnights dayPhase)
                 (justBefore td1st) (justAfter td300)
             );
 
-        check "of t" (Just (oneDayInterval 160))
+        check "of each year" (Just (oneDayInterval 160))
             (cutNextInterval
                 (ofPhase (toPhase 
                     (intersect 
                         (daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year 4 26))) 
                         (pointsToIntervals (timeOfDay (TimeOfDay 7 0 0)))
                     )
+                ) dayPhase)
+                (justBefore td1st) (justAfter td300)
+            );
+
+
+        check "of single" (Just (oneDayInterval 160))
+            (cutNextInterval
+                (ofPhase (toPhase 
+                    (single (LocalTime
+                    {
+                        localDay = fromGregorian 1859 4 26,
+                        localTimeOfDay = TimeOfDay 7 0 0
+                    }) :: PointSet T)
                 ) dayPhase)
                 (justBefore td1st) (justAfter td300)
             );
