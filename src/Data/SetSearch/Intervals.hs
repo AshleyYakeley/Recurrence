@@ -2,7 +2,7 @@ module Data.SetSearch.Intervals where
 {
     import Control.Applicative hiding (empty);
     import Data.SetSearch.Set;
-    import Data.SetSearch.ValueSet;
+    import Data.SetSearch.PointFunction;
     import Data.SetSearch.PointSet;
     import Data.SetSearch.DeltaSmaller;
     import Data.SetSearch.StepFunction;
@@ -14,10 +14,18 @@ module Data.SetSearch.Intervals where
     {
         empty = pure False;
         member = sfValue;
-        union = liftA2 (||);
-        intersect = liftA2 (&&);
-        diff = liftA2 (\a b -> a && (not b));
-        symdiff = liftA2 (\a b -> a /= b);
+        union sa sb = invert (intersect (invert sa) (invert sb)); 
+        diff sa sb = intersect sa (invert sb);
+        intersect sa sb = MkStepFunction
+        {
+            sfUpwardValue = \x -> (sfUpwardValue sa x) && (sfUpwardValue sb x),
+            sfPossibleChanges = let
+            {
+                pca = sfPossibleChanges sa;
+                pcb = sfPossibleChanges sa;
+            } in union pca pcb
+            -- MkPointSet (\p q -> )
+        };
     };
     
     instance (Ord a) => SetFull (Intervals a) where
@@ -26,8 +34,38 @@ module Data.SetSearch.Intervals where
         invert = fmap not;
     };
     
-    intervalsIntersect :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
-    intervalsIntersect ps ints = MkPointSet (\p q -> let
+    intervalsIntersect :: (Ord a) => PointFunction a p -> Intervals a -> PointFunction a p;
+    intervalsIntersect pf ints = MkPointFunction
+    {
+        pfValue = \a -> do
+        {
+            p <- pfValue pf a;
+            if member ints a then Just p else Nothing;
+        },
+        pfNextUntil = \near far -> let
+        {
+            fc = justAfter far;
+            find nc = case pfFirstCut pf nc fc of
+            {
+                Just a | member ints a -> Just a;
+                Just a | Just nn <- pfFirstCut (sfPossibleChanges ints) (doubleCut a) (doubleCut far) -> find nn;
+                _ -> Nothing;
+            }
+        } in find (justAfter near),
+        pfPrevUntil = \near far -> let
+        {
+            fc = justBefore far;
+            find nc = case pfLastCut pf nc fc of
+            {
+                Just a | member ints a -> Just a;
+                Just a | Just nn <- pfLastCut (sfPossibleChanges ints) (doubleCut a) (doubleCut far) -> find nn;
+                _ -> Nothing;
+            }
+        } in find (justBefore near)
+    };
+    
+{-   
+    MkPointSet (\p q -> let
     {
         pc = justBefore p;
         qc = justAfter q;    
@@ -48,7 +86,7 @@ module Data.SetSearch.Intervals where
             _ -> [];
         };
     } in MkValueSet (forwards pc) (backwards qc));
-  
+-}  
     intervalsDiff :: (Ord a) => PointSet a -> Intervals a -> PointSet a;
     intervalsDiff p i = intervalsIntersect p (invert i);
     
@@ -71,14 +109,14 @@ module Data.SetSearch.Intervals where
     intervalsAfter :: (Ord a,?first :: Cut a) => PointSet (Cut a) -> Intervals a;
     intervalsAfter ps = MkStepFunction
     {
-        sfUpwardValue = \x -> psNonEmpty ps (justBefore ?first) (justAfter x), 
+        sfUpwardValue = \x -> pfNonEmpty ps (justBefore ?first) (justAfter x), 
         sfPossibleChanges = ps
     };
-
+{-
     intervalsOf :: (Ord a,?first :: Cut a,?last :: Cut a) => PointSet a -> PointSet (Cut a) -> Intervals a;
     intervalsOf subject delimiter =
      intervalsFromToInclusive False (pointsCutLastBeforePoints delimiter subject) (pointsCutFirstAfterPoints delimiter subject);
-
+-}
     intervalsOneAfter :: (Ord a) => Cut a -> Intervals a;
     intervalsOneAfter start = MkStepFunction
     {
@@ -102,7 +140,7 @@ module Data.SetSearch.Intervals where
 
     intervalsOneMaybe :: (Ord a) => Maybe (Cut a) -> Maybe (Cut a) -> Intervals a;
     intervalsOneMaybe mstart mend = intersect (intervalsOneAfterMaybe mstart) (intervalsOneBeforeMaybe mend);
-    
+  
     pointsToIntervals :: (Ord a) => PointSet a -> Intervals a;
     pointsToIntervals ps = MkStepFunction
     {
@@ -113,7 +151,7 @@ module Data.SetSearch.Intervals where
         },
         sfPossibleChanges = pointsCutBoth ps
     };
-    
+
     instance (Ord a) => SetSingle (Intervals a) where
     {
         single a = intervalsOne (justBefore a) (justAfter a);

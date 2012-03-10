@@ -2,10 +2,10 @@ module Data.SetSearch.StepFunction where
 {
     import Control.Applicative hiding (empty);
     import Data.SetSearch.Set;
+    import Data.SetSearch.PointFunction;
     import Data.SetSearch.PointSet;
     import Data.SetSearch.DeltaSmaller;
     import Data.SetSearch.Cut;
-    import Data.SetSearch.ValueSet;
     
     data StepFunction a b = MkStepFunction
     {
@@ -53,14 +53,14 @@ module Data.SetSearch.StepFunction where
             sfPossibleChanges = remapBase (remapBase ab ba) (remapBase ba ab) (sfPossibleChanges sfa)
         };
     };
-    
+
     sfCutBefore :: (Ord a) => StepFunction a b -> StepFunction (Cut a) b;
     sfCutBefore sf = MkStepFunction
     {
         sfUpwardValue = \(MkCut ca _) -> sfUpwardValue sf ca,
         sfPossibleChanges = pointsCutBefore (sfPossibleChanges sf)
     };
-    
+
     sfChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> PointSet (Cut a);
     sfChanges sf = filterIntersect (\cuta -> case deltaSmaller cuta of
     {
@@ -74,16 +74,17 @@ module Data.SetSearch.StepFunction where
    
     sfMatchUpwardChanges :: (DeltaSmaller a,Eq b) => StepFunction a b -> (b -> Bool) -> PointSet (Cut a);
     sfMatchUpwardChanges sf match = filterIntersect (match . (sfUpwardValue sf)) (sfChanges sf);
-
+{-
     -- | The number of subjects since (just before) delimiter
     sfCountSince :: (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet (Cut a) -> StepFunction a (Maybe Int);
     sfCountSince delimiter subject = MkStepFunction
     {
         sfUpwardValue = \cut -> do
         {
-            dcut <- let {?first = justBefore ?first} in psPrevious delimiter (justAfter cut);
+            dcut <- let {?first = justBefore ?first} in pfPrev delimiter (justAfter cut);
             return (length (vsForwards (psValues subject dcut cut)));
         },
         sfPossibleChanges = union delimiter subject
     };
+-}
 }

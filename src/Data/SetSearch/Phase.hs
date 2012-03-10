@@ -60,7 +60,7 @@ module Data.SetSearch.Phase where
         psStarts = phaseStartOf phase;
         
         lastIntEnds :: PointSet (Cut a);
-        lastIntEnds = pointsLastOnOrBeforePoints intEnds psStarts;
+        lastIntEnds = pointsLastOn intEnds psStarts;
         
         markedEnds :: PointSet (Cut a);
         markedEnds = filterIntersect (\x@(MkCut v _) -> not (member intervalsChanges x) && (member intervals v)) psStarts;
@@ -86,10 +86,10 @@ module Data.SetSearch.Phase where
         phaseSet = intersect (phaseSet phase) ints,
         phaseStartOf = intervalsIntersect (phaseStartOf phase) (sfCutBefore ints)
     };
-
+{-
     phaseOf :: (Ord a,?first :: Cut a,?last :: Cut a) => Phase a -> PointSet a -> Phase a;
     phaseOf phase ps = phaseIntersect phase (intervalsOf ps (phaseStartOf phase));
-
+-}
     phaseChanges :: (DeltaSmaller a) => Phase a -> PointSet (Cut a);
     phaseChanges phase = union (sfChanges (phaseSet phase)) (phaseStartOf phase);
 

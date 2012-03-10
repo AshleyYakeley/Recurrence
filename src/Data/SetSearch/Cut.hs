@@ -1,5 +1,7 @@
 module Data.SetSearch.Cut where
 {
+    import Prelude hiding (id,(.));
+    import Control.Category;
     import Data.SetSearch.Set;
     import Data.SetSearch.DeltaSmaller;
 
@@ -167,4 +169,39 @@ module Data.SetSearch.Cut where
     {
         show (MkInterval start end) = (show start) ++ " until " ++ (show end);
     };
+
+    data MonotonicInjection a b = MkMonotonicInjection
+    {
+        projectForwards :: a -> b,
+        projectBack :: b -> a
+    };
+    
+    projectBackwards :: (Ord b) => MonotonicInjection a b -> b -> Either (Cut a) a;
+    projectBackwards mi b = let
+    {
+        a = projectBack mi b; -- loses information
+        ba = projectForwards mi a;
+    } in case compare b ba of
+    {
+        LT -> Left (justBefore a);
+        EQ -> Right a;
+        GT -> Left (justAfter a);
+    };
+
+    instance Category MonotonicInjection where
+    {
+        id = MkMonotonicInjection
+        {
+            projectForwards = id,
+            projectBack = id
+        };
+        (MkMonotonicInjection bc cb) . (MkMonotonicInjection ab ba) = MkMonotonicInjection
+         (bc . ab) (ba . cb);
+    };
+
+    projectBefore :: MonotonicInjection a (Cut a);
+    projectBefore = MkMonotonicInjection justBefore (\(MkCut a _) -> a);
+
+    projectAfter :: MonotonicInjection a (Cut a);
+    projectAfter = MkMonotonicInjection justAfter (\(MkCut a _) -> a);
 }

@@ -36,7 +36,7 @@ module Data.TimePhase.Time where
     onAfter :: TimePhase -> Intervals T;
     onAfter phase = let {?first = firstTime} in
         intervalsAfter (phaseStartOf phase);
-
+{-
     nthIn :: Int -> TimePhase -> TimePhase -> TimePhase;
     nthIn n psubject pdelimiter = let {?first = firstTime} in phaseIntersect psubject
         (fmap ((==) (Just n)) (sfCountSince (phaseStartOf pdelimiter) (phaseStartOf psubject)));
@@ -47,7 +47,7 @@ module Data.TimePhase.Time where
         ?first = firstTime;
         ?last = lastTime;
     } in phaseOf phase (pointsFromCut (phaseStartOf picker));
-
+-}
     startOf :: TimePhase -> PointSet T;
     startOf phase = pointsFromCut (phaseStartOf phase);
 
@@ -92,20 +92,13 @@ module Data.TimePhase.Time where
     
     cutBeforeDay :: Day -> Cut T;
     cutBeforeDay day = justBefore (dayMidnight day);
-   
+
     beforeDays :: PointSet Day -> PointSet (Cut T);
-    beforeDays (MkPointSet vf) = MkPointSet (\p q -> let
+    beforeDays = pfProject (MkMonotonicInjection
     {
-        pday = case p of
-        {
-            MkCut pt Before | localTimeOfDay pt == midnight -> localDay pt;
-            MkCut pt _ -> addAffine 1 (localDay pt);
-        };
-        qday = case q of
-        {
-            MkCut qt _ -> localDay qt;
-        };
-    } in fmap cutBeforeDay (vf pday qday));
+        projectForwards = cutBeforeDay,
+        projectBack = \(MkCut t _) -> localDay t
+    });
     
 {-    
     beforeDays psday = pointsCutBefore (MkPointSet
@@ -196,7 +189,7 @@ module Data.TimePhase.Time where
     isMonth i = fmap (\(_,m) -> i == m) theYearAndMonth;
     
     dayOfMonth :: Int -> PointSet Day;
-    dayOfMonth dd = pointsSearch (\day -> case toGregorian day of
+    dayOfMonth dd = pfSet $ pointsSearch (\day -> case toGregorian day of
     {
         (y,m,d) -> y * 12 + (fromIntegral (m - 1));
     }) (\i -> let
@@ -255,7 +248,7 @@ module Data.TimePhase.Time where
     dayEachYear f = knownToPointSet (kpsEach yearOfDay f);
 
     maybeDayEachYear :: (Integer -> Maybe Day) -> PointSet Day;
-    maybeDayEachYear = pointsSearch yearOfDay;
+    maybeDayEachYear = pfSet . (pointsSearch yearOfDay);
     
     timeOfDay :: TimeOfDay -> PointSet T;
     timeOfDay tod = knownToPointSet (kpsEach (\t -> localDay t) (\day -> LocalTime day tod));

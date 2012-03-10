@@ -1,7 +1,7 @@
 module Data.SetSearch.KnownPointSet where
 {
     import Data.SetSearch.Set;
-    import Data.SetSearch.ValueSet;
+    import Data.SetSearch.PointFunction;
     import Data.SetSearch.PointSet;
 
     data KnownPointSet a = MkKnownPointSet
@@ -14,28 +14,22 @@ module Data.SetSearch.KnownPointSet where
     };
 
     knownToPointSet :: (Ord a) => KnownPointSet a -> PointSet a;
-    knownToPointSet kps = MkPointSet (\p q -> let
+    knownToPointSet kps = MkPointFunction
     {
-        forwardsRest a = case kpsFirstAfter kps a of
+        pfValue = \a -> if (kpsMember kps a) then Just () else Nothing,
+        -- strictly after, up to including limit
+        pfNextUntil = \a limit -> do
         {
-            Just x | x <= q -> x:(forwardsRest x);
-            _ -> [];
-        };
-
-        forwards a | a > q = [];
-        forwards a | kpsMember kps a = a:(forwardsRest a);
-        forwards a = forwardsRest a;
-
-        backwardsRest a = case kpsLastBefore kps a of
+            r <- kpsFirstAfter kps a;
+            if r <= limit then Just r else Nothing;
+        },
+        -- strictly before, up to including limit
+        pfPrevUntil = \a limit -> do
         {
-            Just x | x >= p -> x:(backwardsRest x);
-            _ -> [];
-        };
-
-        backwards a | a < p = [];
-        backwards a | kpsMember kps a = a:(backwardsRest a);
-        backwards a = backwardsRest a;
-    } in mkValueSet (forwards p) (backwards q));
+            r <- kpsLastBefore kps a;
+            if r >= limit then Just r else Nothing;
+        }
+    };
     
     instance BasedOn (KnownPointSet a) where
     {

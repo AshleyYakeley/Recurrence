@@ -36,8 +36,10 @@ module Data.TimePhase.Dict (dict,T) where
     dict "through" = Just (toValue fromTo);
     dict "from" = Just (toValue onAfter);
     dict "until" = Just (toValue (invert . onAfter));
+{-
     dict "nth" = Just (toValue nthIn);
     dict "of" = Just (toValue ofPhase);
+-}
     dict "all" = Just (toValue (id :: Intervals T -> Intervals T));
     
     dict "delay" = Just (toValue (delay :: NominalDiffTime -> TimePhase -> TimePhase));

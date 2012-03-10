@@ -2,11 +2,16 @@ GHC = ghc
 #GHCFLAGS = -package time-phase -prof -auto-all -rtsopts
 GHCFLAGS = -package time-phase
 
-default: \
+default: unit use
+	@echo "Success!"
+
+unit: \
  TestSets.diff0 \
  PointSetTest.diff0 \
  PhaseTest.diff0 \
  ItemTest.diff0 \
+
+use: \
  test.phases.diff \
  duration.phases.diff \
  dateformats.phases.10y.diff \

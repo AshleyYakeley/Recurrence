@@ -19,7 +19,7 @@ library
     build-depends: base, time >= 1.4
     exposed-modules: 
         Data.SetSearch.Set
-        Data.SetSearch.ValueSet
+        Data.SetSearch.PointFunction
         Data.SetSearch.PointSet
         Data.SetSearch.KnownPointSet
         Data.SetSearch.DeltaSmaller
