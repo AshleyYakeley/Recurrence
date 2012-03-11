@@ -14,18 +14,10 @@ module Data.SetSearch.Intervals where
     {
         empty = pure False;
         member = sfValue;
-        union sa sb = invert (intersect (invert sa) (invert sb)); 
-        diff sa sb = intersect sa (invert sb);
-        intersect sa sb = MkStepFunction
-        {
-            sfUpwardValue = \x -> (sfUpwardValue sa x) && (sfUpwardValue sb x),
-            sfPossibleChanges = let
-            {
-                pca = sfPossibleChanges sa;
-                pcb = sfPossibleChanges sa;
-            } in union pca pcb
-            -- MkPointSet (\p q -> )
-        };
+        union = liftA2 (||);
+        diff = liftA2 (\a b -> a && (not b));
+        intersect = liftA2 (&&);
+        symdiff = liftA2 (/=);
     };
     
     instance (Ord a) => SetFull (Intervals a) where

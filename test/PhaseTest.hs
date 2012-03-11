@@ -152,6 +152,10 @@ module Main where
 
 
 
+        check "year end" (Just (justBefore td1st)) (firstAfterUntil (phaseEndOf (toPhase (isYear 1858))) (justBefore t0) ?last);
+
+
+
 {-
         check "of" (Just (jbInterval td1st td2nd))
             (cutNextInterval
