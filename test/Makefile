@@ -43,16 +43,16 @@ clean:
 	rm -rf *.out *.run *.o *.hi *.p_o *.p_hi *.prof Makefile.bak TestSets PointSetTest PhaseTest ItemTest
 
 %.phases.cur.out: %.phases
-	time ../dist/build/phase-calendar/phase-calendar $< > $@
+	timeout 5s ../dist/build/phase-calendar/phase-calendar $< > $@
 
 %.phases.out: %.phases
-	time ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" $< > $@
+	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" $< > $@
 
 %.phases.7d.out: %.phases
-	time ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 7 $< > $@
+	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 7 $< > $@
 
 %.phases.10y.out: %.phases
-	time ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 3650 $< > $@
+	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 3650 $< > $@
 
 %.diff: %.ref %.out
 	diff -u $^
@@ -61,10 +61,10 @@ clean:
 	diff -u /dev/null $^
 
 %.out: %
-	time ./$< > $@
+	timeout 5s ./$< > $@
 
 %.run: %
-	./$<
+	timeout 5s ./$<
 	touch $@
 
 %.hi: %.o
