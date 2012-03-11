@@ -43,16 +43,16 @@ clean:
 	rm -rf *.out *.run *.o *.hi *.p_o *.p_hi *.prof Makefile.bak TestSets PointSetTest PhaseTest ItemTest
 
 %.phases.cur.out: %.phases
-	timeout 5s ../dist/build/phase-calendar/phase-calendar $< > $@
+	timeout 5s ../dist/build/phase-calendar/phase-calendar $< > $@ || echo "Failed with $$?" > $@
 
 %.phases.out: %.phases
-	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" $< > $@
+	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" $< > $@ || echo "Failed with $$?" > $@
 
 %.phases.7d.out: %.phases
-	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 7 $< > $@
+	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 7 $< > $@ || echo "Failed with $$?" > $@
 
 %.phases.10y.out: %.phases
-	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 3650 $< > $@
+	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 3650 $< > $@ || echo "Failed with $$?" > $@
 
 %.diff: %.ref %.out
 	diff -u $^
@@ -61,7 +61,7 @@ clean:
 	diff -u /dev/null $^
 
 %.out: %
-	timeout 5s ./$< > $@
+	timeout 5s ./$< > $@ || echo "Failed with $$?" > $@
 
 %.run: %
 	timeout 5s ./$<
