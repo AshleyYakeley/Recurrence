@@ -164,21 +164,23 @@ module Data.SetSearch.PointFunction where
             (Nothing,Just q) -> Just (Right (Right q));
             (Just p,Just q) -> Just (Left (p,q));
         },
-        pfNextUntil = \anear afar -> case (pfNextUntil pfp anear afar,pfNextUntil pfq anear afar) of
+        pfNextUntil = \anear afar -> case pfNextUntil pfp anear afar of
         {
-            (Just ap,Just aq) | ap <= aq -> Just ap;
-            (Just ap,Just aq) -> Just aq;
-            (Just ap,Nothing) -> Just ap;
-            (Nothing,Just aq) -> Just aq;
-            (Nothing,Nothing) -> Nothing;
+            Just ap -> case pfNextUntil pfq anear ap of
+            {
+                Just aq -> Just aq;
+                Nothing -> Just ap;
+            };
+            Nothing -> pfNextUntil pfq anear afar;
         },
-        pfPrevUntil = \anear afar -> case (pfPrevUntil pfp anear afar,pfPrevUntil pfq anear afar) of
+        pfPrevUntil = \anear afar -> case pfPrevUntil pfp anear afar of
         {
-            (Just ap,Just aq) | ap >= aq -> Just ap;
-            (Just ap,Just aq) -> Just aq;
-            (Just ap,Nothing) -> Just ap;
-            (Nothing,Just aq) -> Just aq;
-            (Nothing,Nothing) -> Nothing;
+            Just ap -> case pfPrevUntil pfq anear ap of
+            {
+                Just aq -> Just aq;
+                Nothing -> Just ap;
+            };
+            Nothing -> pfPrevUntil pfq anear afar;
         }
     };
 

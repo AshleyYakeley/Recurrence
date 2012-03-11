@@ -172,8 +172,8 @@ module Data.SetSearch.Cut where
 
     data MonotonicInjection a b = MkMonotonicInjection
     {
-        projectForwards :: a -> b,
-        projectBack :: b -> a
+        projectForwards :: a -> b, -- must be strictly monotonic (i.e. and an injection)
+        projectBack :: b -> a -- must be loosely monotonic
     };
     
     projectBackwards :: (Ord b) => MonotonicInjection a b -> b -> Either (Cut a) a;

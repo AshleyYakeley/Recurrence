@@ -5,6 +5,7 @@ module Data.SetSearch.PointSet where
     import Data.SetSearch.Set;
     import Data.SetSearch.Cut;
     import Data.SetSearch.PointFunction;
+    import Data.SetSearch.KnownPointSet;
 
     type PointSet a = PointFunction a ();
 
@@ -35,6 +36,24 @@ module Data.SetSearch.PointSet where
     {
         firstAfterUntil = pfNextUntil;
         lastBeforeUntil = pfPrevUntil;
+    };
+
+    knownToPointSet :: (Ord a) => KnownPointSet a -> PointSet a;
+    knownToPointSet kps = MkPointFunction
+    {
+        pfValue = \a -> if (kpsMember kps a) then Just () else Nothing,
+        -- strictly after, up to including limit
+        pfNextUntil = \a limit -> do
+        {
+            r <- kpsFirstAfter kps a;
+            if r <= limit then Just r else Nothing;
+        },
+        -- strictly before, up to including limit
+        pfPrevUntil = \a limit -> do
+        {
+            r <- kpsLastBefore kps a;
+            if r >= limit then Just r else Nothing;
+        }
     };
 
     -- | the first subject point on or after delimiter
@@ -87,7 +106,7 @@ module Data.SetSearch.PointSet where
 -}
     -- | the last subject point on or before delimiter, or last before ?last
     ;
-    pointsLastOn :: forall a. (Ord a,?last :: a) => PointSet a -> PointSet a -> PointSet a;
+    pointsLastOn :: forall a b. (Ord a,?last :: a) => PointFunction a b -> PointSet a -> PointFunction a b;
     pointsLastOn subject delimiter = let
     {
         pfNextDelimiter :: a -> a;
@@ -109,8 +128,9 @@ module Data.SetSearch.PointSet where
     {
         pfValue = \a -> do
         {
-            pfValue subject a;
+            b <- pfValue subject a;
             goodSubject a;
+            return b;
         },
 
         pfNextUntil = \n f -> do
@@ -264,6 +284,14 @@ module Data.SetSearch.PointSet where
         } in find (ab an)
     };
 
+    psEvery :: (Enum a,Ord a) => PointSet a;
+    psEvery = knownToPointSet MkKnownPointSet
+    {
+        kpsMember = \_ -> True,
+        kpsFirstAfter = Just . succ,
+        kpsLastBefore = Just . pred
+    };
+
     pointsCutBefore :: (Ord a) => PointFunction a p -> PointFunction (Cut a) p;
     pointsCutBefore = pfProject projectBefore;
 
@@ -295,7 +323,7 @@ module Data.SetSearch.PointSet where
             pf = back far;
             
             find p | p > pf = Nothing;
-            find p | Just a <- f p = if a > far then Nothing else if a < near then find (succ p) else Just a;
+            find p | Just a <- f p = if a > far then Nothing else if a <= near then find (succ p) else Just a;
             find p = find (succ p);
         } in find pn,
         pfPrevUntil = \near far -> let
@@ -304,7 +332,7 @@ module Data.SetSearch.PointSet where
             pf = back far;
             
             find p | p < pf = Nothing;
-            find p | Just a <- f p = if a < far then Nothing else if a > near then find (pred p) else Just a;
+            find p | Just a <- f p = if a < far then Nothing else if a >= near then find (pred p) else Just a;
             find p = find (pred p);
         } in find pn
     };

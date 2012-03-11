@@ -131,73 +131,9 @@ module Main where
 
         check "endOf1am" (Just ca01) (firstAfterUntil (phaseEndOf am1) cb0 cb2);
         check "endOfFirstHour" (Just cb01) (firstAfterUntil (phaseEndOf (toPhase firstHour)) cb0 cb2);
+        check "endOfFirstHourAnd" (Just ca01) (firstAfterUntil (phaseEndOf (toPhase firstHourAnd)) cb0 cb2);
 
 
-
-
-        check "endOfFirstHourAnd 3" (Just ca01) (let 
-        {
-            phase = toPhase firstHourAnd;
-        
-            -- intervals :: Intervals a;
-            intervals = phaseSet phase;
-            
-            -- intEnds :: PointSet (Cut a);
-            intEnds = intervalsEndOf intervals;
-            
-            -- psStarts :: PointSet (Cut a);
-            psStarts = phaseStartOf phase;
-            
-            -- lastIntEnds :: PointSet (Cut a);
-            lastIntEnds = pointsLastOn intEnds psStarts;
-        } in firstAfterUntil (lastIntEnds) cb0 cb2);
-
-{-
-        check "endOfFirstHourAnd 2" (Just ca01) (let 
-        {
-            phase = toPhase firstHourAnd;
-        
-            -- intervals :: Intervals a;
-            intervals = phaseSet phase;
-            
-            -- intEnds :: PointSet (Cut a);
-            intEnds = intervalsEndOf intervals;
-            
-            -- psStarts :: PointSet (Cut a);
-            psStarts = phaseStartOf phase;
-            
-            -- lastIntEnds :: PointSet (Cut a);
-            lastIntEnds = pointsLastOnOrBeforePoints intEnds psStarts;
-        } in firstAfterUntil (lastIntEnds) cb0 cb2);
--}
-{-
-        check "endOfFirstHourAnd 1" (Just ca01) (let 
-        {
-            phase = toPhase firstHourAnd;
-        
-            -- intervals :: Intervals a;
-            intervals = phaseSet phase;
-            
-            -- intervalsChanges :: PointSet (Cut a);
-            intervalsChanges = sfChanges intervals;
-            
-            -- intEnds :: PointSet (Cut a);
-            intEnds = intervalsEndOf intervals;
-            
-            -- psStarts :: PointSet (Cut a);
-            psStarts = phaseStartOf phase;
-            
-            -- lastIntEnds :: PointSet (Cut a);
-            lastIntEnds = pointsLastOn intEnds psStarts;
-            
-            -- markedEnds :: PointSet (Cut a);
-            markedEnds = filterIntersect (\x@(MkCut v _) -> not (member intervalsChanges x) && (member intervals v)) psStarts;
-        } in firstAfterUntil (union lastIntEnds markedEnds) cb0 cb2);
--}
-
---        check "endOfFirstHourAnd" (Just ca01) (firstAfterUntil (phaseEndOf (toPhase firstHourAnd)) cb0 cb2);
-
-{-
         check "next t0 False" (Just (pointInterval t0)) (cutNextInterval midnights (justBefore t0) (justBefore t2));
         check "next t0 True" (Just (pointInterval t1)) (cutNextInterval midnights (justAfter t0) (justBefore t2));
         check "next t05 False" (Just (pointInterval t1)) (cutNextInterval midnights (justBefore t05) (justBefore t2));
@@ -209,25 +145,11 @@ module Main where
         check "1am" (Just (pointInterval t01)) (cutNextInterval am1 cb0 cb2);
         check "twoDays" (Just (MkInterval (Starts cb0) (Ends cb2))) (cutNextInterval (toPhase twoDays) cb0 cb2);
         check "firstHour" (Just (MkInterval (Starts cb0) (Ends cb01))) (cutNextInterval (toPhase firstHour) cb0 cb2);
--}
-
-
-
-
-
-
-
-
         
 --        check "31st" (Just (justBefore td31st)) (vsFirst (psValues (beforeDays (dayOfMonth 31)) (justBefore t0) (justAfter td300)));
---        check "31st int" (Just (jbInterval td31st td1st)) (cutNextInterval (toPhase (daysToTimeIntervals (dayOfMonth 31))) (justBefore t0) (justAfter td300));
-{-
-        check "31st next 1" (Just (justBefore td31stNext)) 
-            (vsFirst (psValues 
-                (phaseStartOf (toPhase (daysToTimeIntervals (dayOfMonth 31))))
-                (justAfter td1st) (justAfter td300)
-            ));
--}
+
+        check "31st int" (Just (jbInterval td31st td1st)) (cutNextInterval (toPhase (daysToTimeIntervals (dayOfMonth 31))) (justBefore t0) (justAfter td300));
+
 
 
 {-
