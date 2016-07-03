@@ -17,7 +17,7 @@ library
         MultiParamTypeClasses
         FlexibleContexts
     build-depends: base, time >= 1.4
-    exposed-modules: 
+    exposed-modules:
         Data.SetSearch.Set
         Data.SetSearch.PointFunction
         Data.SetSearch.PointSet
@@ -41,7 +41,7 @@ library
         Data.TimePhase.Item
 
 executable phase-calendar
-    hs-source-dirs: src
+    hs-source-dirs: app
     default-language: Haskell2010
     default-extensions:
         KindSignatures
@@ -54,4 +54,3 @@ executable phase-calendar
         FlexibleContexts
     build-depends: base, time >= 1.4, time-phase == 0.1
     main-is: PhaseCalendar.hs
-
