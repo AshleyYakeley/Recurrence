@@ -2,6 +2,7 @@ module Data.SetSearch.Cut where
 {
     import Prelude hiding (id,(.));
     import Control.Category;
+    import Data.Monoid;
     import Data.SetSearch.Set;
     import Data.SetSearch.DeltaSmaller;
 
@@ -17,8 +18,14 @@ module Data.SetSearch.Cut where
         show Before = "before"; 
         show After = "after"; 
     };
+
+    instance Ord Side where
+    {
+        compare Before After = LT;
+        compare After Before = GT;
+        compare _ _ = EQ;
+    };
     
-    -- False means "just before", True means "just after".
     data Cut a = MkCut a Side deriving Eq;
     
     justBefore :: a -> Cut a;
@@ -32,15 +39,7 @@ module Data.SetSearch.Cut where
     
     instance (Ord a) => Ord (Cut a) where
     {
-        compare (MkCut a1 x1) (MkCut a2 x2) = let
-        {
-            ac = compare a1 a2;
-        } in if ac == EQ then (case (x1, x2) of
-        {
-            (Before,After) -> LT;
-            (After,Before) -> GT;
-            _ -> EQ;
-        }) else ac;
+        compare (MkCut a1 x1) (MkCut a2 x2) = mappend (compare a1 a2) (compare x1 x2);
     };
 
     instance (DeltaSmaller a) => DeltaSmaller (Cut a) where

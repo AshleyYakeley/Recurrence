@@ -225,6 +225,82 @@ module Data.SetSearch.PointFunction where
     pfNext :: (Ord a,?last :: Cut a) => PointFunction a b -> Cut a -> Maybe a;
     pfNext ps x = pfFirstCut ps x ?last;
 
+    pfProject :: (Eq a,Ord b) => MonotonicInjection a b -> PointFunction a p -> PointFunction b p;
+    pfProject mi pfa = let
+    {
+        ab = projectForwards mi;
+        bma = projectBackwards mi;
+        cutBefore :: Either (Cut a) a -> Cut a;
+        cutBefore (Left cut) = cut;
+        cutBefore (Right a) = justBefore a;
+        cutAfter :: Either (Cut a) a -> Cut a;
+        cutAfter (Left cut) = cut;
+        cutAfter (Right a) = justAfter a;
+    } in MkPointFunction
+    {
+        pfValue = \b -> case bma b of
+        {
+            Right a -> pfValue pfa a;
+            _ -> Nothing;
+        },
+        pfNextUntil = \bn bf -> case cutAfter (bma bn) of
+        {
+            MkCut an Before | pfPoint pfa an -> Just (ab an);
+            MkCut an _ -> let
+            {
+                MkCut af xf = cutAfter (bma bf);
+            } in case (xf,pfNextUntil pfa an af) of
+            {
+                (Before,Just a) | a == af -> Nothing;
+                (_,Just a) -> Just (ab a);
+                _ -> Nothing;
+            };
+        },
+        pfPrevUntil = \bn bf -> case cutBefore (bma bn) of
+        {
+            MkCut an After | pfPoint pfa an -> Just (ab an);
+            MkCut an _ -> let
+            {
+                MkCut af xf = cutBefore (bma bf);
+            } in case (xf,pfPrevUntil pfa an af) of
+            {
+                (After,Just a) | a == af -> Nothing;
+                (_,Just a) -> Just (ab a);
+                _ -> Nothing;
+            };
+        }
+    };
+
+    pfExtract :: (Ord b) => MonotonicInjection a b -> PointFunction b p -> PointFunction a p;
+    pfExtract mi pfb = let
+    {
+        ab = projectForwards mi;
+        bma = projectBackwards mi;
+    } in MkPointFunction
+    {
+        pfValue = \a -> pfValue pfb (ab a),
+        pfNextUntil = \an af -> let
+        {
+            bf = ab af;
+            find bn = case pfNextUntil pfb bn bf of
+            {
+                Just b | Right a <- bma b -> Just a;
+                Just b -> find b;
+                Nothing -> Nothing;
+            };
+        } in find (ab an),
+        pfPrevUntil = \an af -> let
+        {
+            bf = ab af;
+            find bn = case pfPrevUntil pfb bn bf of
+            {
+                Just b | Right a <- bma b -> Just a;
+                Just b -> find b;
+                Nothing -> Nothing;
+            };
+        } in find (ab an)
+    };
+
 {-
     -- | the first subject point on or after delimiter
     pointsFirstFrom :: (Ord a,?first :: Cut a) => PointSet a -> PointSet a -> PointSet a;
@@ -235,27 +311,6 @@ module Data.SetSearch.PointFunction where
         Nothing -> False;
     }) subject;
 
-    -- | the first subject point after delimiter
-    pointsCutFirstAfterPoints :: forall a. (Ord a,?first :: Cut a) => PointSet (Cut a) -> PointSet a -> PointSet (Cut a);
-    pointsCutFirstAfterPoints subject delimiter = MkPointSet (\p q ->
-        let
-        {
-            delims = psValuesCut delimiter p q :: ValueSet a;
-            most = vsMapMaybe (\t -> psFirstCut subject (doubleCut t) (justAfter q)) delims :: ValueSet (Cut a);
-            mfirstone = do
-            {
-                firstsubj <- psFirstCut subject (justBefore p) (justAfter q);
-                d <- psPrevious delimiter firstsubj;
-                if psNonEmpty subject (doubleCut d) (justBefore firstsubj)
-                then Nothing else Just firstsubj;
-            } :: Maybe (Cut a);
-        } in case mfirstone of
-        {
-            Nothing -> most;
-            Just firstone -> mappend (single firstone) most;
-        }
-    );
-
     -- | the last subject point before delimiter
     pointsLastOnOrBeforePoints :: (Ord a,?last :: a) => PointSet a -> PointSet a -> PointSet a;
     pointsLastOnOrBeforePoints subject delimiter = filterIntersect (\x -> case psFirstCut delimiter (justBefore x) (justAfter ?last) of
@@ -264,27 +319,6 @@ module Data.SetSearch.PointFunction where
         Just d -> not (psNonEmpty subject (justAfter x) (justAfter d)); -- if no subject
         Nothing -> False;
     }) subject;
-
-    -- | the last subject point before delimiter
-    pointsCutLastBeforePoints :: forall a. (Ord a,?last :: Cut a) => PointSet (Cut a) -> PointSet a -> PointSet (Cut a);
-    pointsCutLastBeforePoints subject delimiter = MkPointSet (\p q ->
-        let
-        {
-            delims = psValuesCut delimiter p q :: ValueSet a;
-            most = vsMapMaybe (\t -> psLastCut subject (justBefore p) (doubleCut t)) delims :: ValueSet (Cut a);
-            mlastone = do
-            {
-                lastsubj <- psLastCut subject (justBefore p) (justAfter q);
-                d <- psNext delimiter lastsubj;
-                if psNonEmpty subject (justAfter lastsubj) (doubleCut d)
-                then Nothing else Just lastsubj;
-            } :: Maybe (Cut a);
-        } in case mlastone of
-        {
-            Nothing -> most;
-            Just lastone -> mappend most (single lastone);
-        }
-    );
   
     -- | True if psOn switched on more recently than psOff
     ;

@@ -76,15 +76,15 @@ module Data.SetSearch.PointSet where
             p <- pfValue subject cut;
             case pfPrev subject cut of
             {
-                
+
             };
         },
-        
+
          :: Cut a -> Maybe (),
         pfNextUntil :: Cut a -> Cut a -> Maybe (Cut a),
         pfPrevUntil :: Cut a -> Cut a -> Maybe (Cut a)
     };
-    
+
     MkPointSet (\p q ->
         let
         {
@@ -115,9 +115,9 @@ module Data.SetSearch.PointSet where
             Nothing -> ?last;
             Just d -> d;
         };
-    
+
         goodSubject :: a -> Maybe ();
-        goodSubject a = if pfPoint delimiter a 
+        goodSubject a = if pfPoint delimiter a
         then Just ()
         else case pfNextUntil subject a (pfNextDelimiter a) of
         {
@@ -144,12 +144,9 @@ module Data.SetSearch.PointSet where
                 _ -> Nothing;
             };
         },
-        
+
         pfPrevUntil = \n f -> let
         {
-            -- pfPrevUntil delimiter n f;
-            -- pfPrevUntil subject n f;
-                        
             find x = do
             {
                 s <- pfPrevUntil subject n f;
@@ -164,18 +161,47 @@ module Data.SetSearch.PointSet where
                     {
                         pfValue subject d;
                         return d;
-                    } `mplus` (find d);    
+                    } `mplus` (find d);
                 });
             };
         } in find n
     };
 
-
-{-
     -- | the last subject point before delimiter
-    ;
-    pointsCutLastBeforePoints :: forall a. (Ord a,?last :: Cut a) => PointSet (Cut a) -> PointSet a -> PointSet (Cut a);
-    pointsCutLastBeforePoints subject delimiter = MkPointSet (\p q ->
+    pointsCutLastBeforePoints :: forall a. (Ord a,?last :: Cut a) => PointFunction (Cut a) b -> PointSet a -> PointFunction (Cut a) b;
+    pointsCutLastBeforePoints subject delimiter = let
+    {
+        goodSubject s = 
+    } in MkPointFunction
+    {
+        pfValue = \a -> do
+        {
+            b <- pfValue subject a;
+            goodSubject a;
+            return b;
+        },
+        pfNextUntil = \n f -> do
+        {
+            d <- pfNext delimiter n;
+            pfLastCut subject (doubleCut d) (justAfter n);
+        },
+        pfPrevUntil = \n f -> do
+        {
+            s <- pfPrevUntil subject n f;
+            case goodSubject s of
+            {
+                Just () -> Just s;
+                Nothing -> do
+                {
+                    d <- pfPrevUntil delimiter s f;
+                    pfLastCut subject (doubleCut d) (justAfter f);
+                };
+            };
+        }
+    };
+
+
+     MkPointSet (\p q ->
         let
         {
             delims = psValuesCut delimiter p q :: ValueSet a;
@@ -193,7 +219,28 @@ module Data.SetSearch.PointSet where
             Just lastone -> mappend most (single lastone);
         }
     );
--}  
+
+    -- | the first subject point after delimiter
+    pointsCutFirstAfterPoints :: forall a. (Ord a,?first :: Cut a) => PointFunction (Cut a) b -> PointSet a -> PointFunction (Cut a) b;
+    pointsCutFirstAfterPoints subject delimiter = MkPointSet (\p q ->
+        let
+        {
+            delims = psValuesCut delimiter p q :: ValueSet a;
+            most = vsMapMaybe (\t -> psFirstCut subject (doubleCut t) (justAfter q)) delims :: ValueSet (Cut a);
+            mfirstone = do
+            {
+                firstsubj <- psFirstCut subject (justBefore p) (justAfter q);
+                d <- psPrevious delimiter firstsubj;
+                if psNonEmpty subject (doubleCut d) (justBefore firstsubj)
+                then Nothing else Just firstsubj;
+            } :: Maybe (Cut a);
+        } in case mfirstone of
+        {
+            Nothing -> most;
+            Just firstone -> mappend (single firstone) most;
+        }
+    );
+
     -- | True if psOn switched on more recently than psOff
     ;
     psOnAndOff :: (Ord a,?first :: Cut a) => Bool -> PointSet a -> PointSet a -> Cut a -> Bool;
@@ -206,82 +253,6 @@ module Data.SetSearch.PointSet where
     {
         Nothing -> True; -- never switched off
         Just offtime -> pfNonEmpty psOn (justAfter offtime) cut; -- an on after the off
-    };
-
-    pfProject :: (Eq a,Ord b) => MonotonicInjection a b -> PointFunction a p -> PointFunction b p;
-    pfProject mi pfa = let
-    {
-        ab = projectForwards mi;
-        bma = projectBackwards mi;
-        cutBefore :: Either (Cut a) a -> Cut a;
-        cutBefore (Left cut) = cut;
-        cutBefore (Right a) = justBefore a;
-        cutAfter :: Either (Cut a) a -> Cut a;
-        cutAfter (Left cut) = cut;
-        cutAfter (Right a) = justAfter a;
-    } in MkPointFunction
-    {
-        pfValue = \b -> case bma b of
-        {
-            Right a -> pfValue pfa a;
-            _ -> Nothing;
-        },
-        pfNextUntil = \bn bf -> case cutAfter (bma bn) of
-        {
-            MkCut an Before | pfPoint pfa an -> Just (ab an);
-            MkCut an _ -> let
-            {
-                MkCut af xf = cutAfter (bma bf);
-            } in case (xf,pfNextUntil pfa an af) of
-            {
-                (Before,Just a) | a == af -> Nothing;
-                (_,Just a) -> Just (ab a);
-                _ -> Nothing;
-            };
-        },
-        pfPrevUntil = \bn bf -> case cutBefore (bma bn) of
-        {
-            MkCut an After | pfPoint pfa an -> Just (ab an);
-            MkCut an _ -> let
-            {
-                MkCut af xf = cutBefore (bma bf);
-            } in case (xf,pfPrevUntil pfa an af) of
-            {
-                (After,Just a) | a == af -> Nothing;
-                (_,Just a) -> Just (ab a);
-                _ -> Nothing;
-            };
-        }
-    };
-
-    pfExtract :: (Ord b) => MonotonicInjection a b -> PointFunction b p -> PointFunction a p;
-    pfExtract mi pfb = let
-    {
-        ab = projectForwards mi;
-        bma = projectBackwards mi;
-    } in MkPointFunction
-    {
-        pfValue = \a -> pfValue pfb (ab a),
-        pfNextUntil = \an af -> let
-        {
-            bf = ab af;
-            find bn = case pfNextUntil pfb bn bf of
-            {
-                Just b | Right a <- bma b -> Just a;
-                Just b -> find b;
-                Nothing -> Nothing;
-            };
-        } in find (ab an),
-        pfPrevUntil = \an af -> let
-        {
-            bf = ab af;
-            find bn = case pfPrevUntil pfb bn bf of
-            {
-                Just b | Right a <- bma b -> Just a;
-                Just b -> find b;
-                Nothing -> Nothing;
-            };
-        } in find (ab an)
     };
 
     psEvery :: (Enum a,Ord a) => PointSet a;
@@ -321,7 +292,7 @@ module Data.SetSearch.PointSet where
         {
             pn = back near;
             pf = back far;
-            
+
             find p | p > pf = Nothing;
             find p | Just a <- f p = if a > far then Nothing else if a <= near then find (succ p) else Just a;
             find p = find (succ p);
@@ -330,7 +301,7 @@ module Data.SetSearch.PointSet where
         {
             pn = back near;
             pf = back far;
-            
+
             find p | p < pf = Nothing;
             find p | Just a <- f p = if a < far then Nothing else if a >= near then find (pred p) else Just a;
             find p = find (pred p);

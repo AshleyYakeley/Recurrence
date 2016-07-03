@@ -104,11 +104,11 @@ module Data.SetSearch.Intervals where
         sfUpwardValue = \x -> pfNonEmpty ps (justBefore ?first) (justAfter x), 
         sfPossibleChanges = ps
     };
-{-
+
     intervalsOf :: (Ord a,?first :: Cut a,?last :: Cut a) => PointSet a -> PointSet (Cut a) -> Intervals a;
     intervalsOf subject delimiter =
      intervalsFromToInclusive False (pointsCutLastBeforePoints delimiter subject) (pointsCutFirstAfterPoints delimiter subject);
--}
+
     intervalsOneAfter :: (Ord a) => Cut a -> Intervals a;
     intervalsOneAfter start = MkStepFunction
     {

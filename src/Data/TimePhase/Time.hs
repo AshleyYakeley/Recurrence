@@ -40,14 +40,14 @@ module Data.TimePhase.Time where
     nthIn :: Int -> TimePhase -> TimePhase -> TimePhase;
     nthIn n psubject pdelimiter = let {?first = firstTime} in phaseIntersect psubject
         (fmap ((==) (Just n)) (sfCountSince (phaseStartOf pdelimiter) (phaseStartOf psubject)));
-
+-}
     ofPhase :: TimePhase -> TimePhase -> TimePhase;
     ofPhase picker phase = let 
     {
         ?first = firstTime;
         ?last = lastTime;
     } in phaseOf phase (pointsFromCut (phaseStartOf picker));
--}
+
     startOf :: TimePhase -> PointSet T;
     startOf phase = pointsFromCut (phaseStartOf phase);
 

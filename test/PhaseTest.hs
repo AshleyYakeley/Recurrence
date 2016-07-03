@@ -150,19 +150,14 @@ module Main where
 
         check "31st int" (Just (jbInterval td31st td1st)) (cutNextInterval (toPhase (daysToTimeIntervals (dayOfMonth 31))) (justBefore t0) (justAfter td300));
 
-
-
         check "year end" (Just (justBefore td1st)) (firstAfterUntil (phaseEndOf (toPhase (isYear 1858))) (justBefore t0) ?last);
 
-
-
-{-
         check "of" (Just (jbInterval td1st td2nd))
             (cutNextInterval
                 (ofPhase midnights dayPhase)
                 (justBefore td1st) (justAfter td300)
             );
-
+{-
         check "of each year" (Just (oneDayInterval 160))
             (cutNextInterval
                 (ofPhase (toPhase 
