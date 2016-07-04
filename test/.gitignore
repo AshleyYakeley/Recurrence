@@ -1,0 +1,7 @@
+*.hi
+*.o
+*.out
+ItemTest
+PhaseTest
+PointSetTest
+TestSets

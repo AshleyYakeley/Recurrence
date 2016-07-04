@@ -43,16 +43,16 @@ clean:
 	rm -rf *.out *.run *.o *.hi *.p_o *.p_hi *.prof Makefile.bak TestSets PointSetTest PhaseTest ItemTest
 
 %.phases.cur.out: %.phases
-	timeout 5s ../dist/build/phase-calendar/phase-calendar $< > $@ || echo "Failed with $$?" > $@
+	timeout 5s phase-calendar $< > $@ || echo "Failed with $$?" > $@
 
 %.phases.out: %.phases
-	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" $< > $@ || echo "Failed with $$?" > $@
+	timeout 5s phase-calendar --start "2012-04-17 00:00:00" $< > $@ || echo "Failed with $$?" > $@
 
 %.phases.7d.out: %.phases
-	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 7 $< > $@ || echo "Failed with $$?" > $@
+	timeout 5s phase-calendar --start "2012-04-17 00:00:00" --days 7 $< > $@ || echo "Failed with $$?" > $@
 
 %.phases.10y.out: %.phases
-	timeout 5s ../dist/build/phase-calendar/phase-calendar --start "2012-04-17 00:00:00" --days 3650 $< > $@ || echo "Failed with $$?" > $@
+	timeout 5s phase-calendar --start "2012-04-17 00:00:00" --days 3650 $< > $@ || echo "Failed with $$?" > $@
 
 %.diff: %.ref %.out
 	diff -u $^
