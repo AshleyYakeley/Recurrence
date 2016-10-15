@@ -42,7 +42,10 @@ library
         Data.TimePhase.Atom
         Data.TimePhase.Dict
         Data.TimePhase.Eval
-        Data.TimePhase.Item
+        Data.TimePhase.Calendar.Item
+        Data.TimePhase.Calendar.Show
+        Data.TimePhase.Calendar.Read
+        Data.TimePhase.Calendar
     ghc-options: -Wall -Werror
 
 executable phase-calendar
@@ -68,7 +71,8 @@ test-suite test
     build-depends:
         base,
         tasty,
-        tasty-golden
+        tasty-golden,
+        time-phase
     default-language: Haskell2010
     default-extensions:
     ghc-options: -Wall -Werror

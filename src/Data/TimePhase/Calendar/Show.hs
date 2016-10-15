@@ -1,17 +1,11 @@
-module Data.TimePhase.Item where
+module Data.TimePhase.Calendar.Show(printCalendar) where
 {
     import Data.List;
     import Data.Maybe;
     import Data.Time;
-    import Text.ParserCombinators.ReadPrec;
     import Data.SetSearch;
     import Data.TimePhase.Time;
-    import Data.SExpression;
-    import Data.SExpression.Read;
-    import Data.TimePhase.Atom;
-    import Data.TimePhase.Read;
-    import Data.TimePhase.Value;
-    import Data.TimePhase.Eval;
+    import Data.TimePhase.Calendar.Item;
 
     mergeByPairPresorted :: (a -> a -> Ordering) -> [a] -> [a] -> [a];
     mergeByPairPresorted _cmp aa [] = aa;
@@ -25,29 +19,6 @@ module Data.TimePhase.Item where
     mergeByListPresorted :: (a -> a -> Ordering) -> [[a]] -> [a];
     mergeByListPresorted _cmp [] = [];
     mergeByListPresorted cmp (list:lists) = mergeByPairPresorted cmp list (mergeByListPresorted cmp lists);
-
-
-    data Item = MkItem String TimePhase;
-
-    readPhasesFile :: ReadPrec [SExpression Atom];
-    readPhasesFile = do
-    {
-        exps <- readZeroOrMore readExpression;
-        readAnyWhiteSpace;
-        return exps;
-    };
-
-    interpretItem :: (?now :: T) => SExpression Atom -> M Item;
-    interpretItem (ListSExpression [AtomSExpression (IdentifierAtom name),defn]) = do
-    {
-        value <- evalWithDict defn;
-        phase <- fromValue value;
-        return (MkItem name phase);
-    };
-    interpretItem _ = reportError "S-expression not in correct format";
-
-    readItems :: (?now :: T) => ReadPrec (M [Item]);
-    readItems = fmap (mapM interpretItem) readPhasesFile;
 
     data Interval a = MkInterval (Maybe a) (Maybe a) deriving Eq;
 
@@ -270,7 +241,7 @@ module Data.TimePhase.Item where
         }) (groupByFunc ((fmap localDay) . getStartTime) yearevents);
     }) (groupByFunc ((fmap (yearOfDay . localDay)) . getStartTime) events);
 
-    printCalendar :: T -> T -> [Item] -> IO ();
+    printCalendar :: T -> T -> Calendar -> IO ();
     printCalendar t limit items = let {?context = t} in printEvents events where
     {
         events = mergeByListPresorted compareEvents (fmap (\phase -> allEvents phase t limit) items);

@@ -1,27 +1,11 @@
 module Main where
 {
-    import System.IO;
     import System.Environment;
     import Text.Read;
     import Data.TimePhase.Time;
     import Data.TimePhase;
+    import Data.TimePhase.Calendar;
     import Data.SetSearch;
-
-    doHandle :: (?now :: T) => Handle -> IO [Item];
-    doHandle h = do
-    {
-        text <- hGetContents h;
-        case readPrec_to_S readItems 0 text of
-        {
-            [(mitems,"")] -> case mitems of
-            {
-                Left err -> fail err;
-                Right items -> return items;
-            };
-            [(_,rest)] -> fail ("unreadable: " ++ (show rest));
-            _ -> fail ("unreadable: " ++ (show text));
-        };
-    };
 
     matchArgs :: [String] -> IO ((Maybe T, Maybe Int), [String]);
     matchArgs [] = return ((Nothing,Nothing),[]);
@@ -66,7 +50,7 @@ module Main where
             Just days -> addAffine ((fromIntegral days) * nominalDayLength) start;
             Nothing -> addAffine (60 * nominalDayLength) start;
         });
-        itemlists <- let {?now = now} in mapM (\filepath -> withFile filepath ReadMode (doHandle)) filepaths;
+        itemlists <- let {?now = now} in mapM calendarFromFile filepaths;
         printCalendar start end (concat itemlists);
     };
 }
