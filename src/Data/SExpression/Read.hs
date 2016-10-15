@@ -1,10 +1,8 @@
-module Data.TimePhase.SExpression.Read where
+module Data.SExpression.Read where
 {
     import Data.Maybe;
     import Data.Char;
-    import Data.List;
     import Text.Read;
-    import Text.ParserCombinators.ReadPrec;
 
     readMatching :: (Char -> Bool) -> ReadPrec Char;
     readMatching match = do
@@ -12,7 +10,7 @@ module Data.TimePhase.SExpression.Read where
         found <- get;
         if match found then return found else pfail;
     };
-    
+
     readCollect :: (Char -> Maybe a) -> ReadPrec a;
     readCollect f = do
     {
@@ -23,23 +21,23 @@ module Data.TimePhase.SExpression.Read where
             Nothing -> pfail;
         };
     };
-    
+
     readIsEnd :: ReadPrec Bool;
     readIsEnd = (get >> return False) <++ (return True);
-    
+
     readEnd :: ReadPrec ();
     readEnd = do
     {
         end <- readIsEnd;
         if end then return () else pfail;
     };
-    
+
     readThis :: Char -> ReadPrec ();
     readThis expected = readMatching (\found -> expected == found) >> return ();
-    
+
     readMaybe :: ReadPrec a -> ReadPrec (Maybe a);
     readMaybe reader = (fmap Just reader) <++ (return Nothing);
-    
+
     readOneOrMore :: forall b. ReadPrec b -> ReadPrec [b];
     readOneOrMore reader = do
     {
@@ -47,26 +45,26 @@ module Data.TimePhase.SExpression.Read where
         bs <- readZeroOrMore reader;
         return (b:bs);
     };
-    
+
     readZeroOrMore :: forall b. ReadPrec b -> ReadPrec [b];
     readZeroOrMore reader = (readOneOrMore reader) <++ (return []);
-    
+
     readOneOrMore_ :: forall b. ReadPrec b -> ReadPrec ();
     readOneOrMore_ reader = do
     {
         _ <- reader;
         readZeroOrMore_ reader;
     };
-    
+
     readZeroOrMore_ :: forall b. ReadPrec b -> ReadPrec ();
     readZeroOrMore_ reader = (readOneOrMore_ reader) <++ (return ());
-    
+
     getDigit :: Char -> Maybe Int;
     getDigit c = if isDigit c then Just ((fromEnum c) - (fromEnum '0')) else Nothing;
-    
+
     readDigit :: ReadPrec Int;
     readDigit = readCollect getDigit;
-    
+
     isLineBreak :: Char -> Bool;
     isLineBreak '\r' = True;
     isLineBreak '\n' = True;

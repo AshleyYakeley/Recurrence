@@ -30,9 +30,9 @@ module Main where
 
     testIntervals v1 v2 = let
     {
-        set1 :: Intervals Int = if v1 then full else empty;
-        set2 :: Intervals Int = if v2 then full else empty;
-        context = "Intervals:"++[showBool v1] ++ ":" ++ [showBool v2] ++ ":";
+        set1 :: PieceSet Int = if v1 then full else empty;
+        set2 :: PieceSet Int = if v2 then full else empty;
+        context = "PieceSet:"++[showBool v1] ++ ":" ++ [showBool v2] ++ ":";
     } in testPS context set1 set2;
 
     class DoPair t where

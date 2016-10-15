@@ -1,19 +1,94 @@
-intersection: when, at, during, while, on
+A point set is a set S ⊆ R such that for any interval I, n(S ∩ I) is finite. ("instants")
+
+newtype PointFunction r a = MkPointFunction (r -> r -> [(r,a)])
+type PointSet r = PointFunction r ()
+
+A phase function of T is a point set P together with a function f :: R -> T such that for any a,b ⊂ R, if P ∩ (a,b] = {}, then f(a) = f(b)
+
+data PhaseFunction r a = MkPhaseFunction (PointSet r) (r -> a)
+
+meet' :: p a -> p b ->
+
+
+
+x ∧ y = y ∧ x
+x ∧ (y ∧ z) = (x ∧ y) ∧ z
+x ∧ x = x
+
+x ∨ y = y ∨ x
+x ∨ (y ∨ z) = (x ∨ y) ∨ z
+x ∨ x = x
+
+a ∨ (a ∧ b) = a
+a ∧ (a ∨ b) = a
+
+
+
+A phase set is a set S (subset of R) such that for any closed-open interval I, n(S intersect I) is the union of a finite set of closed-open intervals. ("periods")
+
+A phase is a set S of disjoint closed-open intervals such that given any interval I, n({i mem. S, i int I is non-empty}) is finite
+
+(Avoid before/after cut semantics.)
+
+Operations:
+
+i = point set
+p = phase set
+f = phase
+
+phase-set :: f -> p
+pieces :: p -> f
+
+inverse :: p -> p
+intersect :: p -> p -> p
+intersect :: i -> i -> i
+intersect :: p -> i -> i
+intersect :: i -> p -> i
+union :: p -> p -> p
+union :: i -> i -> i
+uni-not :: i -> i -> i
+uni-not :: (others)
+
+start: p -> i
+end :: p -> i
+between :: i -> i -> p
+
+delay :: diff -> f -> f
+delay :: diff -> p -> p
+delay :: diff -> i -> i
+
+times:
+year :: Int -> p
+month names :: p
+times :: i
+sunrise :: i
+sunset :: i
+daytime :: i = between sunrise sunset
+nighttime :: i = between sunset sunrise
+day :: f
+
+phase-set day = full
+inverse (phase-set day) = empty
+
+
+intersect: when, at, during, while, on
 union: and
 not: not
-intersection not: when not, except
-between, from-to
+intersect not: when not, except
+interval, between, from-to
 start of
 end of
 
 
 
 Grammar:
-(T)
-T T
-not T
-T,T
-T to T
+(A)
+A A = intersect
+not A
+A,A = union
+A to A = between
+T before A = delay negate start
+T after A = delay end
 
 
 
@@ -25,7 +100,7 @@ T to T
 (intersect Thursday (year 2013))
 (interval (delay sunrise -1h) sunrise)
 (nth-after 1 Sunday (nth-after 1 full-moon March-equinox))
-(after (nth-in 6 Friday month))
+(after (nth-in 6 Friday month)) "after the sixth Friday in the month" == ???
 
 
 "from 9pm Saturday to 2am"
@@ -55,6 +130,3 @@ member "Wednesday Thursday"
 
 
 year :: time -> Int
-
-
-

@@ -1,12 +1,12 @@
 module Data.TimePhase.Eval(evalWithDict) where
 {
-    import Data.Traversable;
     import Control.Monad;
-    import Data.TimePhase.SExpression;
+    import Data.SExpression;
+    import Data.TimePhase.Time(M,reportError);
     import Data.TimePhase.Value;
     import Data.TimePhase.Atom;
     import Data.TimePhase.Dict;
-    
+
     eval :: (?dict :: String -> Maybe Value) => SExpression Atom -> M Value;
     eval (AtomSExpression (LiteralAtom value)) = return value;
     eval (AtomSExpression (IdentifierAtom name)) = case ?dict name of
@@ -36,9 +36,9 @@ module Data.TimePhase.Eval(evalWithDict) where
         _ -> reportError "badly-formed let"
     } where
     {
-        findInPairs [] s = Nothing;
+        findInPairs [] _s = Nothing;
         findInPairs ((key,value):_) s | key == s = Just value;
-        findInPairs (_:rest) s = findInPairs rest s;
+        findInPairs (_:rr) s = findInPairs rr s;
     };
     eval (ListSExpression (funexpr:argexprs)) = do
     {
@@ -53,8 +53,7 @@ module Data.TimePhase.Eval(evalWithDict) where
             _ -> reportError "expected function"
         };
     };
-    
+
     evalWithDict :: (?now :: T) => SExpression Atom -> M Value;
     evalWithDict = let {?dict = dict} in eval;
 }
-

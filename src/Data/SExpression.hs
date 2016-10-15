@@ -1,28 +1,36 @@
-module Data.TimePhase.SExpression where
+module Data.SExpression where
 {
     import Data.Char;
     import Data.List;
     import Text.Read;
-    import Text.ParserCombinators.ReadPrec;
-    import Data.TimePhase.SExpression.Read;
+    import Data.SExpression.Read;
 
     data SExpression a = AtomSExpression a | ListSExpression [SExpression a];
-    
+
+    deriving instance Eq a => Eq (SExpression a);
+
     instance Functor SExpression where
     {
         fmap ab (AtomSExpression a) = AtomSExpression (ab a);
         fmap ab (ListSExpression list) = ListSExpression (fmap (fmap ab) list);
     };
-    
+
+    instance Applicative SExpression where
+    {
+        pure = AtomSExpression;
+        (AtomSExpression f) <*> expr = fmap f expr;
+        (ListSExpression lfexp) <*> expr = ListSExpression $ fmap (\fexp -> fexp <*> expr) lfexp;
+    };
+
     showSExpression :: (a -> String) -> SExpression a -> String;
     showSExpression showAtom (AtomSExpression a) = showAtom a;
     showSExpression showAtom (ListSExpression list) = "(" ++ (intercalate " " (fmap (showSExpression showAtom) list)) ++ ")";
-    
+
     instance Show a => Show (SExpression a) where
     {
         show = showSExpression show;
     };
-   
+
     readComment :: ReadPrec ();
     readComment = do
     {
@@ -30,7 +38,7 @@ module Data.TimePhase.SExpression where
         readZeroOrMore_ (readMatching  (not . isLineBreak));
         (readMatching isLineBreak >> return ()) <++ readEnd;
     };
-    
+
     readAnyWhiteSpace :: ReadPrec ();
     readAnyWhiteSpace = readZeroOrMore_ (readComment <++ (readMatching isSpace >> return ()));
 
@@ -41,11 +49,11 @@ module Data.TimePhase.SExpression where
         readExp = do
         {
             readAnyWhiteSpace;
-            (fmap ListSExpression readList) <++ (fmap AtomSExpression readAtom);
+            (fmap ListSExpression readExpList) <++ (fmap AtomSExpression readAtom);
         };
-        
-        readList :: ReadPrec [SExpression a];
-        readList = do
+
+        readExpList :: ReadPrec [SExpression a];
+        readExpList = do
         {
             readThis '(';
             exps <- readZeroOrMore readExp;
@@ -55,7 +63,7 @@ module Data.TimePhase.SExpression where
             return exps;
         };
     };
-    
+
     instance Read a => Read (SExpression a) where
     {
         readPrec = readSExpression readPrec;

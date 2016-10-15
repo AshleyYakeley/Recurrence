@@ -16,21 +16,25 @@ library
         TypeSynonymInstances
         MultiParamTypeClasses
         FlexibleContexts
+        RecordWildCards
+        LambdaCase
+        StandaloneDeriving
+        ExistentialQuantification
+        DefaultSignatures
     build-depends: base, time >= 1.4
     exposed-modules:
+        Data.SetSearch.Base
         Data.SetSearch.Set
         Data.SetSearch.PointFunction
         Data.SetSearch.PointSet
         Data.SetSearch.KnownPointSet
         Data.SetSearch.DeltaSmaller
-        Data.SetSearch.StepFunction
-        Data.SetSearch.Intervals
-        Data.SetSearch.PointCoPointSet
-        Data.SetSearch.Cut
-        Data.SetSearch.Phase
+        Data.SetSearch.PieceFunction
+        Data.SetSearch.PiecePartialFunction
+        Data.SetSearch.PieceSet
         Data.SetSearch
-        Data.TimePhase.SExpression.Read
-        Data.TimePhase.SExpression
+        Data.SExpression.Read
+        Data.SExpression
         Data.TimePhase
         Data.TimePhase.Time
         Data.TimePhase.Read
@@ -39,6 +43,7 @@ library
         Data.TimePhase.Dict
         Data.TimePhase.Eval
         Data.TimePhase.Item
+    ghc-options: -Wall -Werror
 
 executable phase-calendar
     hs-source-dirs: app
@@ -52,5 +57,7 @@ executable phase-calendar
         TypeSynonymInstances
         MultiParamTypeClasses
         FlexibleContexts
+        RecordWildCards
     build-depends: base, time >= 1.4, time-phase == 0.1
     main-is: PhaseCalendar.hs
+    ghc-options: -Wall -Werror

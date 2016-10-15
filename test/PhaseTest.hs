@@ -10,7 +10,7 @@ module Main where
     psMidnight :: PointSet T;
     psMidnight = timeOfDay midnight;
     
-    midnights :: Phase T;
+    midnights :: PiecePartialFunction T;
     midnights = toPhase psMidnight;
 
     check :: (Show a,Eq a) => String -> a -> a -> IO ();
@@ -86,18 +86,18 @@ module Main where
 
     oneDayInterval i = jbInterval (tdmid i) (tdmid (i + 1));
 
-    twoDays :: Intervals T;
-    twoDays = let {?first = firstTime} in intervalsFromTo False (single cb0) (single cb2);
+    twoDays :: PieceSet T;
+    twoDays = let {?first = firstTime} in pieceSetFromToPoints False (single cb0) (single cb2);
 
     psAM1 :: PointSet T;
     psAM1 = timeOfDay (TimeOfDay 1 0 0);
 
     am1 = toPhase psAM1;
 
-    firstHour :: Intervals T;
+    firstHour :: PieceSet T;
     firstHour = fromUntil midnights am1;
 
-    firstHourAnd :: Intervals T;
+    firstHourAnd :: PieceSet T;
     firstHourAnd = fromTo midnights am1;
 
     main :: IO ();
@@ -107,31 +107,31 @@ module Main where
         check "is points union" True (member (union psMidnight psMidnight) t0);
         check "is points union empty 1" True (member (union psMidnight empty) t0);
         check "is points union empty 2" True (member (union empty psMidnight) t0);
-        check "is phase" True (member (phaseSet midnights) t0);
+        check "is phase" True (member (piecePartialToSet midnights) t0);
         check "is startof" True (member (startOf midnights) t0);
-        check "is phaseStartOf" True (member (phaseStartOf midnights) cb0);
+        check "is piecePartialStarts" True (member (piecePartialStarts midnights) cb0);
 
         check "firstHour 00:00" True (member firstHour t0);
         
-        check "firstHour 00:00 change before" True (member (sfChanges firstHour) cb0);
-        check "firstHour 00:00 change after" False (member (sfChanges firstHour) ca0);
+        check "firstHour 00:00 change before" True (member (pieceChanges firstHour) cb0);
+        check "firstHour 00:00 change after" False (member (pieceChanges firstHour) ca0);
         check "firstHour 00:30" True (member firstHour t005);
-        check "firstHour 00:30 change before" False (member (sfChanges firstHour) (justBefore t005));
-        check "firstHour 00:30 change after" False (member (sfChanges firstHour) (justAfter t005));
+        check "firstHour 00:30 change before" False (member (pieceChanges firstHour) (justBefore t005));
+        check "firstHour 00:30 change after" False (member (pieceChanges firstHour) (justAfter t005));
 
         check "firstHour 01:00" False (member firstHour t01);
-        check "firstHour 01:00 change before" True (member (sfChanges firstHour) cb01);
-        check "firstHour 01:00 change after" False (member (sfChanges firstHour) ca01);
+        check "firstHour 01:00 change before" True (member (pieceChanges firstHour) cb01);
+        check "firstHour 01:00 change after" False (member (pieceChanges firstHour) ca01);
 
         check "firstHourAnd 01:00" True (member firstHourAnd t01);
-        check "firstHourAnd 01:00 change before" False (member (sfChanges firstHourAnd) cb01);
-        check "firstHourAnd 01:00 change after" True (member (sfChanges firstHourAnd) ca01);
+        check "firstHourAnd 01:00 change before" False (member (pieceChanges firstHourAnd) cb01);
+        check "firstHourAnd 01:00 change after" True (member (pieceChanges firstHourAnd) ca01);
         
-        check "change end firstHour" (Just cb01) (firstAfterUntil (sfChanges firstHour) cb005 cb2);
+        check "change end firstHour" (Just cb01) (firstAfterUntil (pieceChanges firstHour) cb005 cb2);
 
-        check "endOf1am" (Just ca01) (firstAfterUntil (phaseEndOf am1) cb0 cb2);
-        check "endOfFirstHour" (Just cb01) (firstAfterUntil (phaseEndOf (toPhase firstHour)) cb0 cb2);
-        check "endOfFirstHourAnd" (Just ca01) (firstAfterUntil (phaseEndOf (toPhase firstHourAnd)) cb0 cb2);
+        check "endOf1am" (Just ca01) (firstAfterUntil (piecePartialEnds am1) cb0 cb2);
+        check "endOfFirstHour" (Just cb01) (firstAfterUntil (piecePartialEnds (toPhase firstHour)) cb0 cb2);
+        check "endOfFirstHourAnd" (Just ca01) (firstAfterUntil (piecePartialEnds (toPhase firstHourAnd)) cb0 cb2);
 
 
         check "next t0 False" (Just (pointInterval t0)) (cutNextInterval midnights (justBefore t0) (justBefore t2));
@@ -150,7 +150,7 @@ module Main where
 
         check "31st int" (Just (jbInterval td31st td1st)) (cutNextInterval (toPhase (daysToTimeIntervals (dayOfMonth 31))) (justBefore t0) (justAfter td300));
 
-        check "year end" (Just (justBefore td1st)) (firstAfterUntil (phaseEndOf (toPhase (isYear 1858))) (justBefore t0) ?last);
+        check "year end" (Just (justBefore td1st)) (firstAfterUntil (piecePartialEnds (toPhase (isYear 1858))) (justBefore t0) ?last);
 
         check "of" (Just (jbInterval td1st td2nd))
             (cutNextInterval
@@ -177,8 +177,8 @@ module Main where
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
                 times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
-                ints = intersect times days :: Intervals T;
-                intstarts = intervalsStartOf ints :: PointSet (Cut T);
+                ints = intersect times days :: PieceSet T;
+                intstarts = piecePartialStarts ints :: PointSet (Cut T);
                 ps = pointsFromCut intstarts :: PointSet T;
             } in psPrevious ps (justBefore td1st)
             );
@@ -189,13 +189,13 @@ module Main where
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
                 times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
-                ints = intersect times days :: Intervals T;
-                ps = pointsFromCut (intervalsStartOf ints) :: PointSet T;
+                ints = intersect times days :: PieceSet T;
+                ps = pointsFromCut (piecePartialStarts ints) :: PointSet T;
                 cutsbefore = pointsCutLastBeforePoints beforeDay ps;
                 cutsafter = pointsCutFirstAfterPoints beforeDay ps;
-                intsof = intervalsFromToInclusive False cutsbefore cutsafter :: Intervals T;
+                intsof = intervalsFromToInclusive False cutsbefore cutsafter :: PieceSet T;
                 intsofbefore = sfCutBefore intsof;
-                starts = intervalsIntersect beforeDay intsofbefore;
+                starts = pointIntersectPiece beforeDay intsofbefore;
             } in vsFirst (psValues starts (justBefore td1st) (justAfter td300))
             );
         check "of this year 5" Nothing
@@ -203,11 +203,11 @@ module Main where
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
                 times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
-                ints = intersect times days :: Intervals T;
-                ps = pointsFromCut (intervalsStartOf ints) :: PointSet T;
-                intsof = intervalsOf ps beforeDay :: Intervals T;
+                ints = intersect times days :: PieceSet T;
+                ps = pointsFromCut (piecePartialStarts ints) :: PointSet T;
+                intsof = intervalsOf ps beforeDay :: PieceSet T;
                 intsofbefore = sfCutBefore intsof;
-                starts = intervalsIntersect beforeDay intsofbefore;
+                starts = pointIntersectPiece beforeDay intsofbefore;
             } in vsFirst (psValues starts (justBefore td1st) (justAfter td300))
             );
         check "of this year 4" Nothing
@@ -215,10 +215,10 @@ module Main where
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
                 times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
-                ints = intersect times days :: Intervals T;
-                ps = pointsFromCut (intervalsStartOf ints);
-                intsof = intervalsOf ps (phaseStartOf dayPhase);
-                starts = intervalsIntersect (phaseStartOf dayPhase) (sfCutBefore intsof)
+                ints = intersect times days :: PieceSet T;
+                ps = pointsFromCut (piecePartialStarts ints);
+                intsof = intervalsOf ps (piecePartialStarts dayPhase);
+                starts = pointIntersectPiece (piecePartialStarts dayPhase) (sfCutBefore intsof)
             } in vsFirst (psValues starts (justBefore td1st) (justAfter td300))
             );
         check "of this year 3" Nothing
@@ -226,9 +226,9 @@ module Main where
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
                 times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
-                ints = intersect times days :: Intervals T;
-                result = phaseOf dayPhase (pointsFromCut (intervalsStartOf ints));
-                starts = phaseStartOf result;
+                ints = intersect times days :: PieceSet T;
+                result = phaseOf dayPhase (pointsFromCut (piecePartialStarts ints));
+                starts = piecePartialStarts result;
             } in vsFirst (psValues starts (justBefore td1st) (justAfter td300))
             );
         check "of this year 2" (Just (oneDayInterval 160))
@@ -236,8 +236,8 @@ module Main where
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
                 times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
-                ints = intersect times days :: Intervals T;
-                result = phaseOf dayPhase (pointsFromCut (phaseStartOf (toPhase ints)));
+                ints = intersect times days :: PieceSet T;
+                result = phaseOf dayPhase (pointsFromCut (piecePartialStarts (toPhase ints)));
             } in cutNextInterval result (justBefore td1st) (justAfter td300)
             );
         check "of this year 1" (Just (oneDayInterval 160))
@@ -245,7 +245,7 @@ module Main where
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
                 times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
-                ints = intersect times days :: Intervals T;
+                ints = intersect times days :: PieceSet T;
                 result = ofPhase (toPhase ints) dayPhase;
             } in cutNextInterval result (justBefore td1st) (justAfter td300)
             );

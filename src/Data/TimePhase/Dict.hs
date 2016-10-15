@@ -1,33 +1,37 @@
 module Data.TimePhase.Dict (dict,T) where
 {
-    import Data.Fixed;
     import Data.Time;
     import Data.Time.Calendar.Easter;
     import Data.SetSearch;
     import Data.TimePhase.Time;
     import Data.TimePhase.Value;
 
-    phaseIntersectAll :: Maybe (TimePhase,[Intervals T]) -> TimePhase;
-    phaseIntersectAll Nothing = phaseFull;
+    phaseIntersectAll :: Maybe (TimePhase,[TimePhase]) -> TimePhase;
+    phaseIntersectAll Nothing = tpAlways;
     phaseIntersectAll (Just (phase,sets)) = f sets where
     {
         f [] = phase;
-        f (s:ss) = phaseIntersect (f ss) s;
+        f (s:ss) = tpIntersect (f ss) s;
     };
 
-    phaseUnionAll :: Maybe (TimePhase,[Intervals T]) -> TimePhase;
-    phaseUnionAll Nothing = phaseEmpty;
+    phaseUnionAll :: Maybe (TimePhase,[TimePhase]) -> M TimePhase;
+    phaseUnionAll Nothing = return tpNever;
     phaseUnionAll (Just (phase,sets)) = f sets where
     {
-        f [] = phase;
-        f (s:ss) = phaseUnion (f ss) s;
+        f [] = return phase;
+        f (s:ss) = do
+        {
+            r <- f ss;
+            tpUnion s r;
+        };
     };
 
     dict :: (?now :: T) => String -> Maybe Value;
 
-    dict "never" = Just (toValue (phaseEmpty :: TimePhase));
-    dict "always" = Just (toValue (phaseFull :: TimePhase));
-    dict "not" = Just (toValue (phaseInvert :: TimePhase -> TimePhase));
+    dict "never" = Just (toValue (tpNever :: TimePhase));
+    dict "always" = Just (toValue (tpAlways :: TimePhase));
+    dict "not" = Just (toValue (tpInvert :: TimePhase -> M TimePhase));
+    dict "except" = Just (toValue (tpDiff :: TimePhase -> TimePhase -> M TimePhase));
     dict "when" = Just (toValue phaseIntersectAll);
     dict "and" = Just (toValue phaseUnionAll);
     dict "start" = Just (toValue startOf);
@@ -36,12 +40,10 @@ module Data.TimePhase.Dict (dict,T) where
     dict "through" = Just (toValue fromTo);
     dict "from" = Just (toValue onAfter);
     dict "until" = Just (toValue (invert . onAfter));
-{-
     dict "nth" = Just (toValue nthIn);
     dict "of" = Just (toValue ofPhase);
--}
-    dict "all" = Just (toValue (id :: Intervals T -> Intervals T));
-    
+    dict "all" = Just (toValue (id :: PieceSet T -> PieceSet T));
+
     dict "delay" = Just (toValue (delay :: NominalDiffTime -> TimePhase -> TimePhase));
 
     dict "now" = Just (toValue (single ?now :: PointSet T));
@@ -75,5 +77,5 @@ module Data.TimePhase.Dict (dict,T) where
 
     dict "Easter" = Just (toValue (dayEachYear gregorianEaster));
 
-    dict s = Nothing;
+    dict _s = Nothing;
 }

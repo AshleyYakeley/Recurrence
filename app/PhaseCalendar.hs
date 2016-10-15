@@ -2,16 +2,12 @@ module Main where
 {
     import System.IO;
     import System.Environment;
-    import Data.Time;
     import Text.Read;
-    import Text.ParserCombinators.ReadPrec;
     import Data.TimePhase.Time;
-    import Data.TimePhase.SExpression;
     import Data.TimePhase;
-    import Data.TimePhase.Value;
     import Data.SetSearch;
-    
-    doHandle :: (?now :: T) => Handle -> IO [Item T];
+
+    doHandle :: (?now :: T) => Handle -> IO [Item];
     doHandle h = do
     {
         text <- hGetContents h;
@@ -27,6 +23,7 @@ module Main where
         };
     };
 
+    matchArgs :: [String] -> IO ((Maybe T, Maybe Int), [String]);
     matchArgs [] = return ((Nothing,Nothing),[]);
     matchArgs ("--start":t:args) = do
     {
@@ -52,7 +49,7 @@ module Main where
         (opts,files) <- matchArgs args;
         return (opts,f:files);
     };
-    
+
     main :: IO ();
     main = do
     {
@@ -67,9 +64,9 @@ module Main where
         end <- return (case mdays of
         {
             Just days -> addAffine ((fromIntegral days) * nominalDayLength) start;
-            Nothing -> addAffine ((fromIntegral 60) * nominalDayLength) start;
+            Nothing -> addAffine (60 * nominalDayLength) start;
         });
         itemlists <- let {?now = now} in mapM (\filepath -> withFile filepath ReadMode (doHandle)) filepaths;
-        printItems start end (concat itemlists);
+        printCalendar start end (concat itemlists);
     };
 }

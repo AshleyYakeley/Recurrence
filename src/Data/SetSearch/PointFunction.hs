@@ -1,372 +1,145 @@
 module Data.SetSearch.PointFunction where
 {
     import Data.Maybe;
-    import Data.Monoid;
-    import Control.Monad;
-    import Data.SetSearch.Set;
-    import Data.SetSearch.Cut;
+    import Data.SetSearch.Base;
 
-    data PointFunction a b = MkPointFunction
+    -- | f a0 a1 gives an ordered list, strictly ascending if a1 >= a0, and strictly descending if a1 <= a0.
+    ;
+    newtype PointFunction a b = MkPointFunction {pointsIncluding :: a -> a -> [(a,b)]};
+
+    compareRel :: Ord a => (a,a) -> a -> a -> Ordering;
+    compareRel (ref0,ref1) a0 a1 = case compare ref0 ref1 of
     {
-        pfValue :: a -> Maybe b,
-        pfNextUntil :: a -> a -> Maybe a,
-        pfPrevUntil :: a -> a -> Maybe a
+        EQ -> EQ;
+        LT -> compare a0 a1;
+        GT -> compare a1 a0;
     };
-    
-    pfPoint :: PointFunction a b -> a -> Bool;
-    pfPoint pf a = isJust (pfValue pf a);
-    
+
+    listFromTo :: (Ord t,Enum t) => t -> t -> [t];
+    listFromTo t0 t1 | t1 >= t0 = [t0..t1];
+    listFromTo t0 t1 = descend t0 where
+    {
+        descend t | t < t1 = [];
+        descend t = t:(descend $ pred t);
+    };
+
+    pointEval :: PointFunction a b -> a -> Maybe b;
+    pointEval (MkPointFunction f) a = case f a a of
+    {
+        [] -> Nothing;
+        (_,b):_ -> Just b;
+    };
+
+    pointIs :: PointFunction a b -> a -> Bool;
+    pointIs pf a = isJust (pointEval pf a);
+
     instance BasedOn (PointFunction a b) where
     {
         type Base (PointFunction a b) = a;
     };
-    
+
+    -- | Only works if functions are strictly monotonic.
     instance RemapBase (PointFunction a x) (PointFunction b x) where
     {
-        remapBase ab ba pf = MkPointFunction
-        {
-            pfValue = \b -> pfValue pf (ba b),
-            pfNextUntil = \b1 b2 -> fmap ab (pfNextUntil pf (ba b1) (ba b2)),
-            pfPrevUntil = \b1 b2 -> fmap ab (pfPrevUntil pf (ba b1) (ba b2))
-        };
+        remapBase ab ba (MkPointFunction f) = MkPointFunction $ \b1 b2 -> fmap (\(a,x) -> (ab a,x)) (f (ba b1) (ba b2));
     };
 
     instance Functor (PointFunction a) where
     {
-        fmap pq pf = MkPointFunction
+        fmap pq (MkPointFunction f) = MkPointFunction $ \a1 a2 -> fmap (\(a,p) -> (a,pq p)) (f a1 a2);
+    };
+
+    pointClosestIncluding :: PointFunction a b -> a -> a -> Maybe (a,b);
+    pointClosestIncluding (MkPointFunction f) a0 a1 = case f a0 a1 of
+    {
+        [] -> Nothing;
+        ab:_ -> Just ab;
+    };
+
+    pointClosestExcluding :: Eq a => PointFunction a b -> a -> a -> Maybe (a,b);
+    pointClosestExcluding (MkPointFunction f) a0 a1 = case f a0 a1 of
+    {
+        [] -> Nothing;
+        (a,_):[] | a == a0 -> Nothing;
+        (a,_):ab:_ | a == a0 -> Just ab;
+        ab:_ -> Just ab;
+    };
+
+    pointNever :: PointFunction a b;
+    pointNever = MkPointFunction $ \_ _ -> [];
+
+    pointSingle :: (Ord a) => b -> a -> PointFunction a b;
+    pointSingle b a = MkPointFunction $ \a1 a2 -> case (compare a a1,compare a a2) of
+    {
+        (LT,LT) -> [];
+        (GT,GT) -> [];
+        _ -> [(a,b)];
+    };
+
+    pointBoth :: (Ord a) => PointFunction a p -> PointFunction a q -> PointFunction a (p,q);
+    pointBoth (MkPointFunction fp) (MkPointFunction fq) = MkPointFunction $ \a0 a1 -> let
+    {
+        aps = fp a0 a1;
+        aqs = fq a0 a1;
+        matchup pp@((pa,p):ppr) qq@((qa,q):qqr) = case compareRel (a0,a1) pa qa of
         {
-            pfValue = \a -> fmap pq (pfValue pf a),
-            pfNextUntil = pfNextUntil pf,
-            pfPrevUntil = pfPrevUntil pf
+            EQ -> (pa,(p,q)):(matchup ppr qqr);
+            LT -> matchup ppr qq;
+            GT -> matchup pp qqr;
         };
-    };
+        matchup _ _ = [];
+    }
+    in matchup aps aqs;
 
-    pfNever :: PointFunction a b;
-    pfNever = MkPointFunction
+    pointBase :: PointFunction a p -> PointFunction a (a,p);
+    pointBase (MkPointFunction f) = MkPointFunction $ \a0 a1 -> fmap (\ap@(a,_) -> (a,ap)) (f a0 a1);
+
+    pointCollect :: (a -> p -> Maybe q) -> PointFunction a p -> PointFunction a q;
+    pointCollect apmq (MkPointFunction f) = MkPointFunction $ \a0 a1 -> mapMaybe (\(a,p) -> fmap (\q -> (a,q)) (apmq a p)) (f a0 a1);
+
+    pointFilter :: (a -> p -> Bool) -> PointFunction a p -> PointFunction a p;
+    pointFilter apB = pointCollect (\a p -> if apB a p then Just p else Nothing);
+
+    pointReduce :: PointFunction a (Maybe p) -> PointFunction a p;
+    pointReduce = pointCollect (\_ mp -> mp);
+
+    data EitherBoth a b = EBLeft a | EBRight b | EBBoth a b;
+
+    deriving instance (Eq a,Eq b) => Eq (EitherBoth a b);
+
+    toEitherBoth :: Maybe a -> Maybe b -> Maybe (EitherBoth a b);
+    toEitherBoth Nothing Nothing = Nothing;
+    toEitherBoth (Just a) Nothing = Just (EBLeft a);
+    toEitherBoth Nothing (Just b) = Just (EBRight b);
+    toEitherBoth (Just a) (Just b) = Just (EBBoth a b);
+
+    pointEitherBoth :: (Ord a) => PointFunction a p -> PointFunction a q -> PointFunction a (EitherBoth p q);
+    pointEitherBoth (MkPointFunction pfp) (MkPointFunction pfq) = MkPointFunction $ \a0 a1 -> let
     {
-        pfValue = \_ -> Nothing,
-        pfNextUntil = \_ _ -> Nothing,
-        pfPrevUntil = \_ _ -> Nothing
-    };
-
-    pfSingle :: (Ord a) => b -> a -> PointFunction a b;
-    pfSingle b a = MkPointFunction
-    {
-        pfValue = \a' -> if a == a' then Just b else Nothing,
-        pfNextUntil = \anear afar -> if (a > anear) && (a <= afar) then Just a else Nothing,
-        pfPrevUntil = \anear afar -> if (a < anear) && (a >= afar) then Just a else Nothing
-    };
-
-    pfProduct :: (Ord a) => PointFunction a p -> PointFunction a q -> PointFunction a (p,q);
-    pfProduct pfp pfq = MkPointFunction
-    {
-        pfValue = \a -> do
+        aps = pfp a0 a1;
+        aqs = pfq a0 a1;
+        merge [] [] = [];
+        merge ((a,p):rest) [] = (a,EBLeft p):(merge rest []);
+        merge [] ((a,q):rest) = (a,EBRight q):(merge [] rest);
+        merge pp@((pa,p):restp) qq@((qa,q):restq) = case compareRel (a0,a1) pa qa of
         {
-            p <- pfValue pfp a;
-            q <- pfValue pfq a;
-            return (p,q);
-        },
-        pfNextUntil = \anear afar -> let
-        {
-            f a | a >= afar = Nothing;
-            f a = do
-            {
-                ap <- pfNextUntil pfp a afar;
-                aq <- pfNextUntil pfq a afar;
-                case compare ap aq of
-                {
-                    EQ -> return ap;
-                    LT -> if pfPoint pfp aq then return aq else f aq;
-                    GT -> if pfPoint pfq ap then return ap else f ap;
-                };
-            };
-        } in f anear,
-        pfPrevUntil = \anear afar ->
-        let
-        {
-            f a | a <= afar = Nothing;
-            f a = do
-            {
-                ap <- pfPrevUntil pfp a afar;
-                aq <- pfPrevUntil pfq a afar;
-                case compare ap aq of
-                {
-                    EQ -> return ap;
-                    GT -> if pfPoint pfp aq then return aq else f aq;
-                    LT -> if pfPoint pfq ap then return ap else f ap;
-                };
-            };
-        } in f anear
-    };
-
-    pfBase :: PointFunction a p -> PointFunction a a;
-    pfBase pf = MkPointFunction
-    {
-        pfValue = \a -> do
-        {
-            _ <- pfValue pf a;
-            return a;
-        },
-        pfNextUntil = pfNextUntil pf,
-        pfPrevUntil = pfPrevUntil pf
-    };
-
-    pfCollect :: (Ord a) => (a -> p -> Maybe q) -> PointFunction a p -> PointFunction a q;
-    pfCollect apmq pf = MkPointFunction
-    {
-        pfValue = \a -> do
-        {
-            p <- pfValue pf a;
-            apmq a p;
-        },
-        pfNextUntil = \anear afar -> let
-        {
-            f a | a >= afar = Nothing;
-            f a = do
-            {
-                ap <- pfNextUntil pf a afar;
-                case pfValue pf ap of
-                {
-                    Just p | Just _ <- apmq ap p -> return ap;
-                    _ -> f ap;
-                };
-            };
-        } in f anear,
-        pfPrevUntil = \anear afar ->
-        let
-        {
-            f a | a <= afar = Nothing;
-            f a = do
-            {
-                ap <- pfPrevUntil pf a afar;
-                case pfValue pf ap of
-                {
-                    Just p | Just _ <- apmq ap p -> return ap;
-                    _ -> f ap;
-                };
-            };
-        } in f anear
-    };
-
-    pfFilter :: (Ord a) => (a -> p -> Bool) -> PointFunction a p -> PointFunction a p;
-    pfFilter apB = pfCollect (\a p -> if apB a p then Just p else Nothing);
-
-    pfReduce :: (Ord a) => PointFunction a (Maybe p) -> PointFunction a p;
-    pfReduce = pfCollect (\_ mp -> mp);
-
-    pfSum :: (Ord a) => PointFunction a p -> PointFunction a q -> PointFunction a (Either (p,q) (Either p q));
-    pfSum pfp pfq = MkPointFunction
-    {
-        pfValue = \a -> case (pfValue pfp a,pfValue pfq a) of
-        {
-            (Nothing,Nothing) -> Nothing;
-            (Just p,Nothing) -> Just (Right (Left p));
-            (Nothing,Just q) -> Just (Right (Right q));
-            (Just p,Just q) -> Just (Left (p,q));
-        },
-        pfNextUntil = \anear afar -> case pfNextUntil pfp anear afar of
-        {
-            Just ap -> case pfNextUntil pfq anear ap of
-            {
-                Just aq -> Just aq;
-                Nothing -> Just ap;
-            };
-            Nothing -> pfNextUntil pfq anear afar;
-        },
-        pfPrevUntil = \anear afar -> case pfPrevUntil pfp anear afar of
-        {
-            Just ap -> case pfPrevUntil pfq anear ap of
-            {
-                Just aq -> Just aq;
-                Nothing -> Just ap;
-            };
-            Nothing -> pfPrevUntil pfq anear afar;
-        }
-    };
-
-    pfDiff :: (Ord a) => PointFunction a p -> PointFunction a q -> PointFunction a p;
-    pfDiff pfp pfq = pfFilter (\a _ -> not (isJust (pfValue pfq a))) pfp;
-    
-    pfSymDiff :: (Ord a) => PointFunction a p -> PointFunction a q -> PointFunction a (Either p q);
-    pfSymDiff pfp pfq = pfCollect (\_ epqepq -> case epqepq of
-    {
-        Right epq -> Just epq;
-        _ -> Nothing;
-    }) (pfSum pfp pfq);
-    
-    pfFirstCut :: (Ord a) => PointFunction a b -> Cut a -> Cut a -> Maybe a;
-    pfFirstCut pf (MkCut an xn) (MkCut af xf) = case xn of
-    {
-        Before | pfPoint pf an -> Just an;
-        _ -> case (pfNextUntil pf an af,xf) of
-        {
-            (Just a,Before) | a == af -> Nothing;
-            (ma,_) -> ma;
+            EQ -> (pa,EBBoth p q):(merge restp restq);
+            LT -> (pa,EBLeft p):(merge restp qq);
+            GT -> (qa,EBRight q):(merge pp restq);
         };
-    };
-    
-    pfLastCut :: (Ord a) => PointFunction a b -> Cut a -> Cut a -> Maybe a;
-    pfLastCut pf (MkCut an xn) (MkCut af xf) = case xn of
-    {
-        After | pfPoint pf an -> Just an;
-        _ -> case (pfPrevUntil pf an af,xf) of
-        {
-            (Just a,After) | a == af -> Nothing;
-            (ma,_) -> ma;
-        };
-    };
+    } in merge aps aqs;
 
-    pfNonEmpty :: (Ord a) => PointFunction a b -> Cut a -> Cut a -> Bool;
-    pfNonEmpty ps an af = isJust (pfFirstCut ps an af);
+    pointDiff :: PointFunction a p -> PointFunction a q -> PointFunction a p;
+    pointDiff pfp pfq = pointFilter (\a _ -> not (isJust (pointEval pfq a))) pfp;
 
-    pfPrev :: (Ord a,?first :: Cut a) => PointFunction a b -> Cut a -> Maybe a;
-    pfPrev ps x = pfLastCut ps x ?first;
+    pointSymDiff :: (Ord a) => PointFunction a p -> PointFunction a q -> PointFunction a (Either p q);
+    pointSymDiff pfp pfq = pointCollect (\_ epqepq -> case epqepq of
+    {
+        EBLeft p -> Just (Left p);
+        EBRight q -> Just (Right q);
+        EBBoth _ _ -> Nothing;
+    }) (pointEitherBoth pfp pfq);
 
-    pfNext :: (Ord a,?last :: Cut a) => PointFunction a b -> Cut a -> Maybe a;
-    pfNext ps x = pfFirstCut ps x ?last;
-
-    pfProject :: (Eq a,Ord b) => MonotonicInjection a b -> PointFunction a p -> PointFunction b p;
-    pfProject mi pfa = let
-    {
-        ab = projectForwards mi;
-        bma = projectBackwards mi;
-        cutBefore :: Either (Cut a) a -> Cut a;
-        cutBefore (Left cut) = cut;
-        cutBefore (Right a) = justBefore a;
-        cutAfter :: Either (Cut a) a -> Cut a;
-        cutAfter (Left cut) = cut;
-        cutAfter (Right a) = justAfter a;
-    } in MkPointFunction
-    {
-        pfValue = \b -> case bma b of
-        {
-            Right a -> pfValue pfa a;
-            _ -> Nothing;
-        },
-        pfNextUntil = \bn bf -> case cutAfter (bma bn) of
-        {
-            MkCut an Before | pfPoint pfa an -> Just (ab an);
-            MkCut an _ -> let
-            {
-                MkCut af xf = cutAfter (bma bf);
-            } in case (xf,pfNextUntil pfa an af) of
-            {
-                (Before,Just a) | a == af -> Nothing;
-                (_,Just a) -> Just (ab a);
-                _ -> Nothing;
-            };
-        },
-        pfPrevUntil = \bn bf -> case cutBefore (bma bn) of
-        {
-            MkCut an After | pfPoint pfa an -> Just (ab an);
-            MkCut an _ -> let
-            {
-                MkCut af xf = cutBefore (bma bf);
-            } in case (xf,pfPrevUntil pfa an af) of
-            {
-                (After,Just a) | a == af -> Nothing;
-                (_,Just a) -> Just (ab a);
-                _ -> Nothing;
-            };
-        }
-    };
-
-    pfExtract :: (Ord b) => MonotonicInjection a b -> PointFunction b p -> PointFunction a p;
-    pfExtract mi pfb = let
-    {
-        ab = projectForwards mi;
-        bma = projectBackwards mi;
-    } in MkPointFunction
-    {
-        pfValue = \a -> pfValue pfb (ab a),
-        pfNextUntil = \an af -> let
-        {
-            bf = ab af;
-            find bn = case pfNextUntil pfb bn bf of
-            {
-                Just b | Right a <- bma b -> Just a;
-                Just b -> find b;
-                Nothing -> Nothing;
-            };
-        } in find (ab an),
-        pfPrevUntil = \an af -> let
-        {
-            bf = ab af;
-            find bn = case pfPrevUntil pfb bn bf of
-            {
-                Just b | Right a <- bma b -> Just a;
-                Just b -> find b;
-                Nothing -> Nothing;
-            };
-        } in find (ab an)
-    };
-
-{-
-    -- | the first subject point on or after delimiter
-    pointsFirstFrom :: (Ord a,?first :: Cut a) => PointSet a -> PointSet a -> PointSet a;
-    pointsFirstFrom subject delimiter = filterIntersect (\x -> case psPrevious delimiter (justBefore x) of
-    {
-        -- the previous delimiter
-        Just d -> not (psNonEmpty subject (justBefore d) (justBefore x)); -- if no subject
-        Nothing -> False;
-    }) subject;
-
-    -- | the last subject point before delimiter
-    pointsLastOnOrBeforePoints :: (Ord a,?last :: a) => PointSet a -> PointSet a -> PointSet a;
-    pointsLastOnOrBeforePoints subject delimiter = filterIntersect (\x -> case psFirstCut delimiter (justBefore x) (justAfter ?last) of
-    {
-        -- the next delimiter
-        Just d -> not (psNonEmpty subject (justAfter x) (justAfter d)); -- if no subject
-        Nothing -> False;
-    }) subject;
-  
-    -- | True if psOn switched on more recently than psOff
-    ;
-    psOnAndOff :: (Ord a,?first :: Cut a) => Bool -> PointSet a -> PointSet a -> Cut a -> Bool;
-    psOnAndOff False psOn psOff cut = case psPrevious psOn cut of
-    {
-        Nothing -> False; -- never switched on
-        Just ontime -> not (psNonEmpty psOff (justBefore ontime) cut);
-    };
-    psOnAndOff True psOn psOff cut = case psPrevious psOff cut of
-    {
-        Nothing -> True; -- never switched off
-        Just offtime -> psNonEmpty psOn (justAfter offtime) cut; -- an on after the off
-    };
-
-    pointsCutBefore :: (Ord a) => PointSet a -> PointSet (Cut a);
-    pointsCutBefore (MkPointSet vf) = MkPointSet (\(MkCut p xp) (MkCut q _) -> fmap justBefore ((case xp of
-    {
-        Before -> id;
-        After -> filterIntersect ((/=) p);
-    }) (vf p q)));
-
-    pointsCutAfter :: (Ord a) => PointSet a -> PointSet (Cut a);
-    pointsCutAfter (MkPointSet vf) = MkPointSet (\(MkCut p _) (MkCut q xq) -> fmap justAfter ((case xq of
-    {
-        Before -> filterIntersect ((/=) q);
-        After -> id;
-    }) (vf p q)));
-
-    pointsCutBoth :: (Ord a) => PointSet a -> PointSet (Cut a);
-    pointsCutBoth points = union (pointsCutBefore points) (pointsCutAfter points);
-
-    pointsFromCut :: (Ord a) => PointSet (Cut a) -> PointSet a;
-    pointsFromCut (MkPointSet vf) = MkPointSet (\p q -> fmap (\(MkCut x _) -> x) (vf (justBefore p) (justAfter q)));
-
-    pointsSearch :: (Enum t,Ord t,Ord a) => (a -> t) -> (t -> Maybe a) -> PointSet a;
-    pointsSearch back f = MkPointSet (\p q -> let
-    {
-        tp = back p;
-        tq = back q;
-    
-        forwards t | t > tq = [];
-        forwards t | Just a <- f t = if a > q then [] else if a < p then (forwards (succ t)) else a:(forwards (succ t));
-        forwards t = forwards (succ t);
-        
-        backwards t | t < tp = [];
-        backwards t | Just a <- f t = if a < p then [] else if a > q then (backwards (pred t)) else a:(backwards (pred t));
-        backwards t = backwards (pred t);
-     } in mkValueSet (forwards tp) (backwards tq));
--}
+    pointsExcluding :: Eq a => PointFunction a p -> (a,a) -> [(a,p)];
+    pointsExcluding (MkPointFunction f) (a0,a1) = filter (\(a,_) -> a /= a0 && a /= a1) $ f a0 a1;
 }
