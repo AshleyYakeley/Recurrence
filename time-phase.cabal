@@ -61,3 +61,16 @@ executable phase-calendar
     build-depends: base, time >= 1.4, time-phase == 0.1
     main-is: PhaseCalendar.hs
     ghc-options: -Wall -Werror
+
+test-suite test
+    type: exitcode-stdio-1.0
+    hs-source-dirs: test
+    build-depends:
+        base,
+        tasty,
+        tasty-golden
+    default-language: Haskell2010
+    default-extensions:
+    ghc-options: -Wall -Werror
+    main-is: Test.hs
+    other-modules:

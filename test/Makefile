@@ -1,6 +1,6 @@
-GHC = ghc
+GHC = stack ghc
 #GHCFLAGS = -package time-phase -prof -auto-all -rtsopts
-GHCFLAGS = -package time-phase
+GHCFLAGS = --
 
 default: unit use
 	@echo "Success!"
