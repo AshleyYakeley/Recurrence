@@ -108,10 +108,14 @@ module Data.SetSearch.PieceSet where
     pieceCountedOnAfter :: (DeltaSmaller t,?first :: t,Eq a) => Int -> PiecePartialFunction t a -> PointSet t -> PiecePartialFunction t a;
     pieceCountedOnAfter n subject delimiter = fmap (fmap snd) $ piecePartialBoth (pieceSetCountedOnAfter n (piecePartialStarts subject) delimiter) subject;
 
-    pieceSetCountedIn :: (DeltaSmaller t,?first :: t,Eq b) => Int -> PointFunction t a -> PiecePartialFunction t b -> PieceSet t;
+    pieceSetCountedIn :: forall t a b. (DeltaSmaller t,?first :: t,Eq b) =>
+        Int -> PointFunction t a -> PiecePartialFunction t b -> PieceSet t;
     pieceSetCountedIn n subject delimiter = let
     {
+        memory :: PointFunction t (EitherBoth a (Maybe b,Maybe b));
         memory = pointEitherBoth subject (pieceChanges delimiter);
+
+        thought :: Maybe (EitherBoth a (Maybe b,Maybe b),Int) -> Either Int (Maybe ());
         thought Nothing = Left n;
         thought (Just (eb,0)) = Right $ case eb of
         {

@@ -11,7 +11,7 @@ module Main(main) where
     startTime = LocalTime (fromGregorian 2012 04 17) midnight;
 
     endTime :: LocalTime;
-    endTime = LocalTime (fromGregorian 2012 06 17) midnight;
+    endTime = LocalTime (fromGregorian 2012 06 16) midnight;
 
     testNow :: LocalTime;
     testNow = startTime;

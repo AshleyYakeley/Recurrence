@@ -84,14 +84,11 @@ module Data.SetSearch.PieceFunction where
     pieceRememberPoints :: (?first :: t) => b -> StateMachine a b -> PointFunction t a -> PieceFunction t b;
     pieceRememberPoints def (MkStateMachine tf) pf@(MkPointFunction f) = let
     {
-        runState _t (Right b) = b;
-        runState t (Left s) = case f t ?first of
-        {
-            (t',a):_ -> runState t' $ tf $ Just (a,s);
-            [] -> def;
-        };
+        runState _pts (Right b) = b;
+        runState ((_,a):rest) (Left s) = runState rest $ tf $ Just (a,s);
+        runState [] (Left _s) = def;
 
-        pieceEval t = runState t (tf Nothing);
+        pieceEval t = runState (f t ?first) (tf Nothing);
 
         pieceJoints = pointSet pf;
     } in MkPieceFunction {..};
