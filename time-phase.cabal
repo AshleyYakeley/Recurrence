@@ -70,11 +70,14 @@ test-suite test
     hs-source-dirs: test
     build-depends:
         base,
+        time,
+        utf8-string,
         tasty,
         tasty-golden,
         time-phase
     default-language: Haskell2010
     default-extensions:
+        ImplicitParams
     ghc-options: -Wall -Werror
     main-is: Test.hs
     other-modules:

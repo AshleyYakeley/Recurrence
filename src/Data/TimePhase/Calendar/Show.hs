@@ -1,4 +1,4 @@
-module Data.TimePhase.Calendar.Show(printCalendar) where
+module Data.TimePhase.Calendar.Show(outputCalendar,printCalendar) where
 {
     import Data.List;
     import Data.Maybe;
@@ -208,42 +208,45 @@ module Data.TimePhase.Calendar.Show(printCalendar) where
         _ -> localDay ?context;
     })) mstart mend);
 
-    printYearHeader :: (?context :: T) => Maybe Integer -> IO ();
-    printYearHeader Nothing = return ();
-    printYearHeader (Just year) | yearOfDay (localDay ?context) == year = return ();
-    printYearHeader (Just year) = putStrLn ((show year) ++ "-");
+    outputYearHeader :: (Monad m,?output :: String -> m (),?context :: T) => Maybe Integer -> m ();
+    outputYearHeader Nothing = return ();
+    outputYearHeader (Just year) | yearOfDay (localDay ?context) == year = return ();
+    outputYearHeader (Just year) = ?output $ ((show year) ++ "-") ++ "\n";
 
     showDayHeader :: Maybe Day -> String;
     showDayHeader Nothing = "ongoing";
     showDayHeader (Just day) = showMonthDay day;
 
-    printEvents :: (?context :: T) => [Event T] -> IO ();
-    printEvents events = mapM_ (\(myear,yearevents) -> do
+    outputEvents :: (Monad m,?output :: String -> m (),?context :: T) => [Event T] -> m ();
+    outputEvents events = mapM_ (\(myear,yearevents) -> do
     {
-        printYearHeader myear;
+        outputYearHeader myear;
         mapM_ (\(mday,dayevents) -> do
         {
             let
             {
                 (wdevents,otherevents) = filterMaybe isWholeDayEvent dayevents;
             };
-            putStr (showDayHeader mday);
-            putStrLn (intercalate "," (fmap showWDEvent wdevents));
+            ?output $ showDayHeader mday;
+            ?output $ (intercalate "," (fmap showWDEvent wdevents)) ++ "\n";
             mapM_ (\(mtod,timeevents) -> do
             {
                 case mtod of
                 {
-                    Just tod -> putStr ((showTimeOfDay tod) ++ " ");
+                    Just tod -> ?output ((showTimeOfDay tod) ++ " ");
                     Nothing -> return ();
                 };
-                putStrLn (intercalate ", " (fmap showEvent timeevents));
+                ?output $ (intercalate ", " (fmap showEvent timeevents)) ++ "\n";
             }) (groupByFunc ((fmap localTimeOfDay) . getStartTime) otherevents);
         }) (groupByFunc ((fmap localDay) . getStartTime) yearevents);
     }) (groupByFunc ((fmap (yearOfDay . localDay)) . getStartTime) events);
 
-    printCalendar :: T -> T -> Calendar -> IO ();
-    printCalendar t limit items = let {?context = t} in printEvents events where
+    outputCalendar :: (Monad m,?output :: String -> m ()) => T -> T -> Calendar -> m ();
+    outputCalendar t limit items = let {?context = t} in outputEvents events where
     {
         events = mergeByListPresorted compareEvents (fmap (\phase -> allEvents phase t limit) items);
     };
+
+    printCalendar :: T -> T -> Calendar -> IO ();
+    printCalendar = let {?output = putStr} in outputCalendar;
 }
