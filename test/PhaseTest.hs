@@ -6,10 +6,10 @@ module Main where
     import Data.Time;
     import Data.TimePhase;
     import Data.TimePhase.Time;
-    
+
     psMidnight :: PointSet T;
     psMidnight = timeOfDay midnight;
-    
+
     midnights :: PiecePartialFunction T;
     midnights = toPhase psMidnight;
 
@@ -101,7 +101,7 @@ module Main where
     firstHourAnd = fromTo midnights am1;
 
     main :: IO ();
-    main = let {?first=firstTime;?last=lastTime} in do
+    main = let {?first=firstTime} in do
     {
         check "is points" True (member psMidnight t0);
         check "is points union" True (member (union psMidnight psMidnight) t0);
@@ -112,7 +112,7 @@ module Main where
         check "is piecePartialStarts" True (member (piecePartialStarts midnights) cb0);
 
         check "firstHour 00:00" True (member firstHour t0);
-        
+
         check "firstHour 00:00 change before" True (member (pieceChanges firstHour) cb0);
         check "firstHour 00:00 change after" False (member (pieceChanges firstHour) ca0);
         check "firstHour 00:30" True (member firstHour t005);
@@ -126,7 +126,7 @@ module Main where
         check "firstHourAnd 01:00" True (member firstHourAnd t01);
         check "firstHourAnd 01:00 change before" False (member (pieceChanges firstHourAnd) cb01);
         check "firstHourAnd 01:00 change after" True (member (pieceChanges firstHourAnd) ca01);
-        
+
         check "change end firstHour" (Just cb01) (firstAfterUntil (pieceChanges firstHour) cb005 cb2);
 
         check "endOf1am" (Just ca01) (firstAfterUntil (piecePartialEnds am1) cb0 cb2);
@@ -141,11 +141,11 @@ module Main where
         check "next t1 False" (Just (pointInterval t1)) (cutNextInterval midnights (justBefore t1) (justBefore t2));
         check "next t1 True" (Just (MkInterval (Starts (justBefore t2)) Whenever)) (cutNextInterval midnights (justAfter t1) (justBefore t2));
         check "next t1 True further" (Just (pointInterval t2)) (cutNextInterval midnights (justAfter t1) (justAfter t2));
-        
+
         check "1am" (Just (pointInterval t01)) (cutNextInterval am1 cb0 cb2);
         check "twoDays" (Just (MkInterval (Starts cb0) (Ends cb2))) (cutNextInterval (toPhase twoDays) cb0 cb2);
         check "firstHour" (Just (MkInterval (Starts cb0) (Ends cb01))) (cutNextInterval (toPhase firstHour) cb0 cb2);
-        
+
 --        check "31st" (Just (justBefore td31st)) (vsFirst (psValues (beforeDays (dayOfMonth 31)) (justBefore t0) (justAfter td300)));
 
         check "31st int" (Just (jbInterval td31st td1st)) (cutNextInterval (toPhase (daysToTimeIntervals (dayOfMonth 31))) (justBefore t0) (justAfter td300));
@@ -160,9 +160,9 @@ module Main where
 {-
         check "of each year" (Just (oneDayInterval 160))
             (cutNextInterval
-                (ofPhase (toPhase 
-                    (intersect 
-                        (daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year 4 26))) 
+                (ofPhase (toPhase
+                    (intersect
+                        (daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year 4 26)))
                         (pointsToIntervals (timeOfDay (TimeOfDay 7 0 0)))
                     )
                 ) dayPhase)
@@ -251,7 +251,7 @@ module Main where
             );
         check "of this year" (Just (oneDayInterval 160))
             (cutNextInterval
-                (ofPhase (toPhase 
+                (ofPhase (toPhase
                     (intersect
                         (daysToTimeIntervals (single (fromGregorian 1859 4 26)))
                         (pointsToIntervals (timeOfDay (TimeOfDay 7 0 0)))
@@ -264,7 +264,7 @@ module Main where
 {-
         check "of single" (Just (oneDayInterval 160))
             (cutNextInterval
-                (ofPhase (toPhase 
+                (ofPhase (toPhase
                     (single (LocalTime
                     {
                         localDay = fromGregorian 1859 4 26,

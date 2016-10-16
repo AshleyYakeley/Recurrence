@@ -21,13 +21,6 @@ module Data.TimePhase.Time where
         localTimeOfDay = midnight
     };
 
-    lastTime :: T;
-    lastTime = LocalTime
-    {
-        localDay = ModifiedJulianDay 10000000,
-        localTimeOfDay = midnight
-    };
-
     data TimePhase = forall count. Eq count => PeriodTimeSet (PiecePartialFunction T count) | InstantTimeSet (PointSet T) | EmptyTimeSet;
 
     instance BasedOn TimePhase where
@@ -86,15 +79,15 @@ module Data.TimePhase.Time where
 
     endOf :: TimePhase -> PointSet T;
     endOf (InstantTimeSet ps) = ps;
-    endOf (PeriodTimeSet phase) = let {?last=lastTime} in pointSet $ piecePartialEnds phase;
+    endOf (PeriodTimeSet phase) = pointSet $ piecePartialEnds phase;
     endOf EmptyTimeSet = empty;
 
     fromTo :: TimePhase -> TimePhase -> PieceSet T;
-    fromTo tsOn tsOff = let {?first=firstTime;?last=lastTime} in
+    fromTo tsOn tsOff = let {?first=firstTime} in
         pieceSetFromToPoints Nothing (startOf tsOn) (endOf tsOff);
 
     fromUntil :: TimePhase -> TimePhase -> PieceSet T;
-    fromUntil tsOn tsOff = let {?first=firstTime;?last=lastTime} in
+    fromUntil tsOn tsOff = let {?first=firstTime} in
         pieceSetFromToPoints Nothing (startOf tsOn) (startOf tsOff);
 
     onAfter :: TimePhase -> PieceSet T;
@@ -112,11 +105,7 @@ module Data.TimePhase.Time where
     nthFrom n (PeriodTimeSet subject) delimiter = let {?first = firstTime} in PeriodTimeSet $ pieceCountedOnAfter n subject (startOf delimiter);
 
     ofPhase :: TimePhase -> TimePhase -> TimePhase;
-    ofPhase picker (PeriodTimeSet phase) = let
-    {
-        ?first = firstTime;
-        ?last = lastTime;
-    } in PeriodTimeSet $ phaseOf (piecePartialToSet phase) (startOf picker);
+    ofPhase picker (PeriodTimeSet phase) = let {?first = firstTime} in PeriodTimeSet $ phaseOf (piecePartialToSet phase) (startOf picker);
     ofPhase _ _ = EmptyTimeSet;
 
     toDayStarts :: PointFunction Day a -> PointFunction T a;
