@@ -7,6 +7,7 @@ module Main(main) where
     import Data.ByteString.Lazy.UTF8;
     import Data.Time;
     import Data.TimePhase.Calendar;
+    import qualified Sets;
 
     runCalendar :: FilePath -> FilePath -> Integer -> IO ();
     runCalendar inputPath outputPath days = do
@@ -52,8 +53,15 @@ module Main(main) where
         path = "test/golden/"++name++".phases"
     } in goldenVsFile name (path++".ref") (path++".out") $ runCalendar path (path++".out") days;
 
+    goldenTests :: TestTree;
+    goldenTests = localOption (mkTimeout 1000000) $ testGroup "golden" $ fmap getTest testfiles;
+
     tests :: TestTree;
-    tests = localOption (mkTimeout 1000000) $ testGroup "Interpolate" $ fmap getTest testfiles;
+    tests = testGroup "phase"
+    [
+        Sets.tests,
+        goldenTests
+    ];
 
     main :: IO ();
     main = defaultMain tests;
