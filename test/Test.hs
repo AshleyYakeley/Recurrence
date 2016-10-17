@@ -8,6 +8,7 @@ module Main(main) where
     import Data.Time;
     import Data.TimePhase.Calendar;
     import qualified Sets;
+    import qualified PointSet;
 
     runCalendar :: FilePath -> FilePath -> Integer -> IO ();
     runCalendar inputPath outputPath days = do
@@ -60,6 +61,7 @@ module Main(main) where
     tests = testGroup "phase"
     [
         Sets.tests,
+        PointSet.tests,
         goldenTests
     ];
 

@@ -61,6 +61,10 @@ executable phase-calendar
         MultiParamTypeClasses
         FlexibleContexts
         RecordWildCards
+        LambdaCase
+        StandaloneDeriving
+        ExistentialQuantification
+        DefaultSignatures
     build-depends: base, time >= 1.4, time-phase == 0.1
     main-is: PhaseCalendar.hs
     ghc-options: -Wall -Werror
@@ -80,11 +84,21 @@ test-suite test
         time-phase
     default-language: Haskell2010
     default-extensions:
-        ImplicitParams
-        ScopedTypeVariables
+        KindSignatures
         TypeFamilies
+        ScopedTypeVariables
         FlexibleInstances
+        ImplicitParams
+        TypeSynonymInstances
+        MultiParamTypeClasses
+        FlexibleContexts
+        RecordWildCards
+        LambdaCase
+        StandaloneDeriving
+        ExistentialQuantification
+        DefaultSignatures
     ghc-options: -Wall -Werror
     main-is: Test.hs
     other-modules:
         Sets
+        PointSet
