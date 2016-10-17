@@ -2,4 +2,3 @@
 ("Easter" Easter)
 ("Ascension Day" (delay 39d Easter))
 ("Pentecost" (delay 49d Easter))
-

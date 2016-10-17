@@ -4,4 +4,3 @@
 ("1am" (delay 1h midnight))
 ("both" (and midnight (delay 1h midnight)))
 ("first hour" (from-until midnight (delay 1h midnight)))
-
