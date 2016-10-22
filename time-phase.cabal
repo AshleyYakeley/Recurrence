@@ -42,10 +42,12 @@ library
         Data.TimePhase.Atom
         Data.TimePhase.Dict
         Data.TimePhase.Eval
-        Data.TimePhase.Calendar.Item
-        Data.TimePhase.Calendar.Show
-        Data.TimePhase.Calendar.Read
         Data.TimePhase.Calendar
+    other-modules:
+        Data.TimePhase.Calendar.Item
+        Data.TimePhase.Calendar.Read
+        Data.TimePhase.Calendar.Event
+        Data.TimePhase.Calendar.Show
     ghc-options: -Wall -Werror
 
 executable phase-calendar
@@ -102,3 +104,5 @@ test-suite test
     other-modules:
         Sets
         PointSet
+        Item
+        Golden

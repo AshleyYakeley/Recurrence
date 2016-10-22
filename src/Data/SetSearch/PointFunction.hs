@@ -140,6 +140,9 @@ module Data.SetSearch.PointFunction where
         EBBoth _ _ -> Nothing;
     }) (pointEitherBoth pfp pfq);
 
+    pointSetIncluding :: PointFunction a b -> a -> a -> [a];
+    pointSetIncluding pf a0 a1 = fmap fst $ pointsIncluding pf a0 a1;
+
     pointsExcluding :: Eq a => PointFunction a p -> (a,a) -> [(a,p)];
     pointsExcluding (MkPointFunction f) (a0,a1) = filter (\(a,_) -> a /= a0 && a /= a1) $ f a0 a1;
 }

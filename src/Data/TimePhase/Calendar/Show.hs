@@ -1,11 +1,10 @@
 module Data.TimePhase.Calendar.Show(outputCalendar,printCalendar) where
 {
     import Data.List;
-    import Data.Maybe;
     import Data.Time;
-    import Data.SetSearch;
     import Data.TimePhase.Time;
     import Data.TimePhase.Calendar.Item;
+    import Data.TimePhase.Calendar.Event;
 
     mergeByPairPresorted :: (a -> a -> Ordering) -> [a] -> [a] -> [a];
     mergeByPairPresorted _cmp aa [] = aa;
@@ -19,94 +18,6 @@ module Data.TimePhase.Calendar.Show(outputCalendar,printCalendar) where
     mergeByListPresorted :: (a -> a -> Ordering) -> [[a]] -> [a];
     mergeByListPresorted _cmp [] = [];
     mergeByListPresorted cmp (list:lists) = mergeByPairPresorted cmp list (mergeByListPresorted cmp lists);
-
-    data Interval a = MkInterval (Maybe a) (Maybe a) deriving Eq;
-
-    instance (Show a) => Show (Interval a) where
-    {
-        show (MkInterval start end) = let
-        {
-            showIStart Nothing = "ongoing";
-            showIStart (Just t) = show t;
-            showIEnd Nothing = "whenever";
-            showIEnd (Just t) = show t;
-        } in (showIStart start) ++ " until " ++ (showIEnd end);
-    };
-
-    instance (Ord a) => Ord (Interval a) where
-    {
-        compare (MkInterval s1 e1) (MkInterval s2 e2) = let
-        {
-            compareStart Nothing Nothing = EQ;
-            compareStart Nothing (Just _) = LT;
-            compareStart (Just _) Nothing = GT;
-            compareStart (Just a) (Just b) = compare a b;
-
-            compareEnd Nothing Nothing = EQ;
-            compareEnd Nothing (Just _) = GT;
-            compareEnd (Just _) Nothing = LT;
-            compareEnd (Just a) (Just b) = compare a b;
-
-            sc = compareStart s1 s2;
-        } in if sc == EQ then compareEnd e1 e2 else sc;
-    };
-
-    data Event a = MkEvent String (Interval a) deriving Eq;
-
-    instance (Show a) => Show (Event a) where
-    {
-        show (MkEvent name int) = name ++ ": " ++ (show int);
-    };
-
-    instance BasedOn (Event a) where
-    {
-        type Base (Event a) = a;
-    };
-
-
-    pfNextInterval :: forall t count. (DeltaSmaller t,Eq count) => PiecePartialFunction t count -> t -> t -> Maybe (Interval t);
-    pfNextInterval phase t0 limit = if isJust $ pieceEval (piecePartialToSet phase) t0
-     then Just (MkInterval
-        (if member (pieceChangeSet phase) t0 then Just t0 else Nothing)
-        (getEnd t0)
-     )
-     else do
-    {
-        start <- getEnd t0;
-        return (MkInterval (Just start) (getEnd start));
-    } where
-    {
-        getEnd t = fmap fst $ pointClosestExcluding (pieceChangeSet phase) t limit;
-    };
-
-    -- data TimePhase = forall count. Eq count => PeriodTimeSet (PiecePartialFunction T count) | InstantTimeSet (PointSet T) | EmptyTimeSet;
-
-
-    nextInterval :: TimePhase -> T -> T -> Maybe (Interval T);
-    nextInterval EmptyTimeSet _ _ = Nothing;
-    nextInterval (InstantTimeSet ps) t0 t1 = do
-    {
-        (t,_) <- pointClosestExcluding ps t0 t1;
-        return $ MkInterval (Just t) (Just t);
-    };
-    nextInterval (PeriodTimeSet pf) t0 t1 = pfNextInterval pf t0 t1;
-
-    intervalEnd :: Interval a -> Maybe a;
-    intervalEnd (MkInterval _ me) = me;
-
-    allIntervals :: TimePhase -> T -> T -> [Interval T];
-    allIntervals tp cut limit = case nextInterval tp cut limit of
-    {
-        Nothing -> [];
-        Just interval -> interval : (case intervalEnd interval of
-        {
-            Just end -> allIntervals tp end limit;
-            Nothing -> [];
-        });
-    };
-
-    allEvents :: Item -> T -> T -> [Event T];
-    allEvents (MkItem name phase) cut limit = fmap (MkEvent name) $ allIntervals phase cut limit;
 
     compareEvents :: (Ord a) => Event a -> Event a -> Ordering;
     compareEvents (MkEvent _ i1) (MkEvent _ i2) = compare i1 i2;
@@ -174,6 +85,7 @@ module Data.TimePhase.Calendar.Show(outputCalendar,printCalendar) where
     isWholeDayEnd _ = Nothing;
 
     isWholeDayInterval :: Interval T -> Maybe (Maybe Day,Maybe Day);
+    isWholeDayInterval (MkInterval (Just start) (Just end)) | start == end = Nothing;
     isWholeDayInterval (MkInterval start end) = do
     {
         smday <- isWholeDayStart start;
