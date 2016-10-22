@@ -25,6 +25,7 @@ library
     exposed-modules:
         Data.SetSearch.Base
         Data.SetSearch.Set
+        Data.SetSearch.MonotonicInjection
         Data.SetSearch.PointFunction
         Data.SetSearch.PointSet
         Data.SetSearch.KnownPointSet

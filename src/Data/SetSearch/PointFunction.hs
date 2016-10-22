@@ -2,6 +2,7 @@ module Data.SetSearch.PointFunction where
 {
     import Data.Maybe;
     import Data.SetSearch.Base;
+    import Data.SetSearch.MonotonicInjection;
 
     -- | f a0 a1 gives an ordered list, strictly ascending if a1 >= a0, and strictly descending if a1 <= a0.
     ;
@@ -145,4 +146,17 @@ module Data.SetSearch.PointFunction where
 
     pointsExcluding :: Eq a => PointFunction a p -> (a,a) -> [(a,p)];
     pointsExcluding (MkPointFunction f) (a0,a1) = filter (\(a,_) -> a /= a0 && a /= a1) $ f a0 a1;
+
+    pointMapMonotonic :: (Ord a,Ord b) => MonotonicInjection a b -> PointFunction a p -> PointFunction b p;
+    pointMapMonotonic MkMonotonicInjection{..} (MkPointFunction aalap) = MkPointFunction $ \b0 b1 -> fmap (\(a,p) -> (miEval a,p)) $ if b1 >= b0
+    then let
+    {
+        (_,a0) = miBack b0;
+        (a1,_) = miBack b1;
+    } in if a1 >= a0 then aalap a0 a1 else []
+    else let
+    {
+        (a0,_) = miBack b0;
+        (_,a1) = miBack b1;
+    } in if a1 <= a0 then aalap a0 a1 else [];
 }
