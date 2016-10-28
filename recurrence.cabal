@@ -1,5 +1,5 @@
 cabal-version: >=1.10
-name: time-phase
+name: recurrence
 version: 0.1
 author: Ashley Yakeley
 build-type: Simple
@@ -54,7 +54,7 @@ library
         Data.TimePhase.Calendar.Show
     ghc-options: -Wall -Werror
 
-executable phase-calendar
+executable recur
     hs-source-dirs: app
     default-language: Haskell2010
     default-extensions:
@@ -72,7 +72,7 @@ executable phase-calendar
         ExistentialQuantification
         DefaultSignatures
         GeneralizedNewtypeDeriving
-    build-depends: base, time >= 1.4, time-phase == 0.1
+    build-depends: base, time, recurrence
     main-is: PhaseCalendar.hs
     ghc-options: -Wall -Werror
 
@@ -88,7 +88,7 @@ test-suite test
         tasty,
         tasty-hunit,
         tasty-golden,
-        time-phase
+        recurrence
     default-language: Haskell2010
     default-extensions:
         KindSignatures
