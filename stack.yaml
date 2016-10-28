@@ -1,2 +1,2 @@
 packages: [.]
-resolver: lts-7.1
+resolver: lts-7.5

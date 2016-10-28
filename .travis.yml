@@ -21,9 +21,6 @@ cache:
   - $HOME/.stack
 
 env:
-  - RESOLVER=lts-3
-  - RESOLVER=lts-5
-  - RESOLVER=lts-6
   - RESOLVER=lts
   - RESOLVER=nightly
 
