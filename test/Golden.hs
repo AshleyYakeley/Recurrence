@@ -13,8 +13,11 @@ module Golden(tests) where
     {
         let
         {
+            startDay :: Day;
+            startDay = fromGregorian 2012 04 17; -- Tuesday; 21st is Saturday
+
             startTime :: LocalTime;
-            startTime = LocalTime (fromGregorian 2012 04 17) midnight;
+            startTime = LocalTime startDay midnight;
 
             testNow :: LocalTime;
             testNow = startTime;
@@ -32,6 +35,7 @@ module Golden(tests) where
     testfiles :: [(String,Integer)];
     testfiles =
     [
+        ("day",10),
         ("dateformats",3650),
         ("duration",60),
         ("easter",60),

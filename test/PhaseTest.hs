@@ -8,7 +8,7 @@ module Main where
     import Data.TimePhase.Time;
 
     psMidnight :: PointSet T;
-    psMidnight = timeOfDay midnight;
+    psMidnight = isTimeOfDay midnight;
 
     midnights :: PiecePartialFunction T;
     midnights = toPhase psMidnight;
@@ -90,7 +90,7 @@ module Main where
     twoDays = let {?first = firstTime} in pieceSetFromToPoints False (single cb0) (single cb2);
 
     psAM1 :: PointSet T;
-    psAM1 = timeOfDay (TimeOfDay 1 0 0);
+    psAM1 = isTimeOfDay (TimeOfDay 1 0 0);
 
     am1 = toPhase psAM1;
 
@@ -150,11 +150,11 @@ module Main where
 
         check "31st int" (Just (jbInterval td31st td1st)) (cutNextInterval (toPhase (daysToTimeIntervals (dayOfMonth 31))) (justBefore t0) (justAfter td300));
 
-        check "year end" (Just (justBefore td1st)) (firstAfterUntil (piecePartialEnds (toPhase (isYear 1858))) (justBefore t0) ?last);
+        check "year end" (Just (justBefore td1st)) (firstAfterUntil (piecePartialEnds (toPhase (isSingleYear 1858))) (justBefore t0) ?last);
 
         check "of" (Just (jbInterval td1st td2nd))
             (cutNextInterval
-                (ofPhase midnights dayPhase)
+                (ofPhase midnights aDay)
                 (justBefore td1st) (justAfter td300)
             );
 {-
@@ -163,9 +163,9 @@ module Main where
                 (ofPhase (toPhase
                     (intersect
                         (daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year 4 26)))
-                        (pointsToIntervals (timeOfDay (TimeOfDay 7 0 0)))
+                        (pointsToIntervals (isTimeOfDay (TimeOfDay 7 0 0)))
                     )
-                ) dayPhase)
+                ) aDay)
                 (justBefore td1st) (justAfter td300)
             );
 -}
@@ -176,7 +176,7 @@ module Main where
             (let
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
-                times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
+                times = pointsToIntervals (isTimeOfDay (TimeOfDay 7 0 0));
                 ints = intersect times days :: PieceSet T;
                 intstarts = piecePartialStarts ints :: PointSet (Cut T);
                 ps = pointsFromCut intstarts :: PointSet T;
@@ -188,7 +188,7 @@ module Main where
             (let
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
-                times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
+                times = pointsToIntervals (isTimeOfDay (TimeOfDay 7 0 0));
                 ints = intersect times days :: PieceSet T;
                 ps = pointsFromCut (piecePartialStarts ints) :: PointSet T;
                 cutsbefore = pointsCutLastBeforePoints beforeDay ps;
@@ -202,7 +202,7 @@ module Main where
             (let
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
-                times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
+                times = pointsToIntervals (isTimeOfDay (TimeOfDay 7 0 0));
                 ints = intersect times days :: PieceSet T;
                 ps = pointsFromCut (piecePartialStarts ints) :: PointSet T;
                 intsof = intervalsOf ps beforeDay :: PieceSet T;
@@ -214,20 +214,20 @@ module Main where
             (let
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
-                times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
+                times = pointsToIntervals (isTimeOfDay (TimeOfDay 7 0 0));
                 ints = intersect times days :: PieceSet T;
                 ps = pointsFromCut (piecePartialStarts ints);
-                intsof = intervalsOf ps (piecePartialStarts dayPhase);
-                starts = pointIntersectPiece (piecePartialStarts dayPhase) (sfCutBefore intsof)
+                intsof = intervalsOf ps (piecePartialStarts aDay);
+                starts = pointIntersectPiece (piecePartialStarts aDay) (sfCutBefore intsof)
             } in vsFirst (psValues starts (justBefore td1st) (justAfter td300))
             );
         check "of this year 3" Nothing
             (let
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
-                times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
+                times = pointsToIntervals (isTimeOfDay (TimeOfDay 7 0 0));
                 ints = intersect times days :: PieceSet T;
-                result = phaseOf dayPhase (pointsFromCut (piecePartialStarts ints));
+                result = phaseOf aDay (pointsFromCut (piecePartialStarts ints));
                 starts = piecePartialStarts result;
             } in vsFirst (psValues starts (justBefore td1st) (justAfter td300))
             );
@@ -235,18 +235,18 @@ module Main where
             (let
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
-                times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
+                times = pointsToIntervals (isTimeOfDay (TimeOfDay 7 0 0));
                 ints = intersect times days :: PieceSet T;
-                result = phaseOf dayPhase (pointsFromCut (piecePartialStarts (toPhase ints)));
+                result = phaseOf aDay (pointsFromCut (piecePartialStarts (toPhase ints)));
             } in cutNextInterval result (justBefore td1st) (justAfter td300)
             );
         check "of this year 1" (Just (oneDayInterval 160))
             (let
             {
                 days = daysToTimeIntervals (single (fromGregorian 1859 4 26));
-                times = pointsToIntervals (timeOfDay (TimeOfDay 7 0 0));
+                times = pointsToIntervals (isTimeOfDay (TimeOfDay 7 0 0));
                 ints = intersect times days :: PieceSet T;
-                result = ofPhase (toPhase ints) dayPhase;
+                result = ofPhase (toPhase ints) aDay;
             } in cutNextInterval result (justBefore td1st) (justAfter td300)
             );
         check "of this year" (Just (oneDayInterval 160))
@@ -254,9 +254,9 @@ module Main where
                 (ofPhase (toPhase
                     (intersect
                         (daysToTimeIntervals (single (fromGregorian 1859 4 26)))
-                        (pointsToIntervals (timeOfDay (TimeOfDay 7 0 0)))
+                        (pointsToIntervals (isTimeOfDay (TimeOfDay 7 0 0)))
                     )
-                ) dayPhase)
+                ) aDay)
                 (justBefore td1st) (justAfter td300)
             );
 -}
@@ -270,7 +270,7 @@ module Main where
                         localDay = fromGregorian 1859 4 26,
                         localTimeOfDay = TimeOfDay 7 0 0
                     }) :: PointSet T)
-                ) dayPhase)
+                ) aDay)
                 (justBefore td1st) (justAfter td300)
             );
 -}

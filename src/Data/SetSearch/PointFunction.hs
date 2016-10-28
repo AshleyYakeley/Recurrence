@@ -2,7 +2,7 @@ module Data.SetSearch.PointFunction where
 {
     import Data.Maybe;
     import Data.SetSearch.Base;
-    import Data.SetSearch.MonotonicInjection;
+    import Data.SetSearch.MonotonicFunction;
 
     -- | f a0 a1 gives an ordered list, strictly ascending if a1 >= a0, and strictly descending if a1 <= a0.
     ;
@@ -147,8 +147,8 @@ module Data.SetSearch.PointFunction where
     pointsExcluding :: Eq a => PointFunction a p -> (a,a) -> [(a,p)];
     pointsExcluding (MkPointFunction f) (a0,a1) = filter (\(a,_) -> a /= a0 && a /= a1) $ f a0 a1;
 
-    pointMapMonotonic :: (Ord a,Ord b) => MonotonicInjection a b -> PointFunction a p -> PointFunction b p;
-    pointMapMonotonic MkMonotonicInjection{..} (MkPointFunction aalap) = MkPointFunction $ \b0 b1 -> fmap (\(a,p) -> (miEval a,p)) $ if b1 >= b0
+    pointMapInjection :: (Ord a,Ord b) => MonotonicInjection a b -> PointFunction a p -> PointFunction b p;
+    pointMapInjection MkMonotonicInjection{..} (MkPointFunction aalap) = MkPointFunction $ \b0 b1 -> mapMaybe (\(a,p) -> fmap (\b -> (b,p)) (miEval a)) $ if b1 >= b0
     then let
     {
         (_,a0) = miBack b0;
@@ -159,4 +159,20 @@ module Data.SetSearch.PointFunction where
         (a0,_) = miBack b0;
         (_,a1) = miBack b1;
     } in if a1 <= a0 then aalap a0 a1 else [];
+
+    pointEveryEnum :: (Ord t,Enum t) => PointFunction t t;
+    pointEveryEnum = MkPointFunction $ \t0 t1 -> if t1 >= t0
+    then let
+    {
+        next t | t > t1 = [];
+        next t = (t,t):(next $ succ t);
+    } in next t0
+    else let
+    {
+        next t | t < t1 = [];
+        next t = (t,t):(next $ pred t);
+    } in next t0;
+
+    pointEveryInjection :: (Ord tp,Ord tq,Enum tp) => MonotonicInjection tp tq -> PointFunction tq tp;
+    pointEveryInjection mi = pointMapInjection mi pointEveryEnum;
 }

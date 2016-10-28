@@ -3,6 +3,7 @@ module Data.TimePhase.Calendar.Show(outputCalendar,printCalendar) where
     import Data.List;
     import Data.Time;
     import Data.TimePhase.Time;
+    import Data.TimePhase.Gregorian;
     import Data.TimePhase.Calendar.Item;
     import Data.TimePhase.Calendar.Event;
 

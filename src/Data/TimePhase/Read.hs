@@ -5,11 +5,13 @@ module Data.TimePhase.Read (readExpression) where
     import Data.Time;
     import Text.ParserCombinators.ReadPrec;
     import Data.SetSearch;
-    import Data.TimePhase.Time;
     import Data.SExpression;
     import Data.SExpression.Read;
+    import Data.TimePhase.Time;
     import Data.TimePhase.Value;
     import Data.TimePhase.Atom;
+    import Data.TimePhase.Day;
+    import Data.TimePhase.Gregorian;
 
     isGoodFirstChar :: Char -> Bool;
     isGoodFirstChar '_' = True;
@@ -75,11 +77,11 @@ module Data.TimePhase.Read (readExpression) where
             readThis '.';
             fmap toDecimalPart (readOneOrMore readDigit);
         });
-        return (case mdec of
+        return $ case mdec of
         {
             Just dec -> (realToFrac nat) + dec;
             Nothing -> realToFrac nat;
-        });
+        };
     };
 
     {-
@@ -90,7 +92,7 @@ module Data.TimePhase.Read (readExpression) where
     {
         readThis '-';
         d <- readNatural;
-        return (daysToTimeIntervals (dayOfMonth (fromIntegral d)));
+        return $ isDayOfMonth $ fromIntegral d;
     };
 
     {-
@@ -103,12 +105,12 @@ module Data.TimePhase.Read (readExpression) where
         readThis '-';
         month <- fmap fromIntegral readNatural;
         readThis '-';
-        mday <- readMaybe (fmap fromIntegral readNatural);
-        return (case mday of
+        mday <- readMaybe $ fmap fromIntegral readNatural;
+        return $ case mday of
         {
-            Nothing -> isMonth month;
-            Just day -> daysToTimeIntervals (maybeDayEachYear (\year -> fromGregorianValid year month day));
-        });
+            Nothing -> isMonthOfYear month;
+            Just day -> isMonthAndDayOfYear month day;
+        };
     };
 
     {-
@@ -130,11 +132,11 @@ module Data.TimePhase.Read (readExpression) where
         });
         return (case mmonthmday of
         {
-            Nothing -> isYear year;
-            Just (month,Nothing) -> isYearAndMonth year month;
+            Nothing -> isSingleYear year;
+            Just (month,Nothing) -> isSingleMonth year month;
             Just (month,Just d) -> case fromGregorianValid year month d of
             {
-                Just day -> daysToTimeIntervals (single day);
+                Just day -> isSingleDay day;
                 Nothing -> empty;
             };
         });
@@ -154,7 +156,7 @@ module Data.TimePhase.Read (readExpression) where
             readThis ':';
             readDecimal;
         }) <++ (return 0);
-        return (timeOfDay (TimeOfDay h m s));
+        return (isTimeOfDay (TimeOfDay h m s));
     };
 
     readBracketed :: ReadPrec TimePhase;

@@ -5,10 +5,11 @@ module PointSet(tests) where
     import Test.Tasty.HUnit;
     import Data.SetSearch;
     import Data.TimePhase;
+    import Data.TimePhase.Day;
     import Data.TimePhase.Time;
 
     midnights :: PointSet T;
-    midnights = timeOfDay midnight;
+    midnights = isTimeOfDay midnight;
 
     check :: (Show a,Eq a) => String -> a -> a -> TestTree;
     check name expected found = testCase name $ assertEqual "" expected found;

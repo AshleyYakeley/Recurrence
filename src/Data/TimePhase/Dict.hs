@@ -5,6 +5,8 @@ module Data.TimePhase.Dict (dict,T) where
     import Data.SetSearch;
     import Data.TimePhase.Time;
     import Data.TimePhase.Value;
+    import Data.TimePhase.Day;
+    import Data.TimePhase.Gregorian;
 
     phaseIntersectAll :: Maybe (TimePhase,[TimePhase]) -> TimePhase;
     phaseIntersectAll Nothing = tpAlways;
@@ -48,34 +50,34 @@ module Data.TimePhase.Dict (dict,T) where
 
     dict "now" = Just (toValue (single ?now :: PointSet T));
 
-    dict "midnight" = Just (toValue (timeOfDay midnight));
-    dict "midday" = Just (toValue (timeOfDay midday));
-    dict "day" = Just (toValue dayPhase);
-    dict "month" = Just (toValue monthPhase);
-    dict "year" = Just (toValue yearPhase);
+    dict "midnight" = Just (toValue (isTimeOfDay midnight));
+    dict "midday" = Just (toValue (isTimeOfDay midday));
+    dict "day" = Just (toValue aDay);
+    dict "month" = Just (toValue aMonth);
+    dict "year" = Just (toValue aYear);
 
-    dict "Wednesday" = Just (toValue (weekDay 0));
-    dict "Thursday" = Just (toValue (weekDay 1));
-    dict "Friday" = Just (toValue (weekDay 2));
-    dict "Saturday" = Just (toValue (weekDay 3));
-    dict "Sunday" = Just (toValue (weekDay 4));
-    dict "Monday" = Just (toValue (weekDay 5));
-    dict "Tuesday" = Just (toValue (weekDay 6));
+    dict "Sunday" = Just (toValue (isDayOfWeek 1));
+    dict "Monday" = Just (toValue (isDayOfWeek 2));
+    dict "Tuesday" = Just (toValue (isDayOfWeek 3));
+    dict "Wednesday" = Just (toValue (isDayOfWeek 4));
+    dict "Thursday" = Just (toValue (isDayOfWeek 5));
+    dict "Friday" = Just (toValue (isDayOfWeek 6));
+    dict "Saturday" = Just (toValue (isDayOfWeek 7));
 
-    dict "January" = Just (toValue (isMonth 1));
-    dict "February" = Just (toValue (isMonth 2));
-    dict "March" = Just (toValue (isMonth 3));
-    dict "April" = Just (toValue (isMonth 4));
-    dict "May" = Just (toValue (isMonth 5));
-    dict "June" = Just (toValue (isMonth 6));
-    dict "July" = Just (toValue (isMonth 7));
-    dict "August" = Just (toValue (isMonth 8));
-    dict "September" = Just (toValue (isMonth 9));
-    dict "October" = Just (toValue (isMonth 10));
-    dict "November" = Just (toValue (isMonth 11));
-    dict "December" = Just (toValue (isMonth 12));
+    dict "January" = Just (toValue (isMonthOfYear 1));
+    dict "February" = Just (toValue (isMonthOfYear 2));
+    dict "March" = Just (toValue (isMonthOfYear 3));
+    dict "April" = Just (toValue (isMonthOfYear 4));
+    dict "May" = Just (toValue (isMonthOfYear 5));
+    dict "June" = Just (toValue (isMonthOfYear 6));
+    dict "July" = Just (toValue (isMonthOfYear 7));
+    dict "August" = Just (toValue (isMonthOfYear 8));
+    dict "September" = Just (toValue (isMonthOfYear 9));
+    dict "October" = Just (toValue (isMonthOfYear 10));
+    dict "November" = Just (toValue (isMonthOfYear 11));
+    dict "December" = Just (toValue (isMonthOfYear 12));
 
-    dict "Easter" = Just (toValue (dayEachYear gregorianEaster));
+    dict "Easter" = Just (toValue (dayEachYear (Just . gregorianEaster)));
 
     dict _s = Nothing;
 }

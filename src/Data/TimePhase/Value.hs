@@ -1,8 +1,9 @@
 module Data.TimePhase.Value where
 {
     import Data.Time;
-    import Data.TimePhase.Time;
     import Data.SetSearch;
+    import Data.TimePhase.Time;
+--    import Data.TimePhase.Day;
 
     data Value = TimeSetValue TimePhase | IntegerValue Int | DurationValue NominalDiffTime | FunctionValue ([Value] -> M Value);
 
@@ -118,14 +119,14 @@ module Data.TimePhase.Value where
     {
         toValue = toValue . InstantTimeSet;
     };
-
+{-
     instance ToValues (PointSet Day);
 
     instance ToValue (PointSet Day) where
     {
         toValue = toValue . daysToTimeIntervals;
     };
-
+-}
     instance ToValues NominalDiffTime;
 
     instance FromValues NominalDiffTime;

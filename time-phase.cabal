@@ -21,11 +21,12 @@ library
         StandaloneDeriving
         ExistentialQuantification
         DefaultSignatures
+        GeneralizedNewtypeDeriving
     build-depends: base, time >= 1.4
     exposed-modules:
         Data.SetSearch.Base
         Data.SetSearch.Set
-        Data.SetSearch.MonotonicInjection
+        Data.SetSearch.MonotonicFunction
         Data.SetSearch.PointFunction
         Data.SetSearch.PointSet
         Data.SetSearch.KnownPointSet
@@ -38,6 +39,8 @@ library
         Data.SExpression
         Data.TimePhase
         Data.TimePhase.Time
+        Data.TimePhase.Day
+        Data.TimePhase.Gregorian
         Data.TimePhase.Read
         Data.TimePhase.Value
         Data.TimePhase.Atom
@@ -68,6 +71,7 @@ executable phase-calendar
         StandaloneDeriving
         ExistentialQuantification
         DefaultSignatures
+        GeneralizedNewtypeDeriving
     build-depends: base, time >= 1.4, time-phase == 0.1
     main-is: PhaseCalendar.hs
     ghc-options: -Wall -Werror
@@ -100,6 +104,7 @@ test-suite test
         StandaloneDeriving
         ExistentialQuantification
         DefaultSignatures
+        GeneralizedNewtypeDeriving
     ghc-options: -Wall -Werror
     main-is: Test.hs
     other-modules:

@@ -3,12 +3,13 @@ module Item(tests) where
     import Data.Time;
     import Data.TimePhase;
     import Data.TimePhase.Time;
+    import Data.TimePhase.Day;
     import Data.TimePhase.Calendar;
     import Test.Tasty;
     import Test.Tasty.HUnit;
 
     midnights :: Item;
-    midnights = MkItem "midnight" (InstantTimeSet (timeOfDay midnight));
+    midnights = MkItem "midnight" (InstantTimeSet (isTimeOfDay midnight));
 
     dayMidnight :: Day -> T;
     dayMidnight localDay = let

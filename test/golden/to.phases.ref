@@ -10,10 +10,10 @@
 -04-20
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--04-21 weekend and (to -04-22), weekend to (to -04-22)
+-04-21 weekend and, weekend to (to -04-22)
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--04-22
+-04-22 weekend and
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
 -04-23
@@ -31,10 +31,10 @@
 -04-27
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--04-28 weekend and (to -04-29), weekend to (to -04-29)
+-04-28 weekend and, weekend to (to -04-29)
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--04-29
+-04-29 weekend and
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
 -04-30
@@ -52,10 +52,10 @@
 -05-04
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--05-05 weekend and (to -05-06), weekend to (to -05-06)
+-05-05 weekend and, weekend to (to -05-06)
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--05-06
+-05-06 weekend and
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
 -05-07
@@ -73,10 +73,10 @@
 -05-11
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--05-12 weekend and (to -05-13), weekend to (to -05-13)
+-05-12 weekend and, weekend to (to -05-13)
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--05-13
+-05-13 weekend and
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
 -05-14
@@ -94,10 +94,10 @@
 -05-18
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--05-19 weekend and (to -05-20), weekend to (to -05-20)
+-05-19 weekend and, weekend to (to -05-20)
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--05-20
+-05-20 weekend and
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
 -05-21
@@ -115,10 +115,10 @@
 -05-25
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--05-26 weekend and (to -05-27), weekend to (to -05-27)
+-05-26 weekend and, weekend to (to -05-27)
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--05-27
+-05-27 weekend and
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
 -05-28
@@ -136,10 +136,10 @@
 -06-01
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--06-02 weekend and (to -06-03), weekend to (to -06-03)
+-06-02 weekend and, weekend to (to -06-03)
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--06-03
+-06-03 weekend and
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
 -06-04
@@ -157,10 +157,10 @@
 -06-08
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--06-09 weekend and (to -06-10), weekend to (to -06-10)
+-06-09 weekend and, weekend to (to -06-10)
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
--06-10
+-06-10 weekend and
 00:00 midnight, both, first hour (until 01:00:00)
 01:00 1am, both
 -06-11

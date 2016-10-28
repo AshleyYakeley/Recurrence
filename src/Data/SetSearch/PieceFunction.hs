@@ -2,17 +2,18 @@ module Data.SetSearch.PieceFunction where
 {
     import Data.SetSearch.Base;
     import Data.SetSearch.Set;
+    import Data.SetSearch.MonotonicFunction;
     import Data.SetSearch.PointFunction;
     import Data.SetSearch.PointSet;
     import Data.SetSearch.DeltaSmaller;
 
-    data PieceFunction a b = MkPieceFunction
+    data PieceFunction t a = MkPieceFunction
     {
-        pieceEval :: a -> b,
-        pieceJoints :: PointSet a
+        pieceEval :: t -> a,
+        pieceJoints :: PointSet t
     };
 
-    instance Functor (PieceFunction a) where
+    instance Functor (PieceFunction t) where
     {
         fmap bc sf = MkPieceFunction
         {
@@ -21,11 +22,11 @@ module Data.SetSearch.PieceFunction where
         };
     };
 
-    instance (Ord a) => Applicative (PieceFunction a) where
+    instance (Ord t) => Applicative (PieceFunction t) where
     {
-        pure b = MkPieceFunction
+        pure a = MkPieceFunction
         {
-            pieceEval = pure b,
+            pieceEval = pure a,
             pieceJoints = empty
         };
 
@@ -36,9 +37,9 @@ module Data.SetSearch.PieceFunction where
         };
     };
 
-    instance BasedOn (PieceFunction a b) where
+    instance BasedOn (PieceFunction t a) where
     {
-        type Base (PieceFunction a b) = a;
+        type Base (PieceFunction t a) = t;
     };
 
     instance RemapBase (PieceFunction a x) (PieceFunction b x) where
@@ -99,4 +100,58 @@ module Data.SetSearch.PieceFunction where
         machine Nothing = Left ();
         machine (Just (a,())) = Right a;
     } in pieceRememberPoints def $ MkStateMachine machine;
+
+    pieceMapInjection :: (Ord tp,Ord tq) => MonotonicInjection tp tq -> PieceFunction tp a -> PieceFunction tq a;
+    pieceMapInjection mi MkPieceFunction{..} = MkPieceFunction
+    {
+        pieceEval = \tq -> pieceEval $ fst $ miBack mi tq,
+        pieceJoints = pointMapInjection mi $ pieceJoints
+    };
+
+    pieceMapSurjection :: (Ord tp,Ord tq) => MonotonicSurjection tp tq -> PieceFunction tq a -> PieceFunction tp a;
+    pieceMapSurjection ms MkPieceFunction{..} = MkPieceFunction
+    {
+        pieceEval = \tp -> pieceEval $ msEval ms tp,
+        pieceJoints = let
+        {
+            -- this injection is "the first tp for this tq"
+            miEval q = Just $ fst $ msImage ms q;
+            miBack p = let
+            {
+                q0 = msEval ms p;
+                (p0,p1) = msImage ms q0; -- the closed-open interval of tp that have the same map as p
+                -- already know: msEval p0 = q0
+                q1 = if p0 == p then q0 else msEval ms p1;
+            } in (q0,q1);
+            startInjection = MkMonotonicInjection {..};
+        } in pointMapInjection startInjection $ pieceJoints
+    };
+
+    pieceEveryEnum :: (Ord t,Enum t) => PieceFunction t t;
+    pieceEveryEnum = let
+    {
+        pieceEval = id;
+        pieceJoints = pointSet pointEveryEnum;
+    } in MkPieceFunction{..};
+
+    pieceEveryInjection :: (Ord tp,Ord tq,Enum tp) => MonotonicInjection tp tq -> PieceFunction tq tp;
+    pieceEveryInjection mi = pieceMapInjection mi pieceEveryEnum;
+
+    pieceEverySurjection :: (Ord tp,Ord tq,Enum tq) => MonotonicSurjection tp tq -> PieceFunction tp tq;
+    pieceEverySurjection ms = pieceMapSurjection ms pieceEveryEnum;
+{-
+    pieceSurjection :: () => MonotonicSurjection t a -> PieceFunction t a;
+    pieceSurjection ms = let
+    {
+        pieceEval = msEval ms;
+        pieceJoints = MkPointFunction $ \t0 t1 -> let
+        {
+            msSameImage ms :: t -> (t,t)
+
+            runForwards t =
+
+            ts = if t0 > t1 then runBackwards t0 else runForwards t0;
+        } in fmap (\t -> (t,())) ts;
+    } in MkPieceFunction{..};
+-}
 }

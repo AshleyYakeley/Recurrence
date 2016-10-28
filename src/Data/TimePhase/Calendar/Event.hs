@@ -65,9 +65,9 @@ module Data.TimePhase.Calendar.Event(Interval(..),Event(..),allEvents) where
         scan (Just mt) ((t,(_,Nothing)):rr) = (MkInterval mt (Just t)):(scan Nothing rr);
 
         start = if piecePartialIs pf t0
-          then Just $ if member (pieceChangeSet pf) t0
-            then Just t0
-            else Nothing
+          then if member (pieceChangeSet pf) t0
+            then Nothing
+            else Just $ Nothing
           else Nothing;
     } in scan start changes;
 
