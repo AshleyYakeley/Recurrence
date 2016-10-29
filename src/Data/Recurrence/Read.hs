@@ -1,4 +1,4 @@
-module Data.TimePhase.Read (readExpression) where
+module Data.Recurrence.Read (readExpression) where
 {
     import Data.Char;
     import Data.Fixed;
@@ -7,11 +7,11 @@ module Data.TimePhase.Read (readExpression) where
     import Data.SetSearch;
     import Data.SExpression;
     import Data.SExpression.Read;
-    import Data.TimePhase.Time;
-    import Data.TimePhase.Value;
-    import Data.TimePhase.Atom;
-    import Data.TimePhase.Day;
-    import Data.TimePhase.Gregorian;
+    import Data.Recurrence.Time;
+    import Data.Recurrence.Value;
+    import Data.Recurrence.Atom;
+    import Data.Recurrence.Day;
+    import Data.Recurrence.Gregorian;
 
     isGoodFirstChar :: Char -> Bool;
     isGoodFirstChar '_' = True;

@@ -4,9 +4,9 @@ module PointSet(tests) where
     import Test.Tasty;
     import Test.Tasty.HUnit;
     import Data.SetSearch;
-    import Data.TimePhase;
-    import Data.TimePhase.Day;
-    import Data.TimePhase.Time;
+    import Data.Recurrence;
+    import Data.Recurrence.Day;
+    import Data.Recurrence.Time;
 
     midnights :: PointSet T;
     midnights = isTimeOfDay midnight;

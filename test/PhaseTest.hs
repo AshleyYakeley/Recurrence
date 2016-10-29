@@ -4,8 +4,8 @@ module Main where
     import Data.Monoid;
     import Data.SetSearch;
     import Data.Time;
-    import Data.TimePhase;
-    import Data.TimePhase.Time;
+    import Data.Recurrence;
+    import Data.Recurrence.Time;
 
     psMidnight :: PointSet T;
     psMidnight = isTimeOfDay midnight;

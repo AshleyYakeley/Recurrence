@@ -1,15 +1,15 @@
-module Data.TimePhase.Calendar.Read(calendarFromString,calendarFromFile) where
+module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
 {
     import System.IO;
     import Text.ParserCombinators.ReadPrec;
-    import Data.TimePhase.Time;
+    import Data.Recurrence.Time;
     import Data.SExpression;
     import Data.SExpression.Read;
-    import Data.TimePhase.Atom;
-    import Data.TimePhase.Read;
-    import Data.TimePhase.Value;
-    import Data.TimePhase.Eval;
-    import Data.TimePhase.Calendar.Item;
+    import Data.Recurrence.Atom;
+    import Data.Recurrence.Read;
+    import Data.Recurrence.Value;
+    import Data.Recurrence.Eval;
+    import Data.Recurrence.Calendar.Item;
 
     readPhasesFile :: ReadPrec [SExpression Atom];
     readPhasesFile = do

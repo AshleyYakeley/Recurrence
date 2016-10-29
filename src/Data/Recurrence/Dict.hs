@@ -1,12 +1,12 @@
-module Data.TimePhase.Dict (dict,T) where
+module Data.Recurrence.Dict (dict,T) where
 {
     import Data.Time;
     import Data.Time.Calendar.Easter;
     import Data.SetSearch;
-    import Data.TimePhase.Time;
-    import Data.TimePhase.Value;
-    import Data.TimePhase.Day;
-    import Data.TimePhase.Gregorian;
+    import Data.Recurrence.Time;
+    import Data.Recurrence.Value;
+    import Data.Recurrence.Day;
+    import Data.Recurrence.Gregorian;
 
     phaseIntersectAll :: Maybe (TimePhase,[TimePhase]) -> TimePhase;
     phaseIntersectAll Nothing = tpAlways;

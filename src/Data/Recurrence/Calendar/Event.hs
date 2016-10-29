@@ -1,8 +1,8 @@
-module Data.TimePhase.Calendar.Event(Interval(..),Event(..),allEvents) where
+module Data.Recurrence.Calendar.Event(Interval(..),Event(..),allEvents) where
 {
     import Data.SetSearch;
-    import Data.TimePhase.Time;
-    import Data.TimePhase.Calendar.Item;
+    import Data.Recurrence.Time;
+    import Data.Recurrence.Calendar.Item;
 
     data Interval a = MkInterval (Maybe a) (Maybe a) deriving Eq;
 

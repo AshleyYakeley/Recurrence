@@ -2,9 +2,9 @@ module Main where
 {
     import System.Environment;
     import Text.Read;
-    import Data.TimePhase.Time;
-    import Data.TimePhase;
-    import Data.TimePhase.Calendar;
+    import Data.Recurrence.Time;
+    import Data.Recurrence;
+    import Data.Recurrence.Calendar;
     import Data.SetSearch;
 
     matchArgs :: [String] -> IO ((Maybe T, Maybe Int), [String]);

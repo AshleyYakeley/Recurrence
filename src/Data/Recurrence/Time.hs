@@ -1,4 +1,4 @@
-module Data.TimePhase.Time where
+module Data.Recurrence.Time where
 {
     import Control.Applicative (liftA2);
     import Data.Time;

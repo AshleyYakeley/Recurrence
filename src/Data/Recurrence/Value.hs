@@ -1,9 +1,9 @@
-module Data.TimePhase.Value where
+module Data.Recurrence.Value where
 {
     import Data.Time;
     import Data.SetSearch;
-    import Data.TimePhase.Time;
---    import Data.TimePhase.Day;
+    import Data.Recurrence.Time;
+--    import Data.Recurrence.Day;
 
     data Value = TimeSetValue TimePhase | IntegerValue Int | DurationValue NominalDiffTime | FunctionValue ([Value] -> M Value);
 

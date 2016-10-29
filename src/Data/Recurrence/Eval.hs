@@ -1,11 +1,11 @@
-module Data.TimePhase.Eval(evalWithDict) where
+module Data.Recurrence.Eval(evalWithDict) where
 {
     import Control.Monad;
     import Data.SExpression;
-    import Data.TimePhase.Time(M,reportError);
-    import Data.TimePhase.Value;
-    import Data.TimePhase.Atom;
-    import Data.TimePhase.Dict;
+    import Data.Recurrence.Time(M,reportError);
+    import Data.Recurrence.Value;
+    import Data.Recurrence.Atom;
+    import Data.Recurrence.Dict;
 
     eval :: (?dict :: String -> Maybe Value) => SExpression Atom -> M Value;
     eval (AtomSExpression (LiteralAtom value)) = return value;

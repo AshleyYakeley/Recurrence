@@ -37,21 +37,21 @@ library
         Data.SetSearch
         Data.SExpression.Read
         Data.SExpression
-        Data.TimePhase
-        Data.TimePhase.Time
-        Data.TimePhase.Day
-        Data.TimePhase.Gregorian
-        Data.TimePhase.Read
-        Data.TimePhase.Value
-        Data.TimePhase.Atom
-        Data.TimePhase.Dict
-        Data.TimePhase.Eval
-        Data.TimePhase.Calendar
+        Data.Recurrence
+        Data.Recurrence.Time
+        Data.Recurrence.Day
+        Data.Recurrence.Gregorian
+        Data.Recurrence.Read
+        Data.Recurrence.Value
+        Data.Recurrence.Atom
+        Data.Recurrence.Dict
+        Data.Recurrence.Eval
+        Data.Recurrence.Calendar
     other-modules:
-        Data.TimePhase.Calendar.Item
-        Data.TimePhase.Calendar.Read
-        Data.TimePhase.Calendar.Event
-        Data.TimePhase.Calendar.Show
+        Data.Recurrence.Calendar.Item
+        Data.Recurrence.Calendar.Read
+        Data.Recurrence.Calendar.Event
+        Data.Recurrence.Calendar.Show
     ghc-options: -Wall -Werror
 
 executable recur

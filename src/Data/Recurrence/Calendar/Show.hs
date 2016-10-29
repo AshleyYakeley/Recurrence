@@ -1,11 +1,11 @@
-module Data.TimePhase.Calendar.Show(outputCalendar,printCalendar) where
+module Data.Recurrence.Calendar.Show(outputCalendar,printCalendar) where
 {
     import Data.List;
     import Data.Time;
-    import Data.TimePhase.Time;
-    import Data.TimePhase.Gregorian;
-    import Data.TimePhase.Calendar.Item;
-    import Data.TimePhase.Calendar.Event;
+    import Data.Recurrence.Time;
+    import Data.Recurrence.Gregorian;
+    import Data.Recurrence.Calendar.Item;
+    import Data.Recurrence.Calendar.Event;
 
     mergeByPairPresorted :: (a -> a -> Ordering) -> [a] -> [a] -> [a];
     mergeByPairPresorted _cmp aa [] = aa;

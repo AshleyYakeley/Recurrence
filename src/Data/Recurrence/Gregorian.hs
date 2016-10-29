@@ -1,4 +1,4 @@
-module Data.TimePhase.Gregorian where
+module Data.Recurrence.Gregorian where
 {
     import Prelude hiding (id,(.));
     import Control.Category;
@@ -7,8 +7,8 @@ module Data.TimePhase.Gregorian where
     import Data.Time;
     import Data.Time.Calendar.OrdinalDate;
     import Data.SetSearch;
-    import Data.TimePhase.Time;
-    import Data.TimePhase.Day;
+    import Data.Recurrence.Time;
+    import Data.Recurrence.Day;
 
 
     -- Gregorian year

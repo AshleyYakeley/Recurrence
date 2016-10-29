@@ -1,10 +1,10 @@
 module Item(tests) where
 {
     import Data.Time;
-    import Data.TimePhase;
-    import Data.TimePhase.Time;
-    import Data.TimePhase.Day;
-    import Data.TimePhase.Calendar;
+    import Data.Recurrence;
+    import Data.Recurrence.Time;
+    import Data.Recurrence.Day;
+    import Data.Recurrence.Calendar;
     import Test.Tasty;
     import Test.Tasty.HUnit;
 

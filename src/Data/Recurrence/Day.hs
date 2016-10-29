@@ -1,8 +1,8 @@
-module Data.TimePhase.Day where
+module Data.Recurrence.Day where
 {
     import Data.Time;
     import Data.SetSearch;
-    import Data.TimePhase.Time;
+    import Data.Recurrence.Time;
 
 
     timeToDay :: MonotonicSurjection T Day;

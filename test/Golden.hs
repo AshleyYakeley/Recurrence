@@ -6,7 +6,7 @@ module Golden(tests) where
     import Data.ByteString.Lazy;
     import Data.ByteString.Lazy.UTF8;
     import Data.Time;
-    import Data.TimePhase.Calendar;
+    import Data.Recurrence.Calendar;
 
     runCalendar :: FilePath -> FilePath -> Integer -> IO ();
     runCalendar inputPath outputPath days = do
