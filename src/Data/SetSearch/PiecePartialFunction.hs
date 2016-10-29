@@ -39,4 +39,28 @@ module Data.SetSearch.PiecePartialFunction where
         pset = pointSet pf;
         pieceJoints = union pset $ remapBase succ pred pset;
     } in MkPieceFunction {..};
+
+    pointPiecePartialBoth :: forall t a b. Ord t => PiecePartialFunction t a -> PointFunction t b -> PointFunction t (a,b);
+    -- pointPiecePartialBoth ints pf = pointCollect (\t b -> fmap (\a -> (a,b)) (pieceEval ints t)) pf; -- naive (slow) implementation
+    pointPiecePartialBoth MkPieceFunction{..} (MkPointFunction ttltb) = MkPointFunction $ \t0 t1 -> let
+    {
+        MkPointFunction ttltu = pieceJoints;
+
+        tb_tab :: a -> (t,b) -> (t,(a,b));
+        tb_tab a (t,b) = (t,(a,b));
+
+        op :: t -> t -> Bool;
+        op = if t1 >= t0 then (<) else (>=);
+
+        combine _ _ [] = [];
+        combine Nothing [] _ = [];
+        combine (Just a) [] ltb = fmap (tb_tab a) ltb;
+        combine state js@((tj,_):_) (tb:ltb) | (fst tb) `op` tj = case state of
+        {
+            Just a -> (tb_tab a tb):(combine state js ltb);
+            Nothing -> combine state js ltb;
+        };
+        combine _ (_:js) ltb@((t,_):_) = combine (pieceEval t) js ltb;
+
+    } in combine (pieceEval t0) (ttltu t0 t1) (ttltb t0 t1);
 }

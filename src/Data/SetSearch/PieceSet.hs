@@ -32,8 +32,8 @@ module Data.SetSearch.PieceSet where
         member ps t = isJust $ pieceEval ps t;
     };
 
-    pointIntersectPiece :: (Ord a) => PieceSet a -> PointFunction a p -> PointFunction a p;
-    pointIntersectPiece ints pf = pointFilter (\a _ -> member ints a) pf;
+    pointIntersectPiece :: Ord t => PieceSet t -> PointFunction t a -> PointFunction t a;
+    pointIntersectPiece ints pf = fmap snd $ pointPiecePartialBoth ints pf;
 
     pointDiffPiece :: (Ord a) => PieceSet a -> PointSet a -> PointSet a;
     pointDiffPiece i = pointIntersectPiece (invert i);
