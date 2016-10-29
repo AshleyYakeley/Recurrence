@@ -26,8 +26,11 @@ module Data.SetSearch.PiecePartialFunction where
     piecePartialIs :: PiecePartialFunction t count -> t -> Bool;
     piecePartialIs phase t = isJust $ pieceEval phase t;
 
+    piecePartialLift :: (Ord t) => (a -> b -> c) -> PiecePartialFunction t a -> PiecePartialFunction t b -> PiecePartialFunction t c;
+    piecePartialLift abc = liftA2 (liftA2 abc);
+
     piecePartialBoth :: (Ord t) => PiecePartialFunction t c1 -> PiecePartialFunction t c2 -> PiecePartialFunction t (c1,c2);
-    piecePartialBoth = liftA2 (liftA2 (,));
+    piecePartialBoth = piecePartialLift (,);
 
     piecePartialEnumPoint :: (Ord t,Enum t) => PointFunction t a -> PiecePartialFunction t a;
     piecePartialEnumPoint pf = let

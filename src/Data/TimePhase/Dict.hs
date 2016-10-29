@@ -33,6 +33,7 @@ module Data.TimePhase.Dict (dict,T) where
     dict "never" = Just (toValue (tpNever :: TimePhase));
     dict "always" = Just (toValue (tpAlways :: TimePhase));
     dict "not" = Just (toValue (tpInvert :: TimePhase -> M TimePhase));
+    dict "between" = Just (toValue tpBetween);
     dict "except" = Just (toValue (tpDiff :: TimePhase -> TimePhase -> M TimePhase));
     dict "when" = Just (toValue phaseIntersectAll);
     dict "and" = Just (toValue phaseUnionAll);

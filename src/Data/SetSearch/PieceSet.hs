@@ -79,12 +79,11 @@ module Data.SetSearch.PieceSet where
         changes = fmap ff $ pointBase $ fmap snd $ pieceChanges ps;
     } in pieceLatestPoint Nothing changes;
 
+    piecePartialBetweenPoint :: (?first :: t) => PointSet t -> PiecePartialFunction t t;
+    piecePartialBetweenPoint ps = pieceLatestPoint Nothing $ fmap (\(t,_) -> Just t) $ pointBase ps;
+
     phaseOf :: forall t. (Ord t,?first :: t) => PieceSet t -> PointSet t -> PiecePartialFunction t t;
-    phaseOf int ps = let
-    {
-        allPhases :: PieceFunction t (Maybe t);
-        allPhases = pieceLatestPoint Nothing (fmap (\(t,_) -> Just t) $ pointBase ps);
-    } in liftA2 (>>) int allPhases;
+    phaseOf int ps = piecePartialLift (\() t -> t) int $ piecePartialBetweenPoint ps;
 
     pieceSetCountedOnAfter :: (Ord t,?first :: t) => Int -> PointFunction t a -> PointFunction t b -> PieceSet t;
     pieceSetCountedOnAfter n subject delimiter = let

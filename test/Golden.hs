@@ -35,6 +35,8 @@ module Golden(tests) where
     testfiles :: [(String,Integer)];
     testfiles =
     [
+        ("between.instant",10),
+        ("between.period",60),
         ("day",10),
         ("dateformats",3650),
         ("duration",60),

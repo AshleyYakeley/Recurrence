@@ -105,6 +105,11 @@ module Data.TimePhase.Time where
     nthFrom n (InstantTimeSet subject) delimiter = let {?first = firstTime} in InstantTimeSet $ pointCountedOnAfter n subject (startOf delimiter);
     nthFrom n (PeriodTimeSet subject) delimiter = let {?first = firstTime} in PeriodTimeSet $ pieceCountedOnAfter n subject (startOf delimiter);
 
+    tpBetween :: TimePhase -> TimePhase;
+    tpBetween EmptyTimeSet = tpAlways;
+    tpBetween (PeriodTimeSet pf) = PeriodTimeSet $ invert $ piecePartialToSet pf;
+    tpBetween (InstantTimeSet ps) = let {?first = firstTime} in PeriodTimeSet $ fmap Just $ piecePartialBetweenPoint ps;
+
     ofPhase :: TimePhase -> TimePhase -> TimePhase;
     ofPhase picker (PeriodTimeSet phase) = let {?first = firstTime} in PeriodTimeSet $ phaseOf (piecePartialToSet phase) (startOf picker);
     ofPhase _ _ = EmptyTimeSet;
