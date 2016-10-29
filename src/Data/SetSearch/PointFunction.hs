@@ -40,6 +40,7 @@ module Data.SetSearch.PointFunction where
     };
 
     -- | Only works if functions are strictly monotonic.
+    ;
     instance RemapBase (PointFunction a x) (PointFunction b x) where
     {
         remapBase ab ba (MkPointFunction f) = MkPointFunction $ \b1 b2 -> fmap (\(a,x) -> (ab a,x)) (f (ba b1) (ba b2));

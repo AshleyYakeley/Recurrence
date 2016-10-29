@@ -25,6 +25,7 @@ module Data.Recurrence.Day where
     isTimeOfDay tod = knownToPointSet (kpsEach (\t -> localDay t) (\day -> LocalTime day tod));
 
     -- | first day on and first day off (not last day)
+    ;
     isSingleInterval :: Day -> Day -> PieceSet T;
     isSingleInterval startDay endDay = let {?first = firstTime} in
         pieceSetSingleInterval (toDayStart startDay) (toDayStart endDay);

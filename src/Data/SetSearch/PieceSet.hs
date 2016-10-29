@@ -50,6 +50,7 @@ module Data.SetSearch.PieceSet where
     pieceSetSingleInterval t0 t1 = pieceSetFromToPoints Nothing (single t0) (single t1);
 
     -- | step after the first value in the point set
+    ;
     pieceSetAfterPoint :: (?first :: a) => PointSet a -> PieceSet a;
     pieceSetAfterPoint ps = pieceLatestPoint Nothing $ fmap (const $ Just ()) ps;
 

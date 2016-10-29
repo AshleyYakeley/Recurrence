@@ -83,6 +83,7 @@ module Data.Recurrence.Gregorian where
     theMonthNumber = pieceEverySurjection timeToMonthNumber;
 
     -- | Each "month" must be uniquely identified (with MonthNumber)
+    ;
     aMonth :: TimePhase;
     aMonth = PeriodTimeSet $ fmap Just theMonthNumber;
 
