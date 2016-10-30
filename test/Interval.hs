@@ -1,15 +1,15 @@
-module Item(tests) where
+module Interval(tests) where
 {
     import Data.Time;
     import Data.Recurrence;
     import Data.Recurrence.Time;
     import Data.Recurrence.Day;
-    import Data.Recurrence.Calendar;
+    import Data.Recurrence.Interval;
     import Test.Tasty;
     import Test.Tasty.HUnit;
 
-    midnights :: Item;
-    midnights = MkItem "midnight" (InstantTimeSet (isTimeOfDay midnight));
+    midnights :: TimePhase;
+    midnights = InstantTimeSet (isTimeOfDay midnight);
 
     dayMidnight :: Day -> T;
     dayMidnight localDay = let
@@ -35,12 +35,9 @@ module Item(tests) where
     pointInterval :: T -> Interval T;
     pointInterval p = MkInterval (Just p) (Just p);
 
-    expectedEvent :: T -> Event T;
-    expectedEvent t = MkEvent "midnight" (pointInterval t);
-
     tests :: TestTree;
     tests = testGroup "item"
     [
-        check "events" [expectedEvent t0,expectedEvent t1,expectedEvent t2] (allEvents midnights t0 t2)
+        check "events" [pointInterval t0,pointInterval t1,pointInterval t2] (allIntervals midnights t0 t2)
     ];
 }

@@ -22,7 +22,9 @@ library
         ExistentialQuantification
         DefaultSignatures
         GeneralizedNewtypeDeriving
-    build-depends: base, time >= 1.4
+    build-depends:
+        base,
+        time
     exposed-modules:
         Data.SetSearch.Base
         Data.SetSearch.Set
@@ -46,6 +48,7 @@ library
         Data.Recurrence.Atom
         Data.Recurrence.Dict
         Data.Recurrence.Eval
+        Data.Recurrence.Interval
         Data.Recurrence.Calendar
     other-modules:
         Data.Recurrence.Calendar.Item
@@ -110,5 +113,5 @@ test-suite test
     other-modules:
         Sets
         PointSet
-        Item
+        Interval
         Golden

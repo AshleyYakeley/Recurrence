@@ -3,7 +3,7 @@ module Main(main) where
     import Test.Tasty;
     import qualified Sets;
     import qualified PointSet;
-    import qualified Item;
+    import qualified Interval;
     import qualified Golden;
 
     tests :: TestTree;
@@ -11,7 +11,7 @@ module Main(main) where
     [
         Sets.tests,
         PointSet.tests,
-        Item.tests,
+        Interval.tests,
         Golden.tests
     ];
 
