@@ -37,11 +37,9 @@ library
         Data.SetSearch.PiecePartialFunction
         Data.SetSearch.PieceSet
         Data.SetSearch
-        Data.SExpression.Read
         Data.SExpression
         Data.Recurrence
         Data.Recurrence.Time
-        Data.Recurrence.Read
         Data.Recurrence.Value
         Data.Recurrence.Atom
         Data.Recurrence.Dict
@@ -49,6 +47,7 @@ library
         Data.Recurrence.Interval
         Data.Recurrence.Calendar
     other-modules:
+        Data.SExpression.Read
         Data.Recurrence.Time.Day
         Data.Recurrence.Time.Gregorian
         Data.Recurrence.Time.Recurrence

@@ -1,4 +1,8 @@
-module Data.SExpression where
+module Data.SExpression
+    (
+    SExpression(..),
+    readAnyWhiteSpace,
+    ) where
 {
     import Data.Char;
     import Data.List;

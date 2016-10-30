@@ -1,12 +1,12 @@
 module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
 {
     import System.IO;
+    import Text.Read(readPrec);
     import Text.ParserCombinators.ReadPrec;
     import Data.Recurrence.Time;
     import Data.SExpression;
     import Data.SExpression.Read;
     import Data.Recurrence.Atom;
-    import Data.Recurrence.Read;
     import Data.Recurrence.Value;
     import Data.Recurrence.Eval;
     import Data.Recurrence.Calendar.Item;
@@ -14,7 +14,7 @@ module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
     readPhasesFile :: ReadPrec [SExpression Atom];
     readPhasesFile = do
     {
-        exps <- readZeroOrMore readExpression;
+        exps <- readZeroOrMore readPrec;
         readAnyWhiteSpace;
         return exps;
     };
