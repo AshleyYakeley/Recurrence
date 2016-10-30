@@ -6,9 +6,7 @@ module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
     import Data.Recurrence.Time;
     import Data.SExpression;
     import Data.SExpression.Read;
-    import Data.Recurrence.Atom;
-    import Data.Recurrence.Value;
-    import Data.Recurrence.Eval;
+    import Data.Recurrence.SExpression;
     import Data.Recurrence.Calendar.Item;
 
     readPhasesFile :: ReadPrec [SExpression Atom];

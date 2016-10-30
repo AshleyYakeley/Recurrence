@@ -1,4 +1,4 @@
-module Data.Recurrence.Atom(Atom(..)) where
+module Data.Recurrence.SExpression.Atom(Atom(..)) where
 {
     import Data.Char;
     import Data.Fixed;
@@ -8,7 +8,7 @@ module Data.Recurrence.Atom(Atom(..)) where
     import Data.SetSearch;
     import Data.SExpression.Read;
     import Data.Recurrence.Time;
-    import Data.Recurrence.Value;
+    import Data.Recurrence.SExpression.Value;
 
 
     data Atom = IdentifierAtom String | LiteralAtom Value;

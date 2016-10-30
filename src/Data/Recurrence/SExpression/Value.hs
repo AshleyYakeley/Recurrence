@@ -1,9 +1,8 @@
-module Data.Recurrence.Value where
+module Data.Recurrence.SExpression.Value where
 {
     import Data.Time;
     import Data.SetSearch;
     import Data.Recurrence.Time;
---    import Data.Recurrence.Day;
 
     data Value = TimeSetValue Recurrence | IntegerValue Int | DurationValue NominalDiffTime | FunctionValue ([Value] -> M Value);
 
@@ -119,14 +118,7 @@ module Data.Recurrence.Value where
     {
         toValue = toValue . InstantRecurrence;
     };
-{-
-    instance ToValues (PointSet Day);
 
-    instance ToValue (PointSet Day) where
-    {
-        toValue = toValue . daysToTimeIntervals;
-    };
--}
     instance ToValues NominalDiffTime;
 
     instance FromValues NominalDiffTime;

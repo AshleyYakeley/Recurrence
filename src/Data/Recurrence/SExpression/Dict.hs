@@ -1,10 +1,10 @@
-module Data.Recurrence.Dict (dict,T) where
+module Data.Recurrence.SExpression.Dict (dict,T) where
 {
     import Data.Time;
     import Data.Time.Calendar.Easter;
     import Data.SetSearch;
     import Data.Recurrence.Time;
-    import Data.Recurrence.Value;
+    import Data.Recurrence.SExpression.Value;
 
     recIntersectAll :: Maybe (Recurrence,[Recurrence]) -> Recurrence;
     recIntersectAll Nothing = recAlways;

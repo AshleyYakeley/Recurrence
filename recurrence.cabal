@@ -39,10 +39,7 @@ library
         Data.SExpression
         Data.Recurrence
         Data.Recurrence.Time
-        Data.Recurrence.Value
-        Data.Recurrence.Atom
-        Data.Recurrence.Dict
-        Data.Recurrence.Eval
+        Data.Recurrence.SExpression
         Data.Recurrence.Interval
         Data.Recurrence.Calendar
     other-modules:
@@ -50,6 +47,10 @@ library
         Data.Recurrence.Time.Day
         Data.Recurrence.Time.Gregorian
         Data.Recurrence.Time.Recurrence
+        Data.Recurrence.SExpression.Value
+        Data.Recurrence.SExpression.Atom
+        Data.Recurrence.SExpression.Dict
+        Data.Recurrence.SExpression.Eval
         Data.Recurrence.Calendar.Item
         Data.Recurrence.Calendar.Read
         Data.Recurrence.Calendar.Event
