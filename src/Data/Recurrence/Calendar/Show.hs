@@ -3,7 +3,6 @@ module Data.Recurrence.Calendar.Show(outputCalendar,printCalendar) where
     import Data.List;
     import Data.Time;
     import Data.Recurrence.Time;
-    import Data.Recurrence.Gregorian;
     import Data.Recurrence.Interval;
     import Data.Recurrence.Calendar.Item;
     import Data.Recurrence.Calendar.Event;

@@ -10,8 +10,6 @@ module Data.Recurrence.Read (readExpression) where
     import Data.Recurrence.Time;
     import Data.Recurrence.Value;
     import Data.Recurrence.Atom;
-    import Data.Recurrence.Day;
-    import Data.Recurrence.Gregorian;
 
     isGoodFirstChar :: Char -> Bool;
     isGoodFirstChar '_' = True;

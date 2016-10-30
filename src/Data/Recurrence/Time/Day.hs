@@ -1,8 +1,15 @@
-module Data.Recurrence.Day where
+module Data.Recurrence.Time.Day
+    (
+    timeToDay,
+    aDay,
+    isTimeOfDay,
+    isSingleInterval,
+    isSingleDay,
+    ) where
 {
     import Data.Time;
     import Data.SetSearch;
-    import Data.Recurrence.Time;
+    import Data.Recurrence.Time.Recurrence;
 
 
     timeToDay :: MonotonicSurjection T Day;
@@ -11,9 +18,6 @@ module Data.Recurrence.Day where
         msEval (LocalTime d _) = d;
         msImage d = (LocalTime d midnight,LocalTime (succ d) midnight);
     } in MkMonotonicSurjection{..};
-
-    everyDay :: PointSet Day;
-    everyDay = MkPointFunction $ \d0 d1 -> fmap (\d -> (d,())) $ listFromTo d0 d1;
 
     theDay :: PieceFunction T Day;
     theDay = pieceEverySurjection timeToDay;

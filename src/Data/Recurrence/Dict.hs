@@ -5,8 +5,6 @@ module Data.Recurrence.Dict (dict,T) where
     import Data.SetSearch;
     import Data.Recurrence.Time;
     import Data.Recurrence.Value;
-    import Data.Recurrence.Day;
-    import Data.Recurrence.Gregorian;
 
     recIntersectAll :: Maybe (Recurrence,[Recurrence]) -> Recurrence;
     recIntersectAll Nothing = recAlways;

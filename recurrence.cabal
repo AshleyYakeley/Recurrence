@@ -41,8 +41,6 @@ library
         Data.SExpression
         Data.Recurrence
         Data.Recurrence.Time
-        Data.Recurrence.Day
-        Data.Recurrence.Gregorian
         Data.Recurrence.Read
         Data.Recurrence.Value
         Data.Recurrence.Atom
@@ -51,6 +49,9 @@ library
         Data.Recurrence.Interval
         Data.Recurrence.Calendar
     other-modules:
+        Data.Recurrence.Time.Day
+        Data.Recurrence.Time.Gregorian
+        Data.Recurrence.Time.Recurrence
         Data.Recurrence.Calendar.Item
         Data.Recurrence.Calendar.Read
         Data.Recurrence.Calendar.Event

@@ -3,7 +3,6 @@ module Interval(tests) where
     import Data.Time;
     import Data.Recurrence;
     import Data.Recurrence.Time;
-    import Data.Recurrence.Day;
     import Data.Recurrence.Interval;
     import Test.Tasty;
     import Test.Tasty.HUnit;

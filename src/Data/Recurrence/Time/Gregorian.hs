@@ -1,12 +1,31 @@
-module Data.Recurrence.Gregorian where
+module Data.Recurrence.Time.Gregorian
+    (
+    Year,
+    isSingleYear,
+    yearOfDay,
+    aYear,
+    dayEachYear,
+
+    MonthOfYear,
+    isSingleMonth,
+    aMonth,
+    isMonthOfYear,
+
+    DayOfMonth,
+    isDayOfMonth,
+    isMonthAndDayOfYear,
+
+    DayOfWeek,
+    isDayOfWeek,
+    ) where
 {
     import Prelude hiding (id,(.));
     import Control.Category;
     import Data.Time;
     import Data.Time.Calendar.OrdinalDate;
     import Data.SetSearch;
-    import Data.Recurrence.Time;
-    import Data.Recurrence.Day;
+    import Data.Recurrence.Time.Recurrence;
+    import Data.Recurrence.Time.Day;
 
 
     -- Gregorian year
@@ -35,6 +54,9 @@ module Data.Recurrence.Gregorian where
 
     aYear :: Recurrence;
     aYear = PeriodRecurrence $ fmap Just theYear;
+
+    dayEachYear :: (Year -> Maybe Day) -> PiecePartialFunction T Year;
+    dayEachYear getDay = pieceMapSurjection timeToDay $ piecePartialEnumPoint $ pointEveryInjection $ ordInjection getDay yearOfDay;
 
 
     -- Gregorian year and month
@@ -87,9 +109,6 @@ module Data.Recurrence.Gregorian where
 
     isMonthOfYear :: MonthOfYear -> PieceSet T;
     isMonthOfYear m = piecePartialToSet $ pieceMapSurjection timeToMonthNumber $ piecePartialEnumPoint $ pointEveryInjection $ miMonthOfYear m;
-
-    dayEachYear :: (Year -> Maybe Day) -> PiecePartialFunction T Year;
-    dayEachYear getDay = pieceMapSurjection timeToDay $ piecePartialEnumPoint $ pointEveryInjection $ ordInjection getDay yearOfDay;
 
 
     -- Gregorian year, month and day
