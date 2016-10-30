@@ -7,23 +7,6 @@ A phase function of T is a point set P together with a function f :: R -> T such
 
 data PhaseFunction r a = MkPhaseFunction (PointSet r) (r -> a)
 
-meet' :: p a -> p b ->
-
-
-
-x ∧ y = y ∧ x
-x ∧ (y ∧ z) = (x ∧ y) ∧ z
-x ∧ x = x
-
-x ∨ y = y ∨ x
-x ∨ (y ∨ z) = (x ∨ y) ∨ z
-x ∨ x = x
-
-a ∨ (a ∧ b) = a
-a ∧ (a ∨ b) = a
-
-
-
 A phase set is a set S (subset of R) such that for any closed-open interval I, n(S intersect I) is the union of a finite set of closed-open intervals. ("periods")
 
 A phase is a set S of disjoint closed-open intervals such that given any interval I, n({i mem. S, i int I is non-empty}) is finite

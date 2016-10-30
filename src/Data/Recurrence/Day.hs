@@ -18,8 +18,8 @@ module Data.Recurrence.Day where
     theDay :: PieceFunction T Day;
     theDay = pieceEverySurjection timeToDay;
 
-    aDay :: TimePhase;
-    aDay = PeriodTimeSet $ fmap Just theDay;
+    aDay :: Recurrence;
+    aDay = PeriodRecurrence $ fmap Just theDay;
 
     isTimeOfDay :: TimeOfDay -> PointSet T;
     isTimeOfDay tod = knownToPointSet (kpsEach (\t -> localDay t) (\day -> LocalTime day tod));

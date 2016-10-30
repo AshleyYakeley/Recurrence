@@ -23,8 +23,8 @@ module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
     interpretItem (ListSExpression [AtomSExpression (IdentifierAtom name),defn]) = do
     {
         value <- evalWithDict defn;
-        phase <- fromValue value;
-        return (MkItem name phase);
+        rc <- fromValue value;
+        return (MkItem name rc);
     };
     interpretItem _ = reportError "S-expression not in correct format";
 

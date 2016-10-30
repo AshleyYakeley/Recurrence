@@ -83,8 +83,8 @@ module Data.SetSearch.PieceSet where
     piecePartialBetweenPoint :: (?first :: t) => PointSet t -> PiecePartialFunction t t;
     piecePartialBetweenPoint ps = pieceLatestPoint Nothing $ fmap (\(t,_) -> Just t) $ pointBase ps;
 
-    phaseOf :: forall t. (Ord t,?first :: t) => PieceSet t -> PointSet t -> PiecePartialFunction t t;
-    phaseOf int ps = piecePartialLift (\() t -> t) int $ piecePartialBetweenPoint ps;
+    piecePartialOf :: forall t. (Ord t,?first :: t) => PieceSet t -> PointSet t -> PiecePartialFunction t t;
+    piecePartialOf int ps = piecePartialLift (\() t -> t) int $ piecePartialBetweenPoint ps;
 
     pieceSetCountedOnAfter :: (Ord t,?first :: t) => Int -> PointFunction t a -> PointFunction t b -> PieceSet t;
     pieceSetCountedOnAfter n subject delimiter = let

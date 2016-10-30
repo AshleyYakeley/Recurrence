@@ -7,7 +7,7 @@ module Main(main) where
     import qualified Golden;
 
     tests :: TestTree;
-    tests = testGroup "phase"
+    tests = testGroup "recurrence"
     [
         Sets.tests,
         PointSet.tests,

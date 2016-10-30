@@ -5,7 +5,7 @@ module Data.Recurrence.Value where
     import Data.Recurrence.Time;
 --    import Data.Recurrence.Day;
 
-    data Value = TimeSetValue TimePhase | IntegerValue Int | DurationValue NominalDiffTime | FunctionValue ([Value] -> M Value);
+    data Value = TimeSetValue Recurrence | IntegerValue Int | DurationValue NominalDiffTime | FunctionValue ([Value] -> M Value);
 
     class ToValues a where
     {
@@ -74,16 +74,16 @@ module Data.Recurrence.Value where
         };
     };
 
-    instance ToValues TimePhase;
+    instance ToValues Recurrence;
 
-    instance FromValues TimePhase;
+    instance FromValues Recurrence;
 
-    instance ToValue TimePhase where
+    instance ToValue Recurrence where
     {
         toValue = TimeSetValue;
     };
 
-    instance FromValue TimePhase where
+    instance FromValue Recurrence where
     {
         fromValue (TimeSetValue x) = return x;
         fromValue _ = reportError "expected times";
@@ -99,8 +99,8 @@ module Data.Recurrence.Value where
             ts <- fromValue v;
             case ts of
             {
-                PeriodTimeSet x -> return $ piecePartialToSet x;
-                EmptyTimeSet -> return empty;
+                PeriodRecurrence x -> return $ piecePartialToSet x;
+                EmptyRecurrence -> return empty;
                 _ -> reportError "expected period";
             };
         };
@@ -110,14 +110,14 @@ module Data.Recurrence.Value where
 
     instance Eq count => ToValue (PiecePartialFunction T count) where
     {
-        toValue = toValue . PeriodTimeSet;
+        toValue = toValue . PeriodRecurrence;
     };
 
     instance ToValues (PointSet T);
 
     instance ToValue (PointSet T) where
     {
-        toValue = toValue . InstantTimeSet;
+        toValue = toValue . InstantRecurrence;
     };
 {-
     instance ToValues (PointSet Day);

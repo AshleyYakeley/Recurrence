@@ -24,7 +24,7 @@ module Data.SetSearch.PiecePartialFunction where
     piecePartialConst count = pure (Just count);
 
     piecePartialIs :: PiecePartialFunction t count -> t -> Bool;
-    piecePartialIs phase t = isJust $ pieceEval phase t;
+    piecePartialIs ppf t = isJust $ pieceEval ppf t;
 
     piecePartialLift :: (Ord t) => (a -> b -> c) -> PiecePartialFunction t a -> PiecePartialFunction t b -> PiecePartialFunction t c;
     piecePartialLift abc = liftA2 (liftA2 abc);

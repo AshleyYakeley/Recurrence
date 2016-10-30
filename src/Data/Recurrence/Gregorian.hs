@@ -2,8 +2,6 @@ module Data.Recurrence.Gregorian where
 {
     import Prelude hiding (id,(.));
     import Control.Category;
---    import Control.Applicative (liftA2);
---    import Data.Fixed;
     import Data.Time;
     import Data.Time.Calendar.OrdinalDate;
     import Data.SetSearch;
@@ -35,8 +33,8 @@ module Data.Recurrence.Gregorian where
         } in enumSurjection yearOfDay yToFirstDay;
     } in pieceEverySurjection (dayToYear . timeToDay);
 
-    aYear :: TimePhase;
-    aYear = PeriodTimeSet $ fmap Just theYear;
+    aYear :: Recurrence;
+    aYear = PeriodRecurrence $ fmap Just theYear;
 
 
     -- Gregorian year and month
@@ -84,8 +82,8 @@ module Data.Recurrence.Gregorian where
 
     -- | Each "month" must be uniquely identified (with MonthNumber)
     ;
-    aMonth :: TimePhase;
-    aMonth = PeriodTimeSet $ fmap Just theMonthNumber;
+    aMonth :: Recurrence;
+    aMonth = PeriodRecurrence $ fmap Just theMonthNumber;
 
     isMonthOfYear :: MonthOfYear -> PieceSet T;
     isMonthOfYear m = piecePartialToSet $ pieceMapSurjection timeToMonthNumber $ piecePartialEnumPoint $ pointEveryInjection $ miMonthOfYear m;

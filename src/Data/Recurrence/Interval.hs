@@ -37,10 +37,10 @@ module Data.Recurrence.Interval(Interval(..),allIntervals) where
     pointInterval :: t -> Interval t;
     pointInterval t = MkInterval (Just t) (Just t);
 
-    allIntervals :: TimePhase -> T -> T -> [Interval T];
-    allIntervals EmptyTimeSet _ _ = [];
-    allIntervals (InstantTimeSet ps) t0 limit = fmap pointInterval $ pointSetIncluding ps t0 limit;
-    allIntervals (PeriodTimeSet pf) t0 limit = let
+    allIntervals :: Recurrence -> T -> T -> [Interval T];
+    allIntervals EmptyRecurrence _ _ = [];
+    allIntervals (InstantRecurrence ps) t0 limit = fmap pointInterval $ pointSetIncluding ps t0 limit;
+    allIntervals (PeriodRecurrence pf) t0 limit = let
     {
         changes = pointsIncluding (pieceChanges pf) t0 limit;
 

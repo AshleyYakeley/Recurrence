@@ -159,12 +159,12 @@ module Data.Recurrence.Read (readExpression) where
         return (isTimeOfDay (TimeOfDay h m s));
     };
 
-    readBracketed :: ReadPrec TimePhase;
+    readBracketed :: ReadPrec Recurrence;
     readBracketed = do
     {
         readThis '[';
         readZeroOrMore_ (readMatching isSpace);
-        phase <- (do
+        rc <- (do
         {
             df <- readDayFormat;
             mtf <- readMaybe (do
@@ -174,13 +174,13 @@ module Data.Recurrence.Read (readExpression) where
             });
             return (case mtf of
             {
-                Just tf -> InstantTimeSet $ pointIntersectPiece df tf;
-                Nothing -> PeriodTimeSet $ let {?first=firstTime} in piecePartialIdentifySet df;
+                Just tf -> InstantRecurrence $ pointIntersectPiece df tf;
+                Nothing -> PeriodRecurrence $ let {?first=firstTime} in piecePartialIdentifySet df;
             });
-        }) <++ fmap InstantTimeSet readTimeOfDayFormat;
+        }) <++ fmap InstantRecurrence readTimeOfDayFormat;
         readZeroOrMore_ (readMatching isSpace);
         readThis ']';
-        return phase;
+        return rc;
     };
 {-
     allowedName :: String -> Bool;

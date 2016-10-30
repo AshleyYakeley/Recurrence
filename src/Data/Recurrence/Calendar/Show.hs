@@ -158,7 +158,7 @@ module Data.Recurrence.Calendar.Show(outputCalendar,printCalendar) where
     outputCalendar :: (Monad m,?output :: String -> m ()) => T -> T -> Calendar -> m ();
     outputCalendar t limit items = let {?context = t} in outputEvents events where
     {
-        events = mergeByListPresorted compareEvents (fmap (\phase -> allEvents phase t limit) items);
+        events = mergeByListPresorted compareEvents (fmap (\rc -> allEvents rc t limit) items);
     };
 
     printCalendar :: T -> T -> Calendar -> IO ();

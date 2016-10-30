@@ -8,46 +8,46 @@ module Data.Recurrence.Dict (dict,T) where
     import Data.Recurrence.Day;
     import Data.Recurrence.Gregorian;
 
-    phaseIntersectAll :: Maybe (TimePhase,[TimePhase]) -> TimePhase;
-    phaseIntersectAll Nothing = tpAlways;
-    phaseIntersectAll (Just (phase,sets)) = f sets where
+    recIntersectAll :: Maybe (Recurrence,[Recurrence]) -> Recurrence;
+    recIntersectAll Nothing = recAlways;
+    recIntersectAll (Just (rc,sets)) = f sets where
     {
-        f [] = phase;
-        f (s:ss) = tpIntersect (f ss) s;
+        f [] = rc;
+        f (s:ss) = recIntersect (f ss) s;
     };
 
-    phaseUnionAll :: Maybe (TimePhase,[TimePhase]) -> M TimePhase;
-    phaseUnionAll Nothing = return tpNever;
-    phaseUnionAll (Just (phase,sets)) = f sets where
+    recUnionAll :: Maybe (Recurrence,[Recurrence]) -> M Recurrence;
+    recUnionAll Nothing = return recNever;
+    recUnionAll (Just (rc,sets)) = f sets where
     {
-        f [] = return phase;
+        f [] = return rc;
         f (s:ss) = do
         {
             r <- f ss;
-            tpUnion s r;
+            recUnion s r;
         };
     };
 
     dict :: (?now :: T) => String -> Maybe Value;
 
-    dict "never" = Just (toValue (tpNever :: TimePhase));
-    dict "always" = Just (toValue (tpAlways :: TimePhase));
-    dict "not" = Just (toValue (tpInvert :: TimePhase -> M TimePhase));
-    dict "between" = Just (toValue tpBetween);
-    dict "except" = Just (toValue (tpDiff :: TimePhase -> TimePhase -> M TimePhase));
-    dict "when" = Just (toValue phaseIntersectAll);
-    dict "and" = Just (toValue phaseUnionAll);
-    dict "start" = Just (toValue startOf);
-    dict "end" = Just (toValue endOf);
-    dict "from-until" = Just (toValue fromUntil);
-    dict "through" = Just (toValue fromTo);
-    dict "from" = Just (toValue onAfter);
-    dict "until" = Just (toValue (invert . onAfter));
-    dict "nth" = Just (toValue nthIn);
-    dict "of" = Just (toValue ofPhase);
+    dict "never" = Just (toValue (recNever :: Recurrence));
+    dict "always" = Just (toValue (recAlways :: Recurrence));
+    dict "not" = Just (toValue (recInvert :: Recurrence -> M Recurrence));
+    dict "between" = Just (toValue recBetween);
+    dict "except" = Just (toValue (recDiff :: Recurrence -> Recurrence -> M Recurrence));
+    dict "when" = Just (toValue recIntersectAll);
+    dict "and" = Just (toValue recUnionAll);
+    dict "start" = Just (toValue recStart);
+    dict "end" = Just (toValue recEnd);
+    dict "from-until" = Just (toValue recFromUntil);
+    dict "through" = Just (toValue recFromTo);
+    dict "from" = Just (toValue recFrom);
+    dict "until" = Just (toValue (invert . recFrom));
+    dict "nth" = Just (toValue recNth);
+    dict "of" = Just (toValue recOf);
     dict "all" = Just (toValue (id :: PieceSet T -> PieceSet T));
 
-    dict "delay" = Just (toValue (delay :: NominalDiffTime -> TimePhase -> TimePhase));
+    dict "delay" = Just (toValue (delay :: NominalDiffTime -> Recurrence -> Recurrence));
 
     dict "now" = Just (toValue (single ?now :: PointSet T));
 

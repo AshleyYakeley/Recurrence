@@ -18,5 +18,5 @@ module Data.Recurrence.Calendar.Event(Event(..),allEvents) where
     };
 
     allEvents :: Item -> T -> T -> [Event T];
-    allEvents (MkItem name phase) cut limit = fmap (MkEvent name) $ allIntervals phase cut limit;
+    allEvents (MkItem name rc) cut limit = fmap (MkEvent name) $ allIntervals rc cut limit;
 }

@@ -22,95 +22,95 @@ module Data.Recurrence.Time where
     firstTime :: T;
     firstTime = toDayStart $ ModifiedJulianDay (-10000000);
 
-    data TimePhase = forall count. Eq count => PeriodTimeSet (PiecePartialFunction T count) | InstantTimeSet (PointSet T) | EmptyTimeSet;
+    data Recurrence = forall a. Eq a => PeriodRecurrence (PiecePartialFunction T a) | InstantRecurrence (PointSet T) | EmptyRecurrence;
 
-    instance BasedOn TimePhase where
+    instance BasedOn Recurrence where
     {
-        type Base TimePhase = T;
+        type Base Recurrence = T;
     };
 
-    instance RemapBase TimePhase TimePhase where
+    instance RemapBase Recurrence Recurrence where
     {
-        remapBase pq qp (PeriodTimeSet (pf :: PiecePartialFunction T count)) = PeriodTimeSet (remapBase pq qp pf :: PiecePartialFunction T count);
-        remapBase pq qp (InstantTimeSet ps) = InstantTimeSet $ remapBase pq qp ps;
-        remapBase _ _ EmptyTimeSet = EmptyTimeSet;
+        remapBase pq qp (PeriodRecurrence (pf :: PiecePartialFunction T count)) = PeriodRecurrence (remapBase pq qp pf :: PiecePartialFunction T count);
+        remapBase pq qp (InstantRecurrence ps) = InstantRecurrence $ remapBase pq qp ps;
+        remapBase _ _ EmptyRecurrence = EmptyRecurrence;
     };
 
-    tpAlways :: TimePhase;
-    tpAlways = PeriodTimeSet $ piecePartialConst ();
+    recAlways :: Recurrence;
+    recAlways = PeriodRecurrence $ piecePartialConst ();
 
-    tpNever :: TimePhase;
-    tpNever = EmptyTimeSet;
+    recNever :: Recurrence;
+    recNever = EmptyRecurrence;
 
-    tpIntersectPeriod :: forall count. Eq count => TimePhase -> PiecePartialFunction T count -> TimePhase;
-    tpIntersectPeriod EmptyTimeSet _ = EmptyTimeSet;
-    tpIntersectPeriod (PeriodTimeSet p1) p2 = PeriodTimeSet $ liftA2 (liftA2 (,)) p1 p2;
-    tpIntersectPeriod (InstantTimeSet i1) p2 = InstantTimeSet $ pointIntersectPiece (piecePartialToSet p2) i1;
+    recIntersectPeriod :: forall count. Eq count => Recurrence -> PiecePartialFunction T count -> Recurrence;
+    recIntersectPeriod EmptyRecurrence _ = EmptyRecurrence;
+    recIntersectPeriod (PeriodRecurrence p1) p2 = PeriodRecurrence $ liftA2 (liftA2 (,)) p1 p2;
+    recIntersectPeriod (InstantRecurrence i1) p2 = InstantRecurrence $ pointIntersectPiece (piecePartialToSet p2) i1;
 
-    tpIntersect :: TimePhase -> TimePhase -> TimePhase;
-    tpIntersect tp1 (PeriodTimeSet p2) = tpIntersectPeriod tp1 p2;
-    tpIntersect _ EmptyTimeSet = EmptyTimeSet;
-    tpIntersect (PeriodTimeSet p1) (InstantTimeSet i2) = InstantTimeSet $ pointIntersectPiece (piecePartialToSet p1) i2;
-    tpIntersect (InstantTimeSet i1) (InstantTimeSet i2) = InstantTimeSet $ intersect i1 i2;
-    tpIntersect EmptyTimeSet _ = EmptyTimeSet;
+    recIntersect :: Recurrence -> Recurrence -> Recurrence;
+    recIntersect tp1 (PeriodRecurrence p2) = recIntersectPeriod tp1 p2;
+    recIntersect _ EmptyRecurrence = EmptyRecurrence;
+    recIntersect (PeriodRecurrence p1) (InstantRecurrence i2) = InstantRecurrence $ pointIntersectPiece (piecePartialToSet p1) i2;
+    recIntersect (InstantRecurrence i1) (InstantRecurrence i2) = InstantRecurrence $ intersect i1 i2;
+    recIntersect EmptyRecurrence _ = EmptyRecurrence;
 
-    tpUnion :: TimePhase -> TimePhase -> M TimePhase;
-    tpUnion EmptyTimeSet tp = return tp;
-    tpUnion tp EmptyTimeSet = return tp;
-    tpUnion (PeriodTimeSet p1) (PeriodTimeSet p2) = return $ PeriodTimeSet $ liftA2 toEitherBoth p1 p2;
-    tpUnion (InstantTimeSet i1) (InstantTimeSet i2) = return $ InstantTimeSet $ union i1 i2;
-    tpUnion _ _ = reportError "cannot union instants and periods";
+    recUnion :: Recurrence -> Recurrence -> M Recurrence;
+    recUnion EmptyRecurrence tp = return tp;
+    recUnion tp EmptyRecurrence = return tp;
+    recUnion (PeriodRecurrence p1) (PeriodRecurrence p2) = return $ PeriodRecurrence $ liftA2 toEitherBoth p1 p2;
+    recUnion (InstantRecurrence i1) (InstantRecurrence i2) = return $ InstantRecurrence $ union i1 i2;
+    recUnion _ _ = reportError "cannot union instants and periods";
 
-    tpInvert :: TimePhase -> M TimePhase;
-    tpInvert EmptyTimeSet = return tpAlways;
-    tpInvert (PeriodTimeSet pf) = return $ PeriodTimeSet $ invert $ piecePartialToSet pf;
-    tpInvert (InstantTimeSet _) = reportError "cannot invert instants";
+    recInvert :: Recurrence -> M Recurrence;
+    recInvert EmptyRecurrence = return recAlways;
+    recInvert (PeriodRecurrence pf) = return $ PeriodRecurrence $ invert $ piecePartialToSet pf;
+    recInvert (InstantRecurrence _) = reportError "cannot invert instants";
 
-    tpDiff :: TimePhase -> TimePhase -> M TimePhase;
-    tpDiff tp1 EmptyTimeSet = return tp1;
-    tpDiff tp1 (PeriodTimeSet p2) = return $ tpIntersectPeriod tp1 (invert $ piecePartialToSet p2);
-    tpDiff EmptyTimeSet _ = return EmptyTimeSet;
-    tpDiff (InstantTimeSet i1) (InstantTimeSet i2) = return $ InstantTimeSet $ diff i1 i2;
-    tpDiff (PeriodTimeSet _) (InstantTimeSet _) = reportError "cannot subtract instants from periods";
+    recDiff :: Recurrence -> Recurrence -> M Recurrence;
+    recDiff tp1 EmptyRecurrence = return tp1;
+    recDiff tp1 (PeriodRecurrence p2) = return $ recIntersectPeriod tp1 (invert $ piecePartialToSet p2);
+    recDiff EmptyRecurrence _ = return EmptyRecurrence;
+    recDiff (InstantRecurrence i1) (InstantRecurrence i2) = return $ InstantRecurrence $ diff i1 i2;
+    recDiff (PeriodRecurrence _) (InstantRecurrence _) = reportError "cannot subtract instants from periods";
 
-    startOf :: TimePhase -> PointSet T;
-    startOf (InstantTimeSet ps) = ps;
-    startOf (PeriodTimeSet phase) = pointSet $ piecePartialStarts phase;
-    startOf EmptyTimeSet = empty;
+    recStart :: Recurrence -> PointSet T;
+    recStart (InstantRecurrence ps) = ps;
+    recStart (PeriodRecurrence ppf) = pointSet $ piecePartialStarts ppf;
+    recStart EmptyRecurrence = empty;
 
-    endOf :: TimePhase -> PointSet T;
-    endOf (InstantTimeSet ps) = ps;
-    endOf (PeriodTimeSet phase) = pointSet $ piecePartialEnds phase;
-    endOf EmptyTimeSet = empty;
+    recEnd :: Recurrence -> PointSet T;
+    recEnd (InstantRecurrence ps) = ps;
+    recEnd (PeriodRecurrence ppf) = pointSet $ piecePartialEnds ppf;
+    recEnd EmptyRecurrence = empty;
 
-    fromTo :: TimePhase -> TimePhase -> PieceSet T;
-    fromTo tsOn tsOff = let {?first=firstTime} in
-        pieceSetFromToPoints Nothing (startOf tsOn) (endOf tsOff);
+    recFromTo :: Recurrence -> Recurrence -> PieceSet T;
+    recFromTo tsOn tsOff = let {?first=firstTime} in
+        pieceSetFromToPoints Nothing (recStart tsOn) (recEnd tsOff);
 
-    fromUntil :: TimePhase -> TimePhase -> PieceSet T;
-    fromUntil tsOn tsOff = let {?first=firstTime} in
-        pieceSetFromToPoints Nothing (startOf tsOn) (startOf tsOff);
+    recFromUntil :: Recurrence -> Recurrence -> PieceSet T;
+    recFromUntil tsOn tsOff = let {?first=firstTime} in
+        pieceSetFromToPoints Nothing (recStart tsOn) (recStart tsOff);
 
-    onAfter :: TimePhase -> PieceSet T;
-    onAfter ts = let {?first = firstTime} in
-        pieceSetAfterPoint (startOf ts);
+    recFrom :: Recurrence -> PieceSet T;
+    recFrom ts = let {?first = firstTime} in
+        pieceSetAfterPoint (recStart ts);
 
-    nthIn :: Int -> TimePhase -> TimePhase -> TimePhase;
-    nthIn n (InstantTimeSet subject) (PeriodTimeSet delimiter) = let {?first = firstTime} in InstantTimeSet $ pointCountedIn n subject delimiter;
-    nthIn n (PeriodTimeSet subject) (PeriodTimeSet delimiter) = let {?first = firstTime} in PeriodTimeSet $ pieceCountedIn n subject delimiter;
-    nthIn _ _ _ = EmptyTimeSet;
+    recNth :: Int -> Recurrence -> Recurrence -> Recurrence;
+    recNth n (InstantRecurrence subject) (PeriodRecurrence delimiter) = let {?first = firstTime} in InstantRecurrence $ pointCountedIn n subject delimiter;
+    recNth n (PeriodRecurrence subject) (PeriodRecurrence delimiter) = let {?first = firstTime} in PeriodRecurrence $ pieceCountedIn n subject delimiter;
+    recNth _ _ _ = EmptyRecurrence;
 
-    nthFrom :: Int -> TimePhase -> TimePhase -> TimePhase;
-    nthFrom _n EmptyTimeSet _delimiter = EmptyTimeSet;
-    nthFrom n (InstantTimeSet subject) delimiter = let {?first = firstTime} in InstantTimeSet $ pointCountedOnAfter n subject (startOf delimiter);
-    nthFrom n (PeriodTimeSet subject) delimiter = let {?first = firstTime} in PeriodTimeSet $ pieceCountedOnAfter n subject (startOf delimiter);
+    recNthFrom :: Int -> Recurrence -> Recurrence -> Recurrence;
+    recNthFrom _n EmptyRecurrence _delimiter = EmptyRecurrence;
+    recNthFrom n (InstantRecurrence subject) delimiter = let {?first = firstTime} in InstantRecurrence $ pointCountedOnAfter n subject (recStart delimiter);
+    recNthFrom n (PeriodRecurrence subject) delimiter = let {?first = firstTime} in PeriodRecurrence $ pieceCountedOnAfter n subject (recStart delimiter);
 
-    tpBetween :: TimePhase -> TimePhase;
-    tpBetween EmptyTimeSet = tpAlways;
-    tpBetween (PeriodTimeSet pf) = PeriodTimeSet $ invert $ piecePartialToSet pf;
-    tpBetween (InstantTimeSet ps) = let {?first = firstTime} in PeriodTimeSet $ fmap Just $ piecePartialBetweenPoint ps;
+    recBetween :: Recurrence -> Recurrence;
+    recBetween EmptyRecurrence = recAlways;
+    recBetween (PeriodRecurrence pf) = PeriodRecurrence $ invert $ piecePartialToSet pf;
+    recBetween (InstantRecurrence ps) = let {?first = firstTime} in PeriodRecurrence $ fmap Just $ piecePartialBetweenPoint ps;
 
-    ofPhase :: TimePhase -> TimePhase -> TimePhase;
-    ofPhase picker (PeriodTimeSet phase) = let {?first = firstTime} in PeriodTimeSet $ phaseOf (piecePartialToSet phase) (startOf picker);
-    ofPhase _ _ = EmptyTimeSet;
+    recOf :: Recurrence -> Recurrence -> Recurrence;
+    recOf picker (PeriodRecurrence pf) = let {?first = firstTime} in PeriodRecurrence $ piecePartialOf (piecePartialToSet pf) (recStart picker);
+    recOf _ _ = EmptyRecurrence;
 }

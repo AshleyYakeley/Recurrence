@@ -8,8 +8,8 @@ module Interval(tests) where
     import Test.Tasty;
     import Test.Tasty.HUnit;
 
-    midnights :: TimePhase;
-    midnights = InstantTimeSet (isTimeOfDay midnight);
+    midnights :: Recurrence;
+    midnights = InstantRecurrence (isTimeOfDay midnight);
 
     dayMidnight :: Day -> T;
     dayMidnight localDay = let
