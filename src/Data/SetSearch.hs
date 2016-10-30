@@ -5,7 +5,6 @@ module Data.SetSearch
     module Data.SetSearch.MonotonicFunction,
     module Data.SetSearch.PointFunction,
     module Data.SetSearch.PointSet,
-    module Data.SetSearch.KnownPointSet,
     module Data.SetSearch.DeltaSmaller,
     module Data.SetSearch.PieceFunction,
     module Data.SetSearch.PieceSet,
@@ -17,7 +16,6 @@ module Data.SetSearch
     import Data.SetSearch.MonotonicFunction;
     import Data.SetSearch.PointFunction;
     import Data.SetSearch.PointSet;
-    import Data.SetSearch.KnownPointSet;
     import Data.SetSearch.DeltaSmaller;
     import Data.SetSearch.PieceFunction;
     import Data.SetSearch.PieceSet;

@@ -31,7 +31,6 @@ library
         Data.SetSearch.MonotonicFunction
         Data.SetSearch.PointFunction
         Data.SetSearch.PointSet
-        Data.SetSearch.KnownPointSet
         Data.SetSearch.DeltaSmaller
         Data.SetSearch.PieceFunction
         Data.SetSearch.PiecePartialFunction

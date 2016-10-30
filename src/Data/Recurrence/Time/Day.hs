@@ -26,7 +26,7 @@ module Data.Recurrence.Time.Day
     aDay = PeriodRecurrence $ fmap Just theDay;
 
     isTimeOfDay :: TimeOfDay -> PointSet T;
-    isTimeOfDay tod = knownToPointSet (kpsEach (\t -> localDay t) (\day -> LocalTime day tod));
+    isTimeOfDay tod = pointSet $ pointEveryInjection $ splitInjection (\day tm -> Just $ LocalTime day tm) (\(LocalTime day tm) -> (day,tm)) tod;
 
     -- | first day on and first day off (not last day)
     ;
