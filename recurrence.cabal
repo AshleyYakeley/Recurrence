@@ -75,7 +75,7 @@ executable recur
         ExistentialQuantification
         DefaultSignatures
         GeneralizedNewtypeDeriving
-    build-depends: base, time, recurrence
+    build-depends: base, time, recurrence, optparse-applicative
     main-is: Recur.hs
     ghc-options: -Wall -Werror
 

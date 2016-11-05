@@ -1,56 +1,78 @@
 module Main where
 {
-    import System.Environment;
-    import Text.Read;
-    import Data.Recurrence.Time;
-    import Data.Recurrence;
-    import Data.Recurrence.Calendar;
+    import Options.Applicative;
     import Data.SetSearch;
+    import Data.Recurrence;
+    import Data.Recurrence.Time;
+    import Data.Recurrence.Calendar;
 
-    matchArgs :: [String] -> IO ((Maybe T, Maybe Int), [String]);
-    matchArgs [] = return ((Nothing,Nothing),[]);
-    matchArgs ("--start":t:args) = do
+
+    data Options = MkOptions
     {
-        ((_,days),files) <- matchArgs args;
-        case runRead readPrec t of
-        {
-            Just value -> return ((Just value,days),files);
-            _ -> fail ("bad argument: " ++ (show t));
-        };
+        optStartTime :: Maybe T,
+        optDays :: Int,
+        optExpressions :: [String],
+        optFilePaths :: [FilePath]
     };
-    matchArgs ("--days":t:args) = do
+
+    optParser :: Parser Options;
+    optParser = let
     {
-        ((start,_),files) <- matchArgs args;
-        case runRead readPrec t of
-        {
-            Just value -> return ((start,Just value),files);
-            _ -> fail ("bad argument: " ++ (show t));
-        };
-    };
-    matchArgs (s@('-':_):_) = fail ("bad argument: " ++ (show s));
-    matchArgs (f:args) = do
-    {
-        (opts,files) <- matchArgs args;
-        return (opts,f:files);
-    };
+        startTimeParser :: Parser T;
+        startTimeParser = option auto $
+            long "start" <>
+            metavar "TIME" <>
+            help "start time (default now)";
+
+        daysParser :: Parser Int;
+        daysParser = option auto $
+            long "days" <>
+            metavar "DAYS" <>
+            help "calendar length (default 60)" <>
+            value 60;
+
+        expressionParser :: Parser String;
+        expressionParser = strOption $
+            short 'e' <>
+            long "expr" <>
+            metavar "EXPR" <>
+            help "recurrence expression";
+
+        fileParser :: Parser FilePath;
+        fileParser = argument str $
+            metavar "FILE" <>
+            help "recurrence file";
+    } in MkOptions <$>
+        optional startTimeParser <*>
+        daysParser <*>
+        many expressionParser <*>
+        many fileParser;
+
+    cmdParser :: ParserInfo Options;
+    cmdParser = info (helper <*> optParser) $
+        fullDesc <>
+        header "recur - show calendar of recurring events" <>
+        progDesc "Show calendar from TIME of length DAYS";
 
     main :: IO ();
-    main = do
+    main = execParser cmdParser >>= \MkOptions{..} -> do
     {
         now <- getNow;
-        args <- getArgs;
-        ((mtime,mdays),filepaths) <- matchArgs args;
-        start <- case mtime of
+        let
         {
-            Just time -> return time;
-            Nothing -> return now;
+            start = case optStartTime of
+            {
+                Just time -> time;
+                Nothing -> now;
+            };
+            end = addAffine ((fromIntegral optDays) * nominalDayLength) start;
         };
-        end <- return (case mdays of
+        calendar <- let {?now = now} in do
         {
-            Just days -> addAffine ((fromIntegral days) * nominalDayLength) start;
-            Nothing -> addAffine (60 * nominalDayLength) start;
-        });
-        itemlists <- let {?now = now} in mapM calendarFromFile filepaths;
-        printCalendar start end (concat itemlists);
+            expressionCalendars <- mapM calendarFromString optExpressions;
+            fileCalendars <- mapM calendarFromFile optFilePaths;
+            return $ concat $ expressionCalendars ++ fileCalendars;
+        };
+        printCalendar start end calendar;
     };
 }
