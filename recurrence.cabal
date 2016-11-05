@@ -76,7 +76,7 @@ executable recur
         DefaultSignatures
         GeneralizedNewtypeDeriving
     build-depends: base, time, recurrence
-    main-is: PhaseCalendar.hs
+    main-is: Recur.hs
     ghc-options: -Wall -Werror
 
 test-suite test
