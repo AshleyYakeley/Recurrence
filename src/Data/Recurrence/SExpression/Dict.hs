@@ -38,14 +38,16 @@ module Data.Recurrence.SExpression.Dict (dict,T) where
     dict "start" = Just (toValue recStart);
     dict "end" = Just (toValue recEnd);
     dict "from-until" = Just (toValue recFromUntil);
-    dict "through" = Just (toValue recFromTo);
+    dict "from-to" = Just (toValue recFromTo);
     dict "from" = Just (toValue recFrom);
     dict "until" = Just (toValue (invert . recFrom));
-    dict "nth" = Just (toValue recNth);
+    dict "nth-in" = Just (toValue recNthIn);
+    dict "nth-from" = Just (toValue recNthFrom);
     dict "of" = Just (toValue recOf);
     dict "all" = Just (toValue (id :: PieceSet T -> PieceSet T));
 
     dict "delay" = Just (toValue (delay :: NominalDiffTime -> Recurrence -> Recurrence));
+    dict "advance" = Just (toValue (advance :: NominalDiffTime -> Recurrence -> Recurrence));
 
     dict "now" = Just (toValue (single ?now :: PointSet T));
 

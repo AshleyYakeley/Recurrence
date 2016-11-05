@@ -13,72 +13,6 @@ A phase is a set S of disjoint closed-open intervals such that given any interva
 
 (Avoid before/after cut semantics.)
 
-Operations:
-
-i = point set
-p = phase set
-f = phase
-
-phase-set :: f -> p
-pieces :: p -> f
-
-inverse :: p -> p
-intersect :: p -> p -> p
-intersect :: i -> i -> i
-intersect :: p -> i -> i
-intersect :: i -> p -> i
-union :: p -> p -> p
-union :: i -> i -> i
-uni-not :: i -> i -> i
-uni-not :: (others)
-
-start: p -> i
-end :: p -> i
-between :: i -> i -> p
-
-delay :: diff -> f -> f
-delay :: diff -> p -> p
-delay :: diff -> i -> i
-
-times:
-year :: Int -> p
-month names :: p
-times :: i
-sunrise :: i
-sunset :: i
-daytime :: i = between sunrise sunset
-nighttime :: i = between sunset sunrise
-day :: f
-
-phase-set day = full
-inverse (phase-set day) = empty
-
-
-intersect: when, at, during, while, on
-union: and
-not: not
-intersect not: when not, except
-interval, between, from-to
-start of
-end of
-
-
-
-Grammar:
-(A)
-A A = intersect
-not A
-A,A = union
-A to A = between
-T before A = delay negate start
-T after A = delay end
-
-
-
-
-"every Thursday in 2013"
-"from one hour before sunrise to sunrise"
-"the first Sunday after the first full moon after the March equinox".
 
 (intersect Thursday (year 2013))
 (interval (delay sunrise -1h) sunrise)
@@ -92,24 +26,56 @@ T after A = delay end
 T n of T
 
 
+
+singles:
 never
-always?
-
-2008
-January
-5th
-3pm
-16:17
-
-sunrise
-sunset
-midday
+always
+now
 midnight
-daytime = sunrise to sunset
-nighttime = sunset to sunrise
+midday
+day
+month
+year
+Sunday etc.
+January etc.
+Easter
+[date & time format]
+*sunrise
+*sunset
+*daytime = sunrise to sunset
+*nighttime = sunset to sunrise
+*new-moon, full-moon etc.
+*March-equinox etc.
+*Spring-equinox etc.
 
-member "Wednesday Thursday"
+Grammar:
+(R)
+not R
+between R
+R except R
+R R -- intersect
+R when R -- intersect
+R in R -- intersect
+R at R -- intersect
+R and R -- union
+R,R -- union
+start R
+end R
+from R until R
+from R to R
+from R
+until R
+[nth] R in R
+*[nth]-last R in R
+[nth] R from R
+*[nth]-last R before R
+delay R D
+advance R D
+*D before R
+*D after R
 
-
-
-year :: time -> Int
+Examples:
+"Thursday in 2013"
+"from 1h before sunrise to sunrise"
+"first Sunday after first full-moon after March-equinox".
+"last Monday in May"

@@ -44,6 +44,9 @@ module Data.SetSearch.Set where
     delay :: (Affine (Base p),RemapBase p p) => Difference (Base p) -> p -> p;
     delay d = remapBase (addAffine d) (addAffine (negate d));
 
+    advance :: (Affine (Base p),RemapBase p p) => Difference (Base p) -> p -> p;
+    advance d = delay $ negate d;
+
     class Set (s :: *) where
     {
         empty :: s;

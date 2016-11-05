@@ -95,10 +95,10 @@ module Data.Recurrence.Time.Recurrence where
     recFrom ts = let {?first = firstTime} in
         pieceSetAfterPoint (recStart ts);
 
-    recNth :: Int -> Recurrence -> Recurrence -> Recurrence;
-    recNth n (InstantRecurrence subject) (PeriodRecurrence delimiter) = let {?first = firstTime} in InstantRecurrence $ pointCountedIn n subject delimiter;
-    recNth n (PeriodRecurrence subject) (PeriodRecurrence delimiter) = let {?first = firstTime} in PeriodRecurrence $ pieceCountedIn n subject delimiter;
-    recNth _ _ _ = EmptyRecurrence;
+    recNthIn :: Int -> Recurrence -> Recurrence -> Recurrence;
+    recNthIn n (InstantRecurrence subject) (PeriodRecurrence delimiter) = let {?first = firstTime} in InstantRecurrence $ pointCountedIn n subject delimiter;
+    recNthIn n (PeriodRecurrence subject) (PeriodRecurrence delimiter) = let {?first = firstTime} in PeriodRecurrence $ pieceCountedIn n subject delimiter;
+    recNthIn _ _ _ = EmptyRecurrence;
 
     recNthFrom :: Int -> Recurrence -> Recurrence -> Recurrence;
     recNthFrom _n EmptyRecurrence _delimiter = EmptyRecurrence;
