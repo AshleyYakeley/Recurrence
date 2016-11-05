@@ -9,8 +9,8 @@ module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
     import Data.Recurrence.SExpression;
     import Data.Recurrence.Calendar.Item;
 
-    readPhasesFile :: ReadPrec [SExpression Atom];
-    readPhasesFile = do
+    readRecurFile :: ReadPrec [SExpression Atom];
+    readRecurFile = do
     {
         exps <- readZeroOrMore readPrec;
         readAnyWhiteSpace;
@@ -26,16 +26,13 @@ module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
     };
     interpretItem _ = reportError "S-expression not in correct format";
 
-    readItems :: (?now :: T) => ReadPrec (M [Item]);
-    readItems = fmap (mapM interpretItem) readPhasesFile;
-
     calendarFromString :: (?now :: T,Monad m) => String -> m Calendar;
-    calendarFromString text = case readPrec_to_S readItems 0 text of
+    calendarFromString text = case readPrec_to_S readRecurFile 0 text of
     {
-        [(mitems,"")] -> case mitems of
+        [(exprs,"")] -> case mapM interpretItem exprs of
         {
             Left err -> fail err;
-            Right items -> return items;
+            Right calendar -> return calendar;
         };
         [(_,rest)] -> fail ("unreadable: " ++ (show rest));
         _ -> fail ("unreadable: " ++ (show text));

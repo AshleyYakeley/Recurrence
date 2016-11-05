@@ -55,7 +55,7 @@ module Golden(tests) where
     getTest :: (String,Integer) -> TestTree;
     getTest (name,days) = let
     {
-        path = "test/golden/"++name++".phases"
+        path = "test/golden/"++name++".recur"
     } in goldenVsFile name (path++".ref") (path++".out") $ runCalendar path (path++".out") days;
 
     tests :: TestTree;
