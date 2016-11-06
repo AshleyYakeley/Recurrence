@@ -1,5 +1,5 @@
 module Data.Recurrence.Time.Gregorian
-    (
+(
     Year,
     isSingleYear,
     yearOfDay,
@@ -14,10 +14,7 @@ module Data.Recurrence.Time.Gregorian
     DayOfMonth,
     isDayOfMonth,
     isMonthAndDayOfYear,
-
-    DayOfWeek,
-    isDayOfWeek,
-    ) where
+) where
 {
     import Prelude hiding (id,(.));
     import Control.Category;
@@ -48,8 +45,9 @@ module Data.Recurrence.Time.Gregorian
         dayToYear :: MonotonicSurjection Day Year;
         dayToYear = let
         {
-            yToFirstDay year = fromOrdinalDate year 1;
-        } in enumSurjection yearOfDay yToFirstDay;
+            yearToFirstDay :: Year -> Day;
+            yearToFirstDay year = fromOrdinalDate year 1;
+        } in enumSurjection yearOfDay yearToFirstDay;
     } in pieceEverySurjection (dayToYear . timeToDay);
 
     aYear :: Recurrence;
@@ -150,33 +148,4 @@ module Data.Recurrence.Time.Gregorian
 
     isMonthAndDayOfYear :: MonthOfYear -> DayOfMonth -> PieceSet T;
     isMonthAndDayOfYear m d = piecePartialToSet $ pieceMapSurjection timeToDay $ piecePartialEnumPoint $ pointEveryInjection $ miMonthAndDayOfYear (m,d);
-
-
-    -- Day of week
-
-    type WeekNumber = Integer;
-    type DayOfWeek = Int;
-
-    miDayOfWeek :: DayOfWeek -> MonotonicInjection WeekNumber Day;
-    miDayOfWeek = let
-    {
-        fromWeek :: WeekNumber -> DayOfWeek -> Maybe Day;
-        fromWeek _ d | d < 1 = Nothing;
-        fromWeek _ d | d > 7 = Nothing;
-        fromWeek wn d = let
-        {
-            d' = toInteger $ d - 1;
-            mjd = (wn * 7 + d') - 3;
-        } in Just $ ModifiedJulianDay mjd;
-
-        toWeek :: Day -> (WeekNumber, DayOfWeek);
-        toWeek (ModifiedJulianDay mjd) = let
-        {
-            (wn,d') = divMod (mjd + 3) 7;
-            d = (fromInteger d') + 1;
-        } in (wn,d);
-    } in splitInjection fromWeek toWeek;
-
-    isDayOfWeek :: DayOfWeek -> PieceSet T;
-    isDayOfWeek d = piecePartialToSet $ pieceMapSurjection timeToDay $ piecePartialEnumPoint $ pointEveryInjection $ miDayOfWeek d;
 }

@@ -29,11 +29,23 @@ module Data.Recurrence.SExpression.Dict (dict,T) where
     recWeekday :: PiecePartialFunction T Day;
     recWeekday = let
     {
-        isWeekDay :: Day -> Maybe Day;
-        isWeekDay (ModifiedJulianDay mjd) | mod mjd 7 == 3 = Nothing;
-        isWeekDay (ModifiedJulianDay mjd) | mod mjd 7 == 4 = Nothing;
-        isWeekDay d = Just d;
-    } in fmap isWeekDay theDay;
+        ff :: Day -> Maybe Day;
+        ff (ModifiedJulianDay mjd) | mod mjd 7 == 3 = Nothing;
+        ff (ModifiedJulianDay mjd) | mod mjd 7 == 4 = Nothing;
+        ff d = Just d;
+    } in fmap ff theDay;
+
+    recWorkingWeek :: PieceSet T;
+    recWorkingWeek = piecePartialToSet recWeekday;
+
+    recWeekend :: PieceSet T;
+    recWeekend = let
+    {
+        ff :: Day -> Maybe ();
+        ff (ModifiedJulianDay mjd) | mod mjd 7 == 3 = Just ();
+        ff (ModifiedJulianDay mjd) | mod mjd 7 == 4 = Just ();
+        ff _ = Nothing
+    } in fmap ff theDay;
 
     dict :: (?now :: T) => String -> Maybe Value;
 
@@ -66,7 +78,10 @@ module Data.Recurrence.SExpression.Dict (dict,T) where
     dict "month" = Just (toValue aMonth);
     dict "year" = Just (toValue aYear);
 
+    dict "week" = Just (toValue aWeek);
     dict "weekday" = Just (toValue recWeekday);
+    dict "weekend" = Just (toValue recWeekend);
+    dict "working-week" = Just (toValue recWorkingWeek);
     dict "Sunday" = Just (toValue (isDayOfWeek 1));
     dict "Monday" = Just (toValue (isDayOfWeek 2));
     dict "Tuesday" = Just (toValue (isDayOfWeek 3));

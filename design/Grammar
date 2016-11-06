@@ -36,6 +36,10 @@ midday
 day
 month
 year
+week
+weekday
+weekend
+working-week
 Sunday etc.
 January etc.
 Easter

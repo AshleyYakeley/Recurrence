@@ -45,6 +45,7 @@ library
     other-modules:
         Data.SExpression.Read
         Data.Recurrence.Time.Day
+        Data.Recurrence.Time.Week
         Data.Recurrence.Time.Gregorian
         Data.Recurrence.Time.Recurrence
         Data.Recurrence.SExpression.Value
