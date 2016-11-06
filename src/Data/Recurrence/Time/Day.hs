@@ -1,6 +1,7 @@
 module Data.Recurrence.Time.Day
     (
     timeToDay,
+    theDay,
     aDay,
     isTimeOfDay,
     isSingleInterval,

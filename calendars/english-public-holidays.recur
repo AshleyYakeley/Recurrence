@@ -2,11 +2,11 @@
 
 # from https://en.wikipedia.org/wiki/Public_holidays_in_the_United_Kingdom
 
-#("New Year's Day" (nth-from 1 weekday [-01-01]))
+("New Year's Day" (nth-from 1 weekday [-01-01]))
 ("Good Friday" (advance 2d Easter))
 ("Easter Monday" (delay 1d Easter))
 ("May Day Bank Holiday" (nth-in 1 Monday May))
 #("Spring Bank Holiday" (nth-last-in 1 Monday May))
 #("Late Summer Bank Holiday" (nth-last-in 1 Monday August))
-#("Christmas Day Bank Holiday" (nth-from 1 weekday [-12-25]))
-#("Boxing Day Bank Holiday" (nth-from 2 weekday [-12-25]))
+("Christmas Day Bank Holiday" (nth-from 1 weekday [-12-25]))
+("Boxing Day Bank Holiday" (nth-from 2 weekday [-12-25]))
