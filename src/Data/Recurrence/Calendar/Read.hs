@@ -1,6 +1,5 @@
 module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
 {
-    import System.IO;
     import Text.Read(readPrec);
     import Text.ParserCombinators.ReadPrec;
     import Data.Recurrence.Time;
@@ -39,5 +38,5 @@ module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
     };
 
     calendarFromFile :: (?now :: T) => FilePath -> IO Calendar;
-    calendarFromFile filepath = withFile filepath ReadMode $ \h -> hGetContents h >>= calendarFromString;
+    calendarFromFile filepath = readFile filepath >>= calendarFromString;
 }

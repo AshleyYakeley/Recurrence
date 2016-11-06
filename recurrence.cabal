@@ -85,6 +85,8 @@ test-suite test
     build-depends:
         base,
         time,
+        filepath,
+        directory,
         bytestring,
         utf8-string,
         countable,
@@ -115,3 +117,4 @@ test-suite test
         PointSet
         Interval
         Golden
+        Examples

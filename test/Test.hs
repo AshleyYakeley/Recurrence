@@ -5,16 +5,20 @@ module Main(main) where
     import qualified PointSet;
     import qualified Interval;
     import qualified Golden;
+    import qualified Examples;
 
-    tests :: TestTree;
-    tests = testGroup "recurrence"
-    [
-        Sets.tests,
-        PointSet.tests,
-        Interval.tests,
-        Golden.tests
-    ];
 
     main :: IO ();
-    main = defaultMain tests;
+    main = do
+    {
+        exampleTests <- Examples.makeTests;
+        defaultMain $ testGroup "recurrence"
+        [
+            Sets.tests,
+            PointSet.tests,
+            Interval.tests,
+            Golden.tests,
+            exampleTests
+        ];
+    };
 }

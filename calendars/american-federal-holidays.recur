@@ -1,0 +1,15 @@
+#!/usr/bin/env recur
+
+# from https://en.wikipedia.org/wiki/Federal_holidays_in_the_United_States
+
+#("New Year's Day" (closest-weekday [-01-01]))
+("Birthday of Martin Luther King, Jr." (nth-in 3 Monday January))
+#("Inauguration Day" (nth-from 1 (when day (not Sunday)) (when [-01-20] [year % 4 == 0]) ) )
+("Washington's Birthday" (nth-in 3 Monday February))
+#("Memorial Day" (nth-last-in 1 Monday May))
+#("Independence Day" (closest-weekday [-07-04]))
+("Labor Day" (nth-in 1 Monday September))
+("Columbus Day" (nth-in 2 Monday October))
+#("Veterans Day" (closest-weekday [-11-11]))
+("Thanksgiving Day" (nth-in 4 Thursday November))
+#("Christmas Day" (closest-weekday [-12-25]))
