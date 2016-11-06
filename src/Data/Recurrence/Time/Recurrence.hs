@@ -22,6 +22,9 @@ module Data.Recurrence.Time.Recurrence where
     firstTime :: T;
     firstTime = toDayStart $ ModifiedJulianDay (-10000000);
 
+    lastTime :: T;
+    lastTime = toDayStart $ ModifiedJulianDay 10000000;
+
     data Recurrence = forall a. Eq a => PeriodRecurrence (PiecePartialFunction T a) | InstantRecurrence (PointSet T) | EmptyRecurrence;
 
     instance BasedOn Recurrence where
@@ -100,10 +103,20 @@ module Data.Recurrence.Time.Recurrence where
     recNthIn n (PeriodRecurrence subject) (PeriodRecurrence delimiter) = let {?first = firstTime} in PeriodRecurrence $ pieceCountedIn n subject delimiter;
     recNthIn _ _ _ = EmptyRecurrence;
 
+    recNthLastIn :: Int -> Recurrence -> Recurrence -> Recurrence;
+    recNthLastIn n (InstantRecurrence subject) (PeriodRecurrence delimiter) = let {?last = lastTime} in InstantRecurrence $ pointCountedLastIn n subject delimiter;
+    recNthLastIn n (PeriodRecurrence subject) (PeriodRecurrence delimiter) = let {?last = lastTime} in PeriodRecurrence $ pieceCountedLastIn n subject delimiter;
+    recNthLastIn _ _ _ = EmptyRecurrence;
+
     recNthFrom :: Int -> Recurrence -> Recurrence -> Recurrence;
     recNthFrom _n EmptyRecurrence _delimiter = EmptyRecurrence;
     recNthFrom n (InstantRecurrence subject) delimiter = let {?first = firstTime} in InstantRecurrence $ pointCountedOnAfter n subject (recStart delimiter);
     recNthFrom n (PeriodRecurrence subject) delimiter = let {?first = firstTime} in PeriodRecurrence $ pieceCountedOnAfter n subject (recStart delimiter);
+
+    recNthLastUntil :: Int -> Recurrence -> Recurrence -> Recurrence;
+    recNthLastUntil _n EmptyRecurrence _delimiter = EmptyRecurrence;
+    recNthLastUntil n (InstantRecurrence subject) delimiter = let {?last = lastTime} in InstantRecurrence $ pointCountedBefore n subject (recStart delimiter);
+    recNthLastUntil n (PeriodRecurrence subject) delimiter = let {?last = lastTime} in PeriodRecurrence $ pieceCountedBefore n subject (recStart delimiter);
 
     recBetween :: Recurrence -> Recurrence;
     recBetween EmptyRecurrence = recAlways;

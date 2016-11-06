@@ -10,3 +10,15 @@
 ("third Sunday in April" (nth-in 3 Sunday April))
 ("third Sunday in May" (nth-in 3 Sunday May))
 ("third 3pm in May" (nth-in 3 [15:00] May))
+
+("last Sunday" (nth-last-in 1 Sunday month))
+("last Monday" (nth-last-in 1 Monday month))
+("last Tuesday" (nth-last-in 1 Tuesday month))
+("last Wednesday" (nth-last-in 1 Wednesday month))
+("last Thursday" (nth-last-in 1 Thursday month))
+("last Friday" (nth-last-in 1 Friday month))
+("last Saturday" (nth-last-in 1 Saturday month))
+
+("second-last Monday" (nth-last-in 2 Monday month))
+("second-last Monday in April" (nth-last-in 2 Monday April))
+("second-last 2pm in April" (nth-last-in 2 [14:00] April))

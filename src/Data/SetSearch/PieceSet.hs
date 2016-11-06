@@ -105,40 +105,96 @@ module Data.SetSearch.PieceSet where
         };
     } in pieceRememberPoints Nothing (MkStateMachine thought) memory;
 
-    pointCountedOnAfter :: (Ord t,?first :: t) => Int -> PointFunction t a -> PointFunction t b -> PointFunction t a;
-    pointCountedOnAfter n subject delimiter = pointIntersectPiece (pieceSetCountedOnAfter n subject delimiter) subject;
-
-    pieceCountedOnAfter :: (DeltaSmaller t,?first :: t,Eq a) => Int -> PiecePartialFunction t a -> PointSet t -> PiecePartialFunction t a;
-    pieceCountedOnAfter n subject delimiter = fmap (fmap snd) $ piecePartialBoth (pieceSetCountedOnAfter n (piecePartialStarts subject) delimiter) subject;
-
-    pieceSetCountedIn :: forall t a b. (DeltaSmaller t,?first :: t,Eq b) =>
-        Int -> PointFunction t a -> PiecePartialFunction t b -> PieceSet t;
-    pieceSetCountedIn n subject delimiter = let
+    pieceSetCountedBefore :: (Ord t,?last :: t) => Int -> PointFunction t a -> PointFunction t b -> PieceSet t;
+    pieceSetCountedBefore n subject delimiter = let
     {
-        memory :: PointFunction t (EitherBoth a (Maybe b,Maybe b));
-        memory = pointEitherBoth subject (pieceChanges delimiter);
-
-        thought :: Maybe (EitherBoth a (Maybe b,Maybe b),Int) -> Either Int (Maybe ());
+        memory = pointEitherBoth subject delimiter;
         thought Nothing = Left n;
         thought (Just (eb,0)) = Right $ case eb of
         {
             EBLeft _ -> Nothing; -- another subject, so no
-            EBRight (_,Just _) -> Just (); -- start delimiter, so yes
-            EBRight (_,Nothing) -> Nothing; -- end-only delimiterm so no
+            EBRight _ -> Just (); -- delimiter, so yes
             EBBoth _ _ -> Nothing; -- another subject on delimiter, so no
         };
         thought (Just (eb,i)) = case eb of
         {
             EBLeft _ -> Left (i - 1); -- another subject, so try next
             EBRight _ -> Right Nothing; -- delimiter too soon, so no
-            EBBoth _ (_,Just _) -> Right $ if i == 1 then Just () else Nothing; -- another subject on start delimiter, so only if n is one
-            EBBoth _ (_,Nothing) -> Right Nothing; -- end-only delimiterm so no
+            EBBoth _ _ -> Right $ if i == 1 then Just () else Nothing; -- another subject on delimiter, so only if n is one
+        };
+    } in piecePredictPoints Nothing (MkStateMachine thought) memory;
+
+    pointCountedOnAfter :: (Ord t,?first :: t) => Int -> PointFunction t a -> PointFunction t b -> PointFunction t a;
+    pointCountedOnAfter n subject delimiter = pointIntersectPiece (pieceSetCountedOnAfter n subject delimiter) subject;
+
+    pointCountedBefore :: (Ord t,?last :: t) => Int -> PointFunction t a -> PointFunction t b -> PointFunction t a;
+    pointCountedBefore n subject delimiter = pointIntersectPiece (pieceSetCountedBefore n subject delimiter) subject;
+
+    pieceCountedOnAfter :: (DeltaSmaller t,?first :: t,Eq a) => Int -> PiecePartialFunction t a -> PointSet t -> PiecePartialFunction t a;
+    pieceCountedOnAfter n subject delimiter = fmap (fmap snd) $ piecePartialBoth (pieceSetCountedOnAfter n (piecePartialStarts subject) delimiter) subject;
+
+    pieceCountedBefore :: (DeltaSmaller t,?last :: t,Eq a) => Int -> PiecePartialFunction t a -> PointSet t -> PiecePartialFunction t a;
+    pieceCountedBefore n subject delimiter = fmap (fmap snd) $ piecePartialBoth (pieceSetCountedBefore n (piecePartialStarts subject) delimiter) subject;
+
+    pieceSetCountedIn :: forall t a b. (DeltaSmaller t,?first :: t,Eq b) =>
+        Int -> PointFunction t a -> PiecePartialFunction t b -> PieceSet t;
+    pieceSetCountedIn n subject delimiter = let
+    {
+        memory :: PointFunction t (EitherBoth a (Maybe b));
+        memory = pointEitherBoth subject $ fmap snd $ pieceChanges delimiter;
+
+        thought :: Maybe (EitherBoth a (Maybe b),Int) -> Either Int (Maybe ());
+        thought Nothing = Left n;
+        thought (Just (eb,0)) = Right $ case eb of
+        {
+            EBLeft _ -> Nothing; -- another subject, so no
+            EBRight (Just _) -> Just (); -- start delimiter, so yes
+            EBRight Nothing -> Nothing; -- end-only delimiterm so no
+            EBBoth _ _ -> Nothing; -- another subject on delimiter, so no
+        };
+        thought (Just (eb,i)) = case eb of
+        {
+            EBLeft _ -> Left (i - 1); -- another subject, so try next
+            EBRight _ -> Right Nothing; -- delimiter too soon, so no
+            EBBoth _ (Just _) -> Right $ if i == 1 then Just () else Nothing; -- another subject on start delimiter, so only if n is one
+            EBBoth _ Nothing -> Right Nothing; -- end-only delimiterm so no
         };
     } in pieceRememberPoints Nothing (MkStateMachine thought) memory;
+
+    pieceSetCountedLastIn :: forall t a b. (DeltaSmaller t,?last :: t,Eq b) =>
+        Int -> PointFunction t a -> PiecePartialFunction t b -> PieceSet t;
+    pieceSetCountedLastIn n subject delimiter = let
+    {
+        memory :: PointFunction t (EitherBoth a (Maybe b));
+        memory = pointEitherBoth subject $ fmap fst $ pieceChanges delimiter;
+
+        thought :: Maybe (EitherBoth a (Maybe b),Int) -> Either Int (Maybe ());
+        thought Nothing = Left n;
+        thought (Just (eb,0)) = Right $ case eb of
+        {
+            EBLeft _ -> Nothing; -- another subject, so no
+            EBRight (Just _) -> Just (); -- start delimiter, so yes
+            EBRight Nothing -> Nothing; -- end-only delimiterm so no
+            EBBoth _ _ -> Nothing; -- another subject on delimiter, so no
+        };
+        thought (Just (eb,i)) = case eb of
+        {
+            EBLeft _ -> Left (i - 1); -- another subject, so try next
+            EBRight _ -> Right Nothing; -- delimiter too soon, so no
+            EBBoth _ (Just _) -> Right $ if i == 1 then Just () else Nothing; -- another subject on start delimiter, so only if n is one
+            EBBoth _ Nothing -> Right Nothing; -- end-only delimiterm so no
+        };
+    } in piecePredictPoints Nothing (MkStateMachine thought) memory;
 
     pointCountedIn :: (DeltaSmaller t,?first :: t,Eq b) => Int -> PointSet t -> PiecePartialFunction t b -> PointSet t;
     pointCountedIn n subject delimiter = pointIntersectPiece (pieceSetCountedIn n subject delimiter) subject;
 
+    pointCountedLastIn :: (DeltaSmaller t,?last :: t,Eq b) => Int -> PointSet t -> PiecePartialFunction t b -> PointSet t;
+    pointCountedLastIn n subject delimiter = pointIntersectPiece (pieceSetCountedLastIn n subject delimiter) subject;
+
     pieceCountedIn :: (DeltaSmaller t,?first :: t,Eq a,Eq b) => Int -> PiecePartialFunction t a -> PiecePartialFunction t b -> PiecePartialFunction t a;
     pieceCountedIn n subject delimiter = fmap (fmap snd) $ piecePartialBoth (pieceSetCountedIn n (piecePartialStarts subject) delimiter) subject;
+
+    pieceCountedLastIn :: (DeltaSmaller t,?last :: t,Eq a,Eq b) => Int -> PiecePartialFunction t a -> PiecePartialFunction t b -> PiecePartialFunction t a;
+    pieceCountedLastIn n subject delimiter = fmap (fmap snd) $ piecePartialBoth (pieceSetCountedLastIn n (piecePartialEnds subject) delimiter) subject;
 }

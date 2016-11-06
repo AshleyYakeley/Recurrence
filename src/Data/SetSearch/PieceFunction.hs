@@ -80,19 +80,28 @@ module Data.SetSearch.PieceFunction where
 
     data StateMachine a b = forall s. MkStateMachine (Maybe (a,s) -> Either s b);
 
-    -- | search pastwards, using the state machine
-    ;
-    pieceRememberPoints :: (?first :: t) => b -> StateMachine a b -> PointFunction t a -> PieceFunction t b;
-    pieceRememberPoints def (MkStateMachine tf) pf@(MkPointFunction f) = let
+    -- actually works equally well for forwards and backwards
+    pieceRunStateMachine :: t -> b -> StateMachine a b -> PointFunction t a -> PieceFunction t b;
+    pieceRunStateMachine limit def (MkStateMachine tf) pf@(MkPointFunction f) = let
     {
         runState _pts (Right b) = b;
         runState ((_,a):rest) (Left s) = runState rest $ tf $ Just (a,s);
         runState [] (Left _s) = def;
 
-        pieceEval t = runState (f t ?first) (tf Nothing);
+        pieceEval t = runState (f t limit) (tf Nothing);
 
         pieceJoints = pointSet pf;
     } in MkPieceFunction {..};
+
+    -- | search pastwards, using the state machine
+    ;
+    pieceRememberPoints :: (?first :: t) => b -> StateMachine a b -> PointFunction t a -> PieceFunction t b;
+    pieceRememberPoints = pieceRunStateMachine ?first;
+
+    -- | search futurewards, using the state machine
+    ;
+    piecePredictPoints :: (?last :: t) => b -> StateMachine a b -> PointFunction t a -> PieceFunction t b;
+    piecePredictPoints = pieceRunStateMachine ?last;
 
     pieceLatestPoint :: (?first :: t) => a -> PointFunction t a -> PieceFunction t a;
     pieceLatestPoint def = let

@@ -6,7 +6,7 @@
 ("Birthday of Martin Luther King, Jr." (nth-in 3 Monday January))
 #("Inauguration Day" (nth-from 1 (when day (not Sunday)) (when [-01-20] [year % 4 == 0]) ) )
 ("Washington's Birthday" (nth-in 3 Monday February))
-#("Memorial Day" (nth-last-in 1 Monday May))
+("Memorial Day" (nth-last-in 1 Monday May))
 #("Independence Day" (closest-weekday [-07-04]))
 ("Labor Day" (nth-in 1 Monday September))
 ("Columbus Day" (nth-in 2 Monday October))

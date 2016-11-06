@@ -64,6 +64,8 @@ module Data.Recurrence.SExpression.Dict (dict,T) where
     dict "until" = Just (toValue (invert . recFrom));
     dict "nth-in" = Just (toValue recNthIn);
     dict "nth-from" = Just (toValue recNthFrom);
+    dict "nth-last-in" = Just (toValue recNthLastIn);
+    dict "nth-last-until" = Just (toValue recNthLastUntil);
     dict "of" = Just (toValue recOf);
     dict "all" = Just (toValue (id :: PieceSet T -> PieceSet T));
 

@@ -70,9 +70,9 @@ from R to R
 from R
 until R
 [nth] R in R
-*[nth]-last R in R
+[nth]-last R in R
 [nth] R from R
-*[nth]-last R before R
+[nth]-last R before R
 delay R D
 advance R D
 *D before R
