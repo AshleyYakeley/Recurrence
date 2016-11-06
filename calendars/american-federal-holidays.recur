@@ -4,7 +4,7 @@
 
 #("New Year's Day" (closest-weekday [-01-01]))
 ("Birthday of Martin Luther King, Jr." (nth-in 3 Monday January))
-#("Inauguration Day" (nth-from 1 (when day (not Sunday)) (when [-01-20] [year % 4 == 0]) ) )
+#("Inauguration Day" (nth-from 1 (except day Sunday) (when [-01-20] (every-nth-from 4 year 1788)) ) )
 ("Washington's Birthday" (nth-in 3 Monday February))
 ("Memorial Day" (nth-last-in 1 Monday May))
 #("Independence Day" (closest-weekday [-07-04]))
