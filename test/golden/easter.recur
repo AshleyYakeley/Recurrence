@@ -1,4 +1,4 @@
-("Palm Sunday" (delay -7d Easter))
-("Easter" Easter)
-("Ascension Day" (delay 39d Easter))
-("Pentecost" (delay 49d Easter))
+(event "Palm Sunday" (delay -7d Easter))
+(event "Easter" Easter)
+(event "Ascension Day" (delay 39d Easter))
+(event "Pentecost" (delay 49d Easter))

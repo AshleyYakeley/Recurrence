@@ -1,19 +1,19 @@
-("Impossible" (when Wednesday Thursday))
+(event "Impossible" (when Wednesday Thursday))
 
-("Sunday" Sunday)
-("Monday" Monday)
-("Tuesday" Tuesday)
-("Wednesday" Wednesday)
-("Thursday" Thursday)
-("Friday" Friday)
-("Saturday" Saturday)
+(event "Sunday" Sunday)
+(event "Monday" Monday)
+(event "Tuesday" Tuesday)
+(event "Wednesday" Wednesday)
+(event "Thursday" Thursday)
+(event "Friday" Friday)
+(event "Saturday" Saturday)
 
-("MT" (and Monday Tuesday))
-("TW" (and Tuesday Wednesday))
-("WT" (and Wednesday Thursday))
+(event "MT" (and Monday Tuesday))
+(event "TW" (and Tuesday Wednesday))
+(event "WT" (and Wednesday Thursday))
 
-("midnight" midnight)
+(event "midnight" midnight)
 
-("MT (let)" (let t Tuesday (and Monday t) ))
+(event "MT (let)" (let t Tuesday (and Monday t) ))
 
-("1am" (delay 1h midnight))
+(event "1am" (delay 1h midnight))

@@ -17,12 +17,12 @@ module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
     };
 
     interpretItem :: Dict -> SExpression Atom -> M (Either Dict Item);
-    interpretItem dict (ListSExpression [IdentifierSExpression "let",key,value]) = do
+    interpretItem dict (FuncSExpression "let" [key,value]) = do
     {
         newdict <- evalBinding dict key value;
         return $ Left newdict;
     };
-    interpretItem dict (ListSExpression [IdentifierSExpression name,defn]) = do
+    interpretItem dict (FuncSExpression "event" [IdentifierSExpression name,defn]) = do
     {
         value <- eval dict defn;
         rc <- fromValue value;

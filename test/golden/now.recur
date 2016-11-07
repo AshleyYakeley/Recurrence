@@ -1,2 +1,2 @@
-("now" now)
-("today" (of now day))
+(event "now" now)
+(event "today" (of now day))

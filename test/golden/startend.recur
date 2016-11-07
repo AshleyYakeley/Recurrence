@@ -1,4 +1,4 @@
-("Saturday start" (start Saturday))
-("Sunday end" (end Sunday))
-("midnight start" (start midnight))
-("midnight end" (end midnight))
+(event "Saturday start" (start Saturday))
+(event "Sunday end" (end Sunday))
+(event "midnight start" (start midnight))
+(event "midnight end" (end midnight))
