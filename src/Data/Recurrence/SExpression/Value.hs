@@ -4,10 +4,10 @@ module Data.Recurrence.SExpression.Value where
     import Data.SetSearch;
     import Data.Recurrence.Time;
 
-    data Value = TimeSetValue Recurrence | IntegerValue Int | DurationValue NominalDiffTime | FunctionValue ([Value] -> M Value);
+    data Value = RecurrenceValue Recurrence | IntegerValue Int | DurationValue NominalDiffTime | FunctionValue ([Value] -> M Value);
     instance Show Value where
     {
-        show (TimeSetValue _) = "<recurrence>";
+        show (RecurrenceValue _) = "<recurrence>";
         show (IntegerValue i) = show i;
         show (DurationValue d) = show d;
         show (FunctionValue _) = "<function>";
@@ -86,12 +86,12 @@ module Data.Recurrence.SExpression.Value where
 
     instance ToValue Recurrence where
     {
-        toValue = TimeSetValue;
+        toValue = RecurrenceValue;
     };
 
     instance FromValue Recurrence where
     {
-        fromValue (TimeSetValue x) = return x;
+        fromValue (RecurrenceValue x) = return x;
         fromValue _ = reportError "expected times";
     };
 
