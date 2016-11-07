@@ -14,6 +14,6 @@
 
 ("midnight" midnight)
 
-("MT (let)" (let ((t Tuesday)) (and Monday t) ))
+("MT (let)" (let t Tuesday (and Monday t) ))
 
 ("1am" (delay 1h midnight))

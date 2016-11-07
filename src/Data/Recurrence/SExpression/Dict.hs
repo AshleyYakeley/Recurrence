@@ -1,4 +1,4 @@
-module Data.Recurrence.SExpression.Dict (dict,T) where
+module Data.Recurrence.SExpression.Dict (stdDict,T) where
 {
     import Data.Time;
     import Data.Time.Calendar.Easter;
@@ -47,65 +47,65 @@ module Data.Recurrence.SExpression.Dict (dict,T) where
         ff _ = Nothing
     } in fmap ff theDay;
 
-    dict :: (?now :: T) => String -> Maybe Value;
+    stdDict :: (?now :: T) => String -> Maybe Value;
 
-    dict "never" = Just (toValue (recNever :: Recurrence));
-    dict "always" = Just (toValue (recAlways :: Recurrence));
-    dict "not" = Just (toValue (recInvert :: Recurrence -> M Recurrence));
-    dict "between" = Just (toValue recBetween);
-    dict "except" = Just (toValue (recDiff :: Recurrence -> Recurrence -> M Recurrence));
-    dict "when" = Just (toValue recIntersectAll);
-    dict "and" = Just (toValue recUnionAll);
-    dict "start" = Just (toValue recStart);
-    dict "end" = Just (toValue recEnd);
-    dict "from-until" = Just (toValue recFromUntil);
-    dict "from-to" = Just (toValue recFromTo);
-    dict "from" = Just (toValue recFrom);
-    dict "until" = Just (toValue (invert . recFrom));
-    dict "nth-in" = Just (toValue recNthIn);
-    dict "nth-from" = Just (toValue recNthFrom);
-    dict "nth-last-in" = Just (toValue recNthLastIn);
-    dict "nth-last-until" = Just (toValue recNthLastUntil);
-    dict "of" = Just (toValue recOf);
-    dict "all" = Just (toValue (id :: PieceSet T -> PieceSet T));
+    stdDict "never" = Just (toValue (recNever :: Recurrence));
+    stdDict "always" = Just (toValue (recAlways :: Recurrence));
+    stdDict "not" = Just (toValue (recInvert :: Recurrence -> M Recurrence));
+    stdDict "between" = Just (toValue recBetween);
+    stdDict "except" = Just (toValue (recDiff :: Recurrence -> Recurrence -> M Recurrence));
+    stdDict "when" = Just (toValue recIntersectAll);
+    stdDict "and" = Just (toValue recUnionAll);
+    stdDict "start" = Just (toValue recStart);
+    stdDict "end" = Just (toValue recEnd);
+    stdDict "from-until" = Just (toValue recFromUntil);
+    stdDict "from-to" = Just (toValue recFromTo);
+    stdDict "from" = Just (toValue recFrom);
+    stdDict "until" = Just (toValue (invert . recFrom));
+    stdDict "nth-in" = Just (toValue recNthIn);
+    stdDict "nth-from" = Just (toValue recNthFrom);
+    stdDict "nth-last-in" = Just (toValue recNthLastIn);
+    stdDict "nth-last-until" = Just (toValue recNthLastUntil);
+    stdDict "of" = Just (toValue recOf);
+    stdDict "all" = Just (toValue (id :: PieceSet T -> PieceSet T));
 
-    dict "delay" = Just (toValue (delay :: NominalDiffTime -> Recurrence -> Recurrence));
-    dict "advance" = Just (toValue (advance :: NominalDiffTime -> Recurrence -> Recurrence));
+    stdDict "delay" = Just (toValue (delay :: NominalDiffTime -> Recurrence -> Recurrence));
+    stdDict "advance" = Just (toValue (advance :: NominalDiffTime -> Recurrence -> Recurrence));
 
-    dict "now" = Just (toValue (single ?now :: PointSet T));
+    stdDict "now" = Just (toValue (single ?now :: PointSet T));
 
-    dict "midnight" = Just (toValue (isTimeOfDay midnight));
-    dict "midday" = Just (toValue (isTimeOfDay midday));
-    dict "day" = Just (toValue aDay);
-    dict "month" = Just (toValue aMonth);
-    dict "year" = Just (toValue aYear);
+    stdDict "midnight" = Just (toValue (isTimeOfDay midnight));
+    stdDict "midday" = Just (toValue (isTimeOfDay midday));
+    stdDict "day" = Just (toValue aDay);
+    stdDict "month" = Just (toValue aMonth);
+    stdDict "year" = Just (toValue aYear);
 
-    dict "week" = Just (toValue aWeek);
-    dict "weekday" = Just (toValue recWeekday);
-    dict "weekend" = Just (toValue recWeekend);
-    dict "working-week" = Just (toValue recWorkingWeek);
-    dict "Sunday" = Just (toValue (isDayOfWeek 1));
-    dict "Monday" = Just (toValue (isDayOfWeek 2));
-    dict "Tuesday" = Just (toValue (isDayOfWeek 3));
-    dict "Wednesday" = Just (toValue (isDayOfWeek 4));
-    dict "Thursday" = Just (toValue (isDayOfWeek 5));
-    dict "Friday" = Just (toValue (isDayOfWeek 6));
-    dict "Saturday" = Just (toValue (isDayOfWeek 7));
+    stdDict "week" = Just (toValue aWeek);
+    stdDict "weekday" = Just (toValue recWeekday);
+    stdDict "weekend" = Just (toValue recWeekend);
+    stdDict "working-week" = Just (toValue recWorkingWeek);
+    stdDict "Sunday" = Just (toValue (isDayOfWeek 1));
+    stdDict "Monday" = Just (toValue (isDayOfWeek 2));
+    stdDict "Tuesday" = Just (toValue (isDayOfWeek 3));
+    stdDict "Wednesday" = Just (toValue (isDayOfWeek 4));
+    stdDict "Thursday" = Just (toValue (isDayOfWeek 5));
+    stdDict "Friday" = Just (toValue (isDayOfWeek 6));
+    stdDict "Saturday" = Just (toValue (isDayOfWeek 7));
 
-    dict "January" = Just (toValue (isMonthOfYear 1));
-    dict "February" = Just (toValue (isMonthOfYear 2));
-    dict "March" = Just (toValue (isMonthOfYear 3));
-    dict "April" = Just (toValue (isMonthOfYear 4));
-    dict "May" = Just (toValue (isMonthOfYear 5));
-    dict "June" = Just (toValue (isMonthOfYear 6));
-    dict "July" = Just (toValue (isMonthOfYear 7));
-    dict "August" = Just (toValue (isMonthOfYear 8));
-    dict "September" = Just (toValue (isMonthOfYear 9));
-    dict "October" = Just (toValue (isMonthOfYear 10));
-    dict "November" = Just (toValue (isMonthOfYear 11));
-    dict "December" = Just (toValue (isMonthOfYear 12));
+    stdDict "January" = Just (toValue (isMonthOfYear 1));
+    stdDict "February" = Just (toValue (isMonthOfYear 2));
+    stdDict "March" = Just (toValue (isMonthOfYear 3));
+    stdDict "April" = Just (toValue (isMonthOfYear 4));
+    stdDict "May" = Just (toValue (isMonthOfYear 5));
+    stdDict "June" = Just (toValue (isMonthOfYear 6));
+    stdDict "July" = Just (toValue (isMonthOfYear 7));
+    stdDict "August" = Just (toValue (isMonthOfYear 8));
+    stdDict "September" = Just (toValue (isMonthOfYear 9));
+    stdDict "October" = Just (toValue (isMonthOfYear 10));
+    stdDict "November" = Just (toValue (isMonthOfYear 11));
+    stdDict "December" = Just (toValue (isMonthOfYear 12));
 
-    dict "Easter" = Just (toValue (dayEachYear (Just . gregorianEaster)));
+    stdDict "Easter" = Just (toValue (dayEachYear (Just . gregorianEaster)));
 
-    dict _s = Nothing;
+    stdDict _s = Nothing;
 }

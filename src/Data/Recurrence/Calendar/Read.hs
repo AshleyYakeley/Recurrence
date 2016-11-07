@@ -16,19 +16,40 @@ module Data.Recurrence.Calendar.Read(calendarFromString,calendarFromFile) where
         return exps;
     };
 
-    interpretItem :: (?now :: T) => SExpression Atom -> M Item;
-    interpretItem (ListSExpression [AtomSExpression (IdentifierAtom name),defn]) = do
+    interpretItem :: Dict -> SExpression Atom -> M (Either Dict Item);
+    interpretItem dict (ListSExpression [IdentifierSExpression "let",key,value]) = do
     {
-        value <- evalWithDict defn;
-        rc <- fromValue value;
-        return (MkItem name rc);
+        newdict <- evalBinding dict key value;
+        return $ Left newdict;
     };
-    interpretItem _ = reportError "S-expression not in correct format";
+    interpretItem dict (ListSExpression [IdentifierSExpression name,defn]) = do
+    {
+        value <- eval dict defn;
+        rc <- fromValue value;
+        return $ Right $ MkItem name rc;
+    };
+    interpretItem _ _ = reportError "S-expression not in correct format";
+
+    calendarFromExpressions :: Dict -> [SExpression Atom] -> M Calendar;
+    calendarFromExpressions _dict [] = return [];
+    calendarFromExpressions dict (expr:exprs) = do
+    {
+        edi <- interpretItem dict expr;
+        case edi of
+        {
+            Left newdict -> calendarFromExpressions newdict exprs;
+            Right item -> do
+            {
+                items <- calendarFromExpressions dict exprs;
+                return $ item:items;
+            }
+        }
+    };
 
     calendarFromString :: (?now :: T,Monad m) => String -> m Calendar;
     calendarFromString text = case readPrec_to_S readRecurFile 0 text of
     {
-        [(exprs,"")] -> case mapM interpretItem exprs of
+        [(exprs,"")] -> case calendarFromExpressions stdDict exprs of
         {
             Left err -> fail err;
             Right calendar -> return calendar;

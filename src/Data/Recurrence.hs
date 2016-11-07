@@ -1,4 +1,4 @@
-module Data.Recurrence(M,T,Value,runRead,readValue,evalWithDict) where
+module Data.Recurrence(M,T,Value,runRead,readValue) where
 {
     import Text.Read;
     import Data.Recurrence.Time;
@@ -6,5 +6,5 @@ module Data.Recurrence(M,T,Value,runRead,readValue,evalWithDict) where
     import Data.Recurrence.SExpression;
 
     readValue :: (?now :: T) => ReadPrec (M Value);
-    readValue = fmap evalWithDict readPrec;
+    readValue = fmap (eval stdDict) readPrec;
 }

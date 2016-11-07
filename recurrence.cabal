@@ -22,6 +22,7 @@ library
         ExistentialQuantification
         DefaultSignatures
         GeneralizedNewtypeDeriving
+        PatternSynonyms
     build-depends:
         base,
         time
@@ -76,6 +77,7 @@ executable recur
         ExistentialQuantification
         DefaultSignatures
         GeneralizedNewtypeDeriving
+        PatternSynonyms
     build-depends: base, time, recurrence, optparse-applicative
     main-is: Recur.hs
     ghc-options: -Wall -Werror
@@ -111,6 +113,7 @@ test-suite test
         ExistentialQuantification
         DefaultSignatures
         GeneralizedNewtypeDeriving
+        PatternSynonyms
     ghc-options: -Wall -Werror
     main-is: Test.hs
     other-modules:

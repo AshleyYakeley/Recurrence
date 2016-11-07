@@ -5,6 +5,13 @@ module Data.Recurrence.SExpression.Value where
     import Data.Recurrence.Time;
 
     data Value = TimeSetValue Recurrence | IntegerValue Int | DurationValue NominalDiffTime | FunctionValue ([Value] -> M Value);
+    instance Show Value where
+    {
+        show (TimeSetValue _) = "<recurrence>";
+        show (IntegerValue i) = show i;
+        show (DurationValue d) = show d;
+        show (FunctionValue _) = "<function>";
+    };
 
     class ToValues a where
     {

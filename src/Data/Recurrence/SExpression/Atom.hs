@@ -12,6 +12,11 @@ module Data.Recurrence.SExpression.Atom(Atom(..)) where
 
 
     data Atom = IdentifierAtom String | LiteralAtom Value;
+    instance Show Atom where
+    {
+        show (IdentifierAtom s) = show s;
+        show (LiteralAtom v) = show v;
+    };
 
     isGoodFirstChar :: Char -> Bool;
     isGoodFirstChar '_' = True;
